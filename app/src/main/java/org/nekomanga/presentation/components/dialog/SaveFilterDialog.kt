@@ -101,6 +101,7 @@ fun SaveFilterDialog(
                         ButtonDefaults.textButtonColors(
                             contentColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.save))
                 }
@@ -112,6 +113,7 @@ fun SaveFilterDialog(
                         ButtonDefaults.textButtonColors(
                             contentColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.cancel))
                 }

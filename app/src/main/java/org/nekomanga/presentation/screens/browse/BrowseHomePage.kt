@@ -19,6 +19,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -75,7 +76,8 @@ fun BrowseHomePage(
 
             if (mangaList.isNotEmpty()) {
                 TextButton(
-                    onClick = { titleClick(homePageManga.displayScreenType.toSerializable()) }
+                    onClick = { titleClick(homePageManga.displayScreenType.toSerializable()) },
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -135,7 +137,7 @@ fun BrowseHomePage(
             }
         }
         item {
-            TextButton(onClick = randomClick) {
+            TextButton(onClick = randomClick, shapes = ButtonDefaults.shapes()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,

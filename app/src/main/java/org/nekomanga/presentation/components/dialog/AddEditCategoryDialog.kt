@@ -110,6 +110,7 @@ fun AddEditCategoryDialog(
                         ButtonDefaults.textButtonColors(
                             contentColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.save))
                 }
@@ -121,6 +122,7 @@ fun AddEditCategoryDialog(
                         ButtonDefaults.textButtonColors(
                             contentColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.cancel))
                 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -77,7 +78,7 @@ fun <T> ListPreferenceWidget(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { isDialogShown = false }) {
+                TextButton(onClick = { isDialogShown = false }, shapes = ButtonDefaults.shapes()) {
                     Text(text = stringResource(R.string.cancel))
                 }
             },

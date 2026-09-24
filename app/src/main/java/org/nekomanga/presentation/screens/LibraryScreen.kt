@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ModalBottomSheet
@@ -419,7 +420,7 @@ private fun GlobalSearchRow(
         modifier = Modifier.fillMaxWidth().padding(paddingValues).padding(Size.small),
         contentAlignment = Alignment.Center,
     ) {
-        ElevatedButton(onClick = { onSearchMangaDex(query) }) {
+        ElevatedButton(onClick = { onSearchMangaDex(query) }, shapes = ButtonDefaults.shapes()) {
             Text(text = stringResource(R.string.search_globally) + ": " + query)
         }
     }

@@ -2,6 +2,7 @@ package org.nekomanga.presentation.components.dialog
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,13 +45,16 @@ fun ClearDatabaseDialog(onDismiss: () -> Unit, onConfirm: (Boolean) -> Unit) {
                 onClick = {
                     onConfirm(excludeReadChecked)
                     onDismiss()
-                }
+                },
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(text = stringResource(id = R.string.ok))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(text = stringResource(id = R.string.cancel)) }
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
+                Text(text = stringResource(id = R.string.cancel))
+            }
         },
     )
 }

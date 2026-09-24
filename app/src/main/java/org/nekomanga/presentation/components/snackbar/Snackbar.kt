@@ -1,5 +1,6 @@
 package org.nekomanga.presentation.components.snackbar
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHostState
@@ -18,7 +19,10 @@ fun NekoSnackbarHost(snackbarHostState: SnackbarHostState, snackbarColor: Snackb
             dismissAction = {},
             action = {
                 data.visuals.actionLabel?.let {
-                    TextButton(onClick = { data.performAction() }) {
+                    TextButton(
+                        onClick = { data.performAction() },
+                        shapes = ButtonDefaults.shapes(),
+                    ) {
                         Text(
                             text = data.visuals.actionLabel!!,
                             color =

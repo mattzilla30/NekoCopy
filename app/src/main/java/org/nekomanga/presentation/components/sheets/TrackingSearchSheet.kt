@@ -23,8 +23,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -167,9 +168,9 @@ private fun CenteredBox(themeColorState: ThemeColorState, trackSearchResult: Tra
     ) {
         when (trackSearchResult) {
             is TrackSearchResult.Loading ->
-                CircularProgressIndicator(
+                LoadingIndicator(
                     color = themeColorState.primaryColor,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(Size.huge),
                 )
             is TrackSearchResult.NoResult ->
                 Text(
@@ -232,6 +233,7 @@ private fun TrackSearchItem(
                         )
                     },
                     modifier = Modifier.padding(horizontal = Size.tiny).align(Alignment.TopEnd),
+                    shapes = IconButtonDefaults.shapes(),
                 ) {
                     Icon(
                         imageVector = Icons.Default.OpenInBrowser,

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +18,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.core.app.ActivityCompat
 import eu.kanade.tachiyomi.util.system.appDelegateNightMode
 import org.nekomanga.R
+import org.nekomanga.presentation.components.ExpressiveSwitch
 import tachiyomi.core.preference.Preference
 
 @Composable
@@ -35,7 +35,7 @@ fun ThemeFollowSystemSwitch(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = stringResource(id = R.string.follow_system_theme), style = textStyle)
-        Switch(
+        ExpressiveSwitch(
             checked = nightMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM,
             colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.primary),
             onCheckedChange = {

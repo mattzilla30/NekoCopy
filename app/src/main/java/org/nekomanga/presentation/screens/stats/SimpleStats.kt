@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -153,7 +152,7 @@ private fun BasicStat(value: String, label: String, isTablet: Boolean) {
                 )
         }
 
-    ElevatedCard(shape = RoundedCornerShape(25)) {
+    ElevatedCard(shape = MaterialTheme.shapes.extraLarge) {
         Box(modifier = Modifier.padding(padding)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(

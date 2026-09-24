@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
@@ -155,6 +156,7 @@ private fun ChapterRow(
         IconButton(
             onClick = { dropdown = !dropdown },
             modifier = Modifier.padding(end = Size.medium),
+            shapes = IconButtonDefaults.shapes(),
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,

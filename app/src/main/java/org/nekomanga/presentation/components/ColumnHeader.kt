@@ -7,6 +7,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +24,7 @@ import org.nekomanga.presentation.theme.Size
 @Composable
 fun ColumnScope.Header(text: String, cancelClick: () -> Unit) {
     Box(modifier = Modifier.padding(horizontal = Size.small)) {
-        IconButton(onClick = { cancelClick() }) {
+        IconButton(onClick = { cancelClick() }, shapes = IconButtonDefaults.shapes()) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(id = R.string.close),

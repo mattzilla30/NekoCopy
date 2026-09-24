@@ -74,6 +74,7 @@ fun TrackingChapterDialog(
                         ButtonDefaults.textButtonColors(
                             contentColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.cancel))
                 }
@@ -88,6 +89,7 @@ fun TrackingChapterDialog(
                         ButtonDefaults.textButtonColors(
                             contentColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = android.R.string.ok))
                 }

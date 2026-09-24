@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -227,7 +227,7 @@ fun SearchOutlineTopAppBar(
                         Box(
                             modifier =
                                 Modifier.padding(end = Size.small)
-                                    .clip(RoundedCornerShape(Size.medium))
+                                    .clip(CircleShape)
                                     .background(
                                         MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f)
                                     )
@@ -256,7 +256,7 @@ fun SearchOutlineTopAppBar(
                         Box(
                             modifier =
                                 Modifier.padding(end = Size.small)
-                                    .clip(RoundedCornerShape(Size.medium))
+                                    .clip(CircleShape)
                                     .background(
                                         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
                                     )

@@ -3,6 +3,7 @@ package org.nekomanga.presentation.screens.settings.widgets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,13 +72,14 @@ fun MultiSelectListPreferenceWidget(
                     onClick = {
                         onValuesChange(selected.toMutableSet())
                         isDialogShown = false
-                    }
+                    },
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { isDialogShown = false }) {
+                TextButton(onClick = { isDialogShown = false }, shapes = ButtonDefaults.shapes()) {
                     Text(text = stringResource(R.string.cancel))
                 }
             },

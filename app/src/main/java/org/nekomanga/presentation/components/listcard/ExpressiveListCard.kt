@@ -1,5 +1,6 @@
 package org.nekomanga.presentation.components.listcard
 
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -10,6 +11,7 @@ import androidx.compose.ui.Modifier
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.components.theme.defaultThemeColorState
 import org.nekomanga.presentation.extensions.surfaceColorAtElevationCustomColor
+import org.nekomanga.presentation.theme.Shapes
 import org.nekomanga.presentation.theme.Size
 
 enum class ListCardType {
@@ -42,33 +44,15 @@ fun ExpressiveListCard(
             }
         }
 
+    val large = MaterialTheme.shapes.large
     val shape =
-        remember(listCardType) {
+        remember(listCardType, large) {
+            val inner = CornerSize(Shapes.segmentRadius)
             when (listCardType) {
-                ListCardType.Top ->
-                    RoundedCornerShape(
-                        topStart = Size.medium,
-                        topEnd = Size.medium,
-                        bottomEnd = Size.tiny,
-                        bottomStart = Size.tiny,
-                    )
-                ListCardType.Center ->
-                    RoundedCornerShape(
-                        topStart = Size.tiny,
-                        topEnd = Size.tiny,
-                        bottomEnd = Size.tiny,
-                        bottomStart = Size.tiny,
-                    )
-                ListCardType.Single -> {
-                    RoundedCornerShape(Size.medium)
-                }
-                ListCardType.Bottom ->
-                    RoundedCornerShape(
-                        topStart = Size.tiny,
-                        topEnd = Size.tiny,
-                        bottomEnd = Size.medium,
-                        bottomStart = Size.medium,
-                    )
+                ListCardType.Top -> large.copy(bottomStart = inner, bottomEnd = inner)
+                ListCardType.Center -> RoundedCornerShape(inner)
+                ListCardType.Single -> large
+                ListCardType.Bottom -> large.copy(topStart = inner, topEnd = inner)
             }
         }
 

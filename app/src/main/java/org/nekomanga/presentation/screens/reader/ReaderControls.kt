@@ -29,7 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.CropFree
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -311,9 +311,8 @@ private fun HorizontalFloatingSlider(
                     ),
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
+                CircularWavyProgressIndicator(
                     modifier = Modifier.size(Size.large),
-                    strokeWidth = Size.extraTiny,
                     color = MaterialTheme.colorScheme.primary,
                 )
             } else {
@@ -414,9 +413,8 @@ private fun HorizontalFloatingSlider(
                     ),
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
+                CircularWavyProgressIndicator(
                     modifier = Modifier.size(Size.large),
-                    strokeWidth = Size.extraTiny,
                     color = MaterialTheme.colorScheme.primary,
                 )
             } else {
@@ -474,9 +472,8 @@ private fun VerticalFloatingSlider(
                     ),
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
+                CircularWavyProgressIndicator(
                     modifier = Modifier.size(Size.large),
-                    strokeWidth = Size.extraTiny,
                     color = MaterialTheme.colorScheme.primary,
                 )
             } else {
@@ -592,9 +589,8 @@ private fun VerticalFloatingSlider(
                     ),
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
+                CircularWavyProgressIndicator(
                     modifier = Modifier.size(Size.large),
-                    strokeWidth = Size.extraTiny,
                     color = MaterialTheme.colorScheme.primary,
                 )
             } else {

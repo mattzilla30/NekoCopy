@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -140,7 +141,11 @@ internal class PermissionStep : OnboardingStep {
             headlineContent = { Text(text = title) },
             supportingContent = { Text(text = subtitle) },
             trailingContent = {
-                OutlinedButton(enabled = !granted, onClick = onButtonClick) {
+                OutlinedButton(
+                    enabled = !granted,
+                    onClick = onButtonClick,
+                    shapes = ButtonDefaults.shapes(),
+                ) {
                     if (granted) {
                         Icon(
                             imageVector = Icons.Default.Check,

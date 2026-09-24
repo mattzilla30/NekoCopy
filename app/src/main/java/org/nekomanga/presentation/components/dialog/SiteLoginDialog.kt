@@ -9,9 +9,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -115,7 +117,10 @@ fun LoginDialog(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
                             if (password.text.isNotBlank()) {
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                IconButton(
+                                    onClick = { passwordVisible = !passwordVisible },
+                                    shapes = IconButtonDefaults.shapes(),
+                                ) {
                                     Icon(
                                         imageVector = Icons.Filled.RemoveRedEye,
                                         contentDescription = null,
@@ -143,7 +148,7 @@ fun LoginDialog(
                     )
                 }
                 if (showLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(Size.medium))
+                    CircularWavyProgressIndicator(modifier = Modifier.size(Size.large))
                 }
             }
         },
@@ -152,12 +157,15 @@ fun LoginDialog(
             TextButton(
                 enabled = canSignIn,
                 onClick = signInAction,
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(text = stringResource(id = R.string.sign_in))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(text = stringResource(id = R.string.cancel)) }
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
+                Text(text = stringResource(id = R.string.cancel))
+            }
         },
     )
 }

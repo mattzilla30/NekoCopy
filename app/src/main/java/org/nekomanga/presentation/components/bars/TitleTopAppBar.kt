@@ -74,14 +74,14 @@ fun TitleTopAppBar(
                     // center the text
                     AutoSizeText(
                         text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(color = onColor),
+                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = onColor),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
                     AutoSizeText(
                         text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(color = onColor),
+                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = onColor),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
                     )

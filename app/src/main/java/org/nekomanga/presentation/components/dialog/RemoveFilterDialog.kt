@@ -58,13 +58,13 @@ fun RemoveFilterDialog(themeColorState: ThemeColorState, currentFilter: String, 
                         onDismiss()
                     },
                     enabled = saveEnabled,
-                    colors = ButtonDefaults.textButtonColors(contentColor = themeColorState.buttonColor),
+                    colors = ButtonDefaults.textButtonColors(contentColor = themeColorState.buttonColor), shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.save))
                 }
             },
             dismissButton = {
-                TextButton(onClick = onDismiss, colors = ButtonDefaults.textButtonColors(contentColor = themeColorState.buttonColor)) {
+                TextButton(onClick = onDismiss, colors = ButtonDefaults.textButtonColors(contentColor = themeColorState.buttonColor), shapes = ButtonDefaults.shapes()) {
                     Text(text = stringResource(id = R.string.cancel))
                 }
             },

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -77,7 +78,7 @@ fun TrackingDateSheet(
 
     BaseSheet(themeColor = themeColorState) {
         Box(modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth()) {
-            IconButton(onClick = { onDismiss() }) {
+            IconButton(onClick = { onDismiss() }, shapes = IconButtonDefaults.shapes()) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = null,
@@ -128,7 +129,8 @@ fun TrackingDateSheet(
             TextButton(
                 onClick = {
                     trackDateChanged(RemoveTrackingDate(trackingDate.readingDate, trackAndService))
-                }
+                },
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(
                     text = stringResource(id = R.string.remove),
@@ -174,7 +176,8 @@ fun TrackingDateSheet(
                                 trackAndService,
                             )
                         )
-                    }
+                    },
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(
                         text =
@@ -194,7 +197,10 @@ fun TrackingDateSheet(
 
         if (!showDateField && currentDateExists) {
             Gap(Size.tiny)
-            TextButton(onClick = { showDateField = !showDateField }) {
+            TextButton(
+                onClick = { showDateField = !showDateField },
+                shapes = ButtonDefaults.shapes(),
+            ) {
                 Text(
                     text = stringResource(id = R.string.edit),
                     style =
@@ -250,6 +256,7 @@ fun TrackingDateSheet(
                             contentColor = MaterialTheme.colorScheme.surface,
                         ),
                     enabled = newDate != null,
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = android.R.string.ok))
                 }

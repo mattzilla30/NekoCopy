@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -67,10 +68,15 @@ fun CrashScreen(exception: Throwable?, onRestartClick: () -> Unit) {
                 Button(
                     onClick = { scope.launch { CrashLogUtil(context).dumpLogs(exception) } },
                     modifier = Modifier.fillMaxWidth(),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.pref_dump_crash_logs))
                 }
-                OutlinedButton(onClick = onRestartClick, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = onRestartClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shapes = ButtonDefaults.shapes(),
+                ) {
                     Text(text = stringResource(R.string.crash_screen_restart_application))
                 }
             }

@@ -88,7 +88,11 @@ fun EditCategorySheet(
                     text = stringResource(stringRes),
                     style = MaterialTheme.typography.titleLarge,
                 )
-                TextButton(modifier = paddingModifier, onClick = { showAddCategoryDialog = true }) {
+                TextButton(
+                    modifier = paddingModifier,
+                    onClick = { showAddCategoryDialog = true },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
                     Text(
                         text = stringResource(id = R.string.plus_new_category),
                         style =
@@ -145,6 +149,7 @@ fun EditCategorySheet(
                         ButtonDefaults.textButtonColors(
                             contentColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(
                         text = stringResource(id = R.string.cancel),
@@ -161,6 +166,7 @@ fun EditCategorySheet(
                         ButtonDefaults.elevatedButtonColors(
                             containerColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(
                         text = acceptText.value,

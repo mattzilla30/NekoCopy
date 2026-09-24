@@ -69,6 +69,7 @@ fun InfoScreen(
                     enabled = canAccept,
                     colors = ButtonDefaults.buttonColors(containerColor = tint),
                     onClick = onAcceptClick,
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = acceptText)
                 }
@@ -77,6 +78,7 @@ fun InfoScreen(
                         modifier = Modifier.fillMaxWidth(),
                         border = BorderStroke(width = Size.extraExtraTiny, color = tint),
                         onClick = onRejectClick,
+                        shapes = ButtonDefaults.shapes(),
                     ) {
                         Text(text = rejectText)
                     }

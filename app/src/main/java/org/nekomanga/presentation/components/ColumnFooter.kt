@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -91,7 +92,7 @@ fun ColumnScope.SearchFooter(
                     tint = MaterialTheme.colorScheme.error,
                 )
             } else if (title.isNotEmpty()) {
-                IconButton(onClick = { textChanged("") }) {
+                IconButton(onClick = { textChanged("") }, shapes = IconButtonDefaults.shapes()) {
                     Icon(
                         imageVector = Icons.Default.Cancel,
                         contentDescription = stringResource(id = R.string.clear),

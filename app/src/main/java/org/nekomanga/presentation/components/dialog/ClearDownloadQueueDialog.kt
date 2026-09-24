@@ -56,6 +56,7 @@ fun ClearDownloadQueueDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                         ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.primary
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.clear))
                 }
@@ -67,6 +68,7 @@ fun ClearDownloadQueueDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                         ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.primary
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.cancel))
                 }

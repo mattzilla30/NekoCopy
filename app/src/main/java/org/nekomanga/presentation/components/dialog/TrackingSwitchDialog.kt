@@ -38,6 +38,7 @@ fun TrackingSwitchDialog(
                     TextButton(
                         onClick = { onConfirm(true, isReplacing) },
                         modifier = Modifier.fillMaxWidth(),
+                        shapes = ButtonDefaults.shapes(),
                     ) {
                         Text(
                             text =
@@ -61,6 +62,7 @@ fun TrackingSwitchDialog(
                     TextButton(
                         onClick = { onConfirm(false, isReplacing) },
                         modifier = Modifier.fillMaxWidth(),
+                        shapes = ButtonDefaults.shapes(),
                     ) {
                         Text(
                             text =
@@ -81,6 +83,7 @@ fun TrackingSwitchDialog(
                         ButtonDefaults.textButtonColors(
                             contentColor = themeColorState.primaryColor
                         ),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.cancel))
                 }

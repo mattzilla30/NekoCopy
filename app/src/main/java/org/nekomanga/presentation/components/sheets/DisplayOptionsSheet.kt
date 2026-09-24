@@ -12,7 +12,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
@@ -35,6 +34,7 @@ import jp.wasabeef.gap.Gap
 import kotlin.math.roundToInt
 import org.nekomanga.R
 import org.nekomanga.constants.Constants
+import org.nekomanga.presentation.components.ExpressiveSwitch
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.components.theme.defaultThemeColorState
 import org.nekomanga.presentation.functions.numberOfColumns
@@ -162,7 +162,7 @@ fun DisplayOptionsSheet(
                         modifier = Modifier.weight(1f),
                         text = stringResource(id = R.string.show_outline_around_covers),
                     )
-                    Switch(
+                    ExpressiveSwitch(
                         checked = outlineCoversEnabled,
                         onCheckedChange = { outlineCoversToggled() },
                     )
@@ -214,7 +214,7 @@ private fun ToggleRow(enabled: Boolean, onClick: () -> Unit, text: String) {
     ) {
         Gap(Size.small)
         Text(modifier = Modifier.weight(1f), text = text)
-        Switch(checked = enabled, onCheckedChange = { onClick() })
+        ExpressiveSwitch(checked = enabled, onCheckedChange = { onClick() })
         Gap(Size.small)
     }
 }

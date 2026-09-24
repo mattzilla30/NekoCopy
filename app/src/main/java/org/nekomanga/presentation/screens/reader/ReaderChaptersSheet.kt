@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material3.*
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -316,9 +317,8 @@ private fun ChapterListItem(
         }
 
         if (isLoading) {
-            CircularProgressIndicator(
+            CircularWavyProgressIndicator(
                 modifier = Modifier.size(Size.large),
-                strokeWidth = Size.extraTiny,
                 color = MaterialTheme.colorScheme.primary,
             )
         } else {

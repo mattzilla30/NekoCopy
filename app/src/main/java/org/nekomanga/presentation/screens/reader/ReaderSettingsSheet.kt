@@ -19,11 +19,11 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
@@ -53,6 +53,7 @@ import org.nekomanga.domain.manga.isLongStrip
 import org.nekomanga.domain.manga.orientationType
 import org.nekomanga.domain.manga.readingModeType
 import org.nekomanga.domain.reader.ReaderPreferences
+import org.nekomanga.presentation.components.ExpressiveSwitch
 import org.nekomanga.presentation.components.sheets.BaseSheet
 import org.nekomanga.presentation.components.theme.defaultThemeColorState
 import org.nekomanga.presentation.extensions.collectAsState
@@ -153,6 +154,7 @@ fun ReaderSettingsSheet(
                         onDismiss()
                     },
                     modifier = Modifier.padding(start = Size.small),
+                    shapes = IconButtonDefaults.shapes(),
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_outline_settings_24dp),
@@ -700,7 +702,7 @@ fun ReaderSwitchSetting(
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.weight(1f),
         )
-        Switch(
+        ExpressiveSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
         )

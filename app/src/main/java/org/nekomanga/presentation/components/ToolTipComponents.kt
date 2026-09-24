@@ -1,13 +1,9 @@
 package org.nekomanga.presentation.components
 
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.ripple
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
@@ -16,24 +12,18 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import org.nekomanga.presentation.theme.Size
 
 /**
- * This is a Tooltip Icon button, a wrapper around a CombinedClickableIcon Button, in which the long
- * click of the button with show the tooltip
+ * An M3 Expressive icon button wrapped in a tooltip. A long press shows the tooltip, and a press
+ * morphs the button from round to square.
  */
 @Composable
 fun ToolTipButton(
@@ -49,32 +39,16 @@ fun ToolTipButton(
     require(icon != null || painter != null)
 
     val haptic = LocalHapticFeedback.current
-    val scope = rememberCoroutineScope()
-    val textFieldTooltipState = rememberTooltipState()
+    val tooltipState = rememberTooltipState()
 
-    val longClick: () -> Unit = {
-        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        scope.launch { textFieldTooltipState.show() }
+    LaunchedEffect(tooltipState.isVisible) {
+        if (tooltipState.isVisible) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
     }
-
-    val clickableModifier =
-        if (isEnabled) {
-            Modifier.combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple(bounded = false, radius = 20.dp),
-                onClickLabel = toolTipLabel,
-                role = Role.Button,
-                onClick = onClick,
-                onLongClick = longClick,
-            )
-        } else {
-            Modifier
-        }
 
     TooltipBox(
         positionProvider =
             TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below, Size.tiny),
-        state = textFieldTooltipState,
+        state = tooltipState,
         tooltip = {
             PlainTooltip(
                 containerColor = MaterialTheme.colorScheme.inverseSurface,
@@ -88,34 +62,34 @@ fun ToolTipButton(
             }
         },
     ) {
-        Box(
-            modifier = modifier.size(40.dp).then(clickableModifier),
-            contentAlignment = Alignment.Center,
+        IconButton(
+            modifier = modifier,
+            onClick = onClick,
+            enabled = isEnabled,
+            shapes = IconButtonDefaults.shapes(),
+            colors =
+                IconButtonDefaults.iconButtonColors(
+                    contentColor = enabledTint,
+                    disabledContentColor =
+                        MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = NekoColors.disabledAlphaLowContrast
+                        ),
+                ),
         ) {
-            val contentColor =
-                if (isEnabled) {
-                    enabledTint
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(
-                        alpha = NekoColors.disabledAlphaLowContrast
+            when {
+                icon != null -> {
+                    Icon(
+                        imageVector = icon,
+                        modifier = iconModifier,
+                        contentDescription = toolTipLabel,
                     )
                 }
-            CompositionLocalProvider(LocalContentColor provides contentColor) {
-                when {
-                    icon != null -> {
-                        Icon(
-                            imageVector = icon,
-                            modifier = iconModifier,
-                            contentDescription = toolTipLabel,
-                        )
-                    }
-                    painter != null -> {
-                        Icon(
-                            painter = painter,
-                            modifier = iconModifier,
-                            contentDescription = toolTipLabel,
-                        )
-                    }
+                painter != null -> {
+                    Icon(
+                        painter = painter,
+                        modifier = iconModifier,
+                        contentDescription = toolTipLabel,
+                    )
                 }
             }
         }

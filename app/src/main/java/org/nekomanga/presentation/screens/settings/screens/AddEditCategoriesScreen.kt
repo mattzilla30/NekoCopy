@@ -16,9 +16,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MediumExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -173,6 +174,7 @@ internal class AddEditCategoriesScreen(
                                                     interactionSource = interactionSource,
                                                 ),
                                             onClick = {},
+                                            shapes = IconButtonDefaults.shapes(),
                                         ) {
                                             Icon(
                                                 Icons.Rounded.DragHandle,
@@ -181,7 +183,10 @@ internal class AddEditCategoriesScreen(
                                         }
                                         Text(text = category.name, modifier = Modifier.weight(1f))
 
-                                        IconButton(onClick = { editCategoryName = category.name }) {
+                                        IconButton(
+                                            onClick = { editCategoryName = category.name },
+                                            shapes = IconButtonDefaults.shapes(),
+                                        ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Edit,
                                                 contentDescription =
@@ -189,7 +194,8 @@ internal class AddEditCategoriesScreen(
                                             )
                                         }
                                         IconButton(
-                                            onClick = { deleteCategoryName = category.name }
+                                            onClick = { deleteCategoryName = category.name },
+                                            shapes = IconButtonDefaults.shapes(),
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Delete,
@@ -204,7 +210,7 @@ internal class AddEditCategoriesScreen(
                     }
                 }
 
-                ExtendedFloatingActionButton(
+                MediumExtendedFloatingActionButton(
                     modifier =
                         Modifier.align(Alignment.BottomEnd)
                             .padding(

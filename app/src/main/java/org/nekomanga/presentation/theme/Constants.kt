@@ -2,9 +2,14 @@ package org.nekomanga.presentation.theme
 
 import androidx.compose.ui.unit.dp
 
+/** Corner radii that follow the M3 Expressive shape scale. */
 object Shapes {
-    val coverRadius = 12.dp
-    val sheetRadius = 16.dp
+    /** Expressive "large" corner, used on covers and cards. */
+    val coverRadius = 16.dp
+    /** Expressive "extra large" corner, used on sheets and dialogs. */
+    val sheetRadius = 28.dp
+    /** Expressive "extra small" corner, used on inner segments of grouped lists. */
+    val segmentRadius = 4.dp
 }
 
 object Size {

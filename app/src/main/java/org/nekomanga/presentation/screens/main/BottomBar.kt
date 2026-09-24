@@ -1,8 +1,9 @@
 package org.nekomanga.presentation.screens.main
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,28 +18,29 @@ fun BottomBar(
     selectedItemIndex: Int,
     onNavigate: (NavKey) -> Unit,
 ) {
-
-    NavigationBar(
-        modifier = Modifier.fillMaxWidth(),
-        content = {
-            items.forEachIndexed { index, item ->
-                NavigationBarItem(
-                    selected = selectedItemIndex == index,
-                    onClick = { onNavigate(item.screen) },
-                    icon = {
-                        PulsingIcon(
-                            isPulsing =
-                                ((index == 0 && libraryUpdating) ||
-                                    (index == 1 && downloaderRunning)),
-                            imageVector =
-                                if (selectedItemIndex == index) item.selectedIcon
-                                else item.unselectedIcon,
-                            contentDescription = null,
-                        )
-                    },
-                    label = { Text(text = item.title) },
-                )
-            }
-        },
-    )
+    ShortNavigationBar(modifier = Modifier.fillMaxWidth()) {
+        items.forEachIndexed { index, item ->
+            val selected = selectedItemIndex == index
+            ShortNavigationBarItem(
+                selected = selected,
+                onClick = { onNavigate(item.screen) },
+                icon = {
+                    PulsingIcon(
+                        isPulsing =
+                            ((index == 0 && libraryUpdating) || (index == 1 && downloaderRunning)),
+                        imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                        contentDescription = null,
+                    )
+                },
+                label = {
+                    Text(
+                        text = item.title,
+                        style =
+                            if (selected) MaterialTheme.typography.labelMediumEmphasized
+                            else MaterialTheme.typography.labelMedium,
+                    )
+                },
+            )
+        }
+    }
 }

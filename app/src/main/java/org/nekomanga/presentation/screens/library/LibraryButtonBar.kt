@@ -13,6 +13,7 @@ import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
@@ -87,7 +88,10 @@ fun LibraryButtonBar(
             }
         }
         AnimatedVisibility(libraryScreenState.hasActiveFilters) {
-            FilledIconButton(onClick = libraryScreenActions.clearActiveFilters) {
+            FilledIconButton(
+                onClick = libraryScreenActions.clearActiveFilters,
+                shapes = IconButtonDefaults.shapes(),
+            ) {
                 Icon(
                     imageVector = Icons.Default.Clear,
                     contentDescription = stringResource(id = R.string.clear),

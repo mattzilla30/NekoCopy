@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -124,7 +125,9 @@ fun ReaderPageErrorOverlay(
                         textAlign = TextAlign.Center,
                     )
                 }
-                Button(onClick = onRetry) { Text(text = stringResource(id = R.string.retry)) }
+                Button(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
+                    Text(text = stringResource(id = R.string.retry))
+                }
             }
         }
     }

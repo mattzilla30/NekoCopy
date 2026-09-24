@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -16,7 +17,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import jp.wasabeef.gap.Gap
 import org.nekomanga.R
+import org.nekomanga.presentation.components.ExpressiveSwitch
 import org.nekomanga.presentation.components.sheets.BaseSheet
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.components.theme.defaultThemeColorState
@@ -178,7 +179,7 @@ private fun HistoryContent(
     SwitchRow(R.string.show_outline_around_cards, outlineCards, outlineCardsClick)
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-        TextButton(onClick = clearHistoryClick) {
+        TextButton(onClick = clearHistoryClick, shapes = ButtonDefaults.shapes()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = Icons.Outlined.DeleteForever, contentDescription = null)
                 Text(text = stringResource(id = R.string.clear_history))
@@ -203,7 +204,7 @@ private fun DownloadsContent(
     )
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-        TextButton(onClick = clearDownloadsClick) {
+        TextButton(onClick = clearDownloadsClick, shapes = ButtonDefaults.shapes()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = Icons.Outlined.DeleteSweep, contentDescription = null)
                 Gap(Size.small)
@@ -238,6 +239,6 @@ private fun SwitchRow(@StringRes textRes: Int, checked: Boolean, onClick: () -> 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = stringResource(id = textRes), style = MaterialTheme.typography.bodyMedium)
-        Switch(checked = checked, onCheckedChange = { onClick() })
+        ExpressiveSwitch(checked = checked, onCheckedChange = { onClick() })
     }
 }

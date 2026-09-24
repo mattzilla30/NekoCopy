@@ -18,9 +18,9 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -186,7 +186,7 @@ fun DownloadScreen(
             visible = downloaderStatus != DownloaderStatus.NetworkPaused,
             modifier = Modifier.align(Alignment.BottomEnd),
         ) {
-            ExtendedFloatingActionButton(
+            MediumExtendedFloatingActionButton(
                 modifier =
                     Modifier.padding(
                         bottom = contentPadding.calculateBottomPadding() + Size.tiny,

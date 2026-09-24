@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -290,7 +291,7 @@ private fun AltTitles(
 
         val content: @Composable () -> Unit = {
             if (isCustomTitle) {
-                TextButton(onClick = resetClick) {
+                TextButton(onClick = resetClick, shapes = ButtonDefaults.shapes()) {
                     Text(
                         text = stringResource(id = R.string.reset),
                         style = MaterialTheme.typography.labelLarge,

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.rounded.CheckBox
 import androidx.compose.material.icons.rounded.CheckBoxOutlineBlank
 import androidx.compose.material.icons.rounded.DisabledByDefault
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -136,7 +137,9 @@ fun <T> TriStateListDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismissRequest) { Text(text = stringResource(R.string.cancel)) }
+            TextButton(onClick = onDismissRequest, shapes = ButtonDefaults.shapes()) {
+                Text(text = stringResource(R.string.cancel))
+            }
         },
         confirmButton = {
             TextButton(
@@ -148,7 +151,8 @@ fun <T> TriStateListDialog(
                         if (selected[index] == State.INVERSED) category else null
                     }
                     onValueChanged(included, excluded)
-                }
+                },
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(text = stringResource(R.string.ok))
             }

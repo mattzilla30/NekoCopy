@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -65,6 +66,7 @@ internal class StorageStep : OnboardingStep {
                         context.toast(R.string.file_picker_error)
                     }
                 },
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(stringResource(R.string.onboarding_storage_action_select))
             }
@@ -87,6 +89,7 @@ internal class StorageStep : OnboardingStep {
                         "https://mihon.app/docs/faq/storage#migrating-from-tachiyomi-v0-14-x-or-earlier"
                     )
                 },
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(stringResource(R.string.onboarding_storage_help_action))
             }

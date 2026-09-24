@@ -31,10 +31,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedSuggestionChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SuggestionChipDefaults
@@ -315,7 +316,7 @@ fun MergedItem(
     val logoRes = mergeType.toDrawableRes()
 
     OutlinedCard(
-        shape = RoundedCornerShape(Shapes.sheetRadius),
+        shape = RoundedCornerShape(Shapes.coverRadius),
         border =
             BorderStroke(
                 1.dp,
@@ -339,7 +340,11 @@ fun MergedItem(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
             )
-            IconButton(onClick = onRemove, modifier = Modifier.padding(end = Size.tiny)) {
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.padding(end = Size.tiny),
+                shapes = IconButtonDefaults.shapes(),
+            ) {
                 Icon(
                     imageVector = Icons.Default.Cancel,
                     contentDescription = stringResource(id = R.string.remove),
@@ -482,9 +487,9 @@ private fun BoxScope.NonSuccessResultsAndChips(
         Gap(Size.medium)
         when (searchResults) {
             is MergeSearchResult.Loading ->
-                CircularProgressIndicator(
+                LoadingIndicator(
                     color = themeColorState.primaryColor,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(Size.huge),
                 )
 
             is MergeSearchResult.NoResult ->

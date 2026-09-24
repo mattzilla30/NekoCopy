@@ -1,7 +1,6 @@
 package org.nekomanga.presentation.screens
 
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -63,8 +62,10 @@ fun MainScreen(
             menuShowing = { mainDropdownShowing = it },
         )
 
-    val animationSpec = tween<IntOffset>(durationMillis = 300)
-    val fadeSpec = tween<Float>(durationMillis = 300)
+    // Screen transitions follow the M3 Expressive motion scheme: spatial springs move the
+    // screen and effects springs fade it.
+    val animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
+    val fadeSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
 
     val slideInTransition =
         slideInHorizontally(animationSpec = animationSpec, initialOffsetX = { it / 4 }) +

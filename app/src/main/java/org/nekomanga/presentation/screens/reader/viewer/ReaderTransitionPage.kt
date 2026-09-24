@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -381,7 +382,9 @@ private fun ChapterPreloadStatusSection(
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(Size.small))
-            Button(onClick = onRetry) { Text(text = stringResource(R.string.retry)) }
+            Button(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
+                Text(text = stringResource(R.string.retry))
+            }
         }
     }
 }

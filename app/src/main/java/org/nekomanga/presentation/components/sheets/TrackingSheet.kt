@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -216,7 +217,7 @@ private fun TrackingServiceItem(
     finishDateClick: () -> Unit,
 ) {
     OutlinedCard(
-        shape = RoundedCornerShape(Shapes.sheetRadius),
+        shape = RoundedCornerShape(Shapes.coverRadius),
         border =
             BorderStroke(
                 1.dp,
@@ -321,7 +322,7 @@ private fun TrackRowOne(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            IconButton(onClick = onRemoveClick) {
+            IconButton(onClick = onRemoveClick, shapes = IconButtonDefaults.shapes()) {
                 Icon(
                     imageVector = Icons.Default.Cancel,
                     contentDescription = stringResource(id = R.string.remove),

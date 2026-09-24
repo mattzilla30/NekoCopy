@@ -2,6 +2,7 @@ package org.nekomanga.presentation.components.dialog
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -99,10 +100,12 @@ fun CreateBackupDialog(
         },
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text(text = stringResource(id = R.string.create)) }
+            TextButton(onClick = onConfirm, shapes = ButtonDefaults.shapes()) {
+                Text(text = stringResource(id = R.string.create))
+            }
         },
         dismissButton = {
-            TextButton(onClick = onDismissRequest) {
+            TextButton(onClick = onDismissRequest, shapes = ButtonDefaults.shapes()) {
                 Text(text = stringResource(id = R.string.cancel))
             }
         },

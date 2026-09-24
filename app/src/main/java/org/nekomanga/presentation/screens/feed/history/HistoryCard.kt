@@ -18,6 +18,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -316,7 +317,7 @@ private fun Buttons(
 ) {
     var dropdown by remember { mutableStateOf(false) }
 
-    IconButton(onClick = { dropdown = !dropdown }) {
+    IconButton(onClick = { dropdown = !dropdown }, shapes = IconButtonDefaults.shapes()) {
         Icon(
             imageVector = Icons.Outlined.Delete,
             contentDescription = null,
@@ -349,7 +350,7 @@ private fun Buttons(
         }
     }
     if (canExpand) {
-        IconButton(onClick = expandClick) {
+        IconButton(onClick = expandClick, shapes = IconButtonDefaults.shapes()) {
             Icon(
                 imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                 contentDescription = null,

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -89,14 +90,14 @@ private fun Sort(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             if (!sortFilter.matchesGlobalDefaults) {
-                TextButton(onClick = setGlobal) {
+                TextButton(onClick = setGlobal, shapes = ButtonDefaults.shapes()) {
                     Text(
                         text = stringResource(id = R.string.set_as_default),
                         style = MaterialTheme.typography.labelLarge,
                         color = themeColorState.primaryColor,
                     )
                 }
-                TextButton(onClick = { changeSort(null) }) {
+                TextButton(onClick = { changeSort(null) }, shapes = ButtonDefaults.shapes()) {
                     Text(
                         text = stringResource(id = R.string.reset),
                         style = MaterialTheme.typography.labelLarge,
@@ -164,14 +165,14 @@ private fun Filter(
             )
 
             if (!filter.matchesGlobalDefaults) {
-                TextButton(onClick = setGlobal) {
+                TextButton(onClick = setGlobal, shapes = ButtonDefaults.shapes()) {
                     Text(
                         text = stringResource(id = R.string.set_as_default),
                         style = MaterialTheme.typography.labelLarge,
                         color = themeColorState.primaryColor,
                     )
                 }
-                TextButton(onClick = { changeFilter(null) }) {
+                TextButton(onClick = { changeFilter(null) }, shapes = ButtonDefaults.shapes()) {
                     Text(
                         text = stringResource(id = R.string.reset),
                         style = MaterialTheme.typography.labelLarge,
@@ -313,7 +314,10 @@ private fun Scanlator(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             if (scanlatorFilter.scanlators.any { it.disabled }) {
-                TextButton(onClick = { changeScanlatorFilter(null) }) {
+                TextButton(
+                    onClick = { changeScanlatorFilter(null) },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
                     Text(
                         text = stringResource(id = R.string.reset),
                         style = MaterialTheme.typography.labelLarge,
@@ -374,7 +378,10 @@ private fun Language(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             if (languageFilter.languages.any { it.disabled }) {
-                TextButton(onClick = { changeLanguageFilter(null) }) {
+                TextButton(
+                    onClick = { changeLanguageFilter(null) },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
                     Text(
                         text = stringResource(id = R.string.reset),
                         style = MaterialTheme.typography.labelLarge,
