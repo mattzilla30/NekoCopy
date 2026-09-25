@@ -4,7 +4,6 @@ package eu.kanade.tachiyomi.util.view
 
 import android.graphics.drawable.ColorDrawable
 import android.view.View
-import android.view.WindowInsets
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
@@ -13,8 +12,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsCompat.Type.systemBars
-import androidx.core.view.updatePaddingRelative
 import org.nekomanga.presentation.theme.NekoTheme
 
 inline fun ComponentActivity.setComposeContent(
@@ -27,15 +24,6 @@ inline fun ComponentActivity.setComposeContent(
 fun ComposeView.setComposeContent(content: @Composable () -> Unit) {
     setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     setContent { NekoTheme { content() } }
-}
-
-object RecyclerWindowInsetsListener : View.OnApplyWindowInsetsListener {
-    override fun onApplyWindowInsets(v: View, insets: WindowInsets): WindowInsets {
-        v.updatePaddingRelative(
-            bottom = WindowInsetsCompat.toWindowInsetsCompat(insets).getInsets(systemBars()).bottom
-        )
-        return insets
-    }
 }
 
 fun View.doOnApplyWindowInsetsCompat(f: (View, WindowInsetsCompat, ViewPaddingState) -> Unit) {

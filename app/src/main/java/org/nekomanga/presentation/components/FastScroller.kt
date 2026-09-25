@@ -9,19 +9,13 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -38,11 +32,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastForEach
@@ -50,7 +41,6 @@ import androidx.compose.ui.util.fastLastOrNull
 import androidx.compose.ui.util.fastMaxBy
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -316,60 +306,6 @@ fun VerticalFastScroller(
     }
 }
 
-@Composable
-private fun rememberColumnWidthSums(
-    columns: GridCells,
-    horizontalArrangement: Arrangement.Horizontal,
-    contentPadding: PaddingValues,
-) =
-    remember<Density.(Constraints) -> List<Int>>(columns, horizontalArrangement, contentPadding) {
-        { constraints ->
-            require(constraints.maxWidth != Constraints.Infinity) {
-                "LazyVerticalGrid's width should be bound by parent"
-            }
-            val horizontalPadding =
-                contentPadding.calculateStartPadding(LayoutDirection.Ltr) +
-                    contentPadding.calculateEndPadding(LayoutDirection.Ltr)
-            val gridWidth = constraints.maxWidth - horizontalPadding.roundToPx()
-            with(columns) {
-                calculateCrossAxisCellSizes(gridWidth, horizontalArrangement.spacing.roundToPx())
-                    .toMutableList()
-                    .apply {
-                        for (i in 1..<size) {
-                            this[i] += this[i - 1]
-                        }
-                    }
-            }
-        }
-    }
-
-private fun computeGridScrollOffset(state: LazyGridState, columnCount: Int): Int {
-    if (state.layoutInfo.totalItemsCount == 0) return 0
-    val visibleItems = state.layoutInfo.visibleItemsInfo
-    val startChild = visibleItems.first()
-    val endChild = visibleItems.last()
-    val laidOutArea = (endChild.offset.y + endChild.size.height) - startChild.offset.y
-    val laidOutRows = 1 + abs(endChild.index - startChild.index) / columnCount
-    val avgSizePerRow = laidOutArea.toFloat() / laidOutRows
-
-    val rowsBefore = min(startChild.index, endChild.index).coerceAtLeast(0) / columnCount
-    return (rowsBefore * avgSizePerRow - startChild.offset.y).roundToInt()
-}
-
-private fun computeGridScrollRange(state: LazyGridState, columnCount: Int): Int {
-    if (state.layoutInfo.totalItemsCount == 0) return 0
-    val visibleItems = state.layoutInfo.visibleItemsInfo
-    val startChild = visibleItems.first()
-    val endChild = visibleItems.last()
-    val laidOutArea = (endChild.offset.y + endChild.size.height) - startChild.offset.y
-    val laidOutRows = 1 + abs(endChild.index - startChild.index) / columnCount
-    val avgSizePerRow = laidOutArea.toFloat() / laidOutRows
-
-    val totalRows = 1 + (state.layoutInfo.totalItemsCount - 1) / columnCount
-    val endSpacing = avgSizePerRow - endChild.size.height
-    return (endSpacing + (laidOutArea.toFloat() / laidOutRows) * totalRows).roundToInt()
-}
-
 private class MutableData<T>(var value: T)
 
 private val ThumbLength = 48.dp
@@ -392,15 +328,4 @@ private data class FastScrollerState(
     val stableScrollInProgress: Boolean,
     val trackHeightPx: Float,
     val thumbTopPadding: Float,
-)
-
-private data class GridFastScrollerState(
-    val firstVisibleItemIndex: Int,
-    val firstVisibleItemScrollOffset: Int,
-    val isThumbDragged: Boolean,
-    val heightPx: Float,
-    val trackHeightPx: Float,
-    val thumbTopPadding: Float,
-    val scrollRange: Int,
-    val columnCount: Int,
 )

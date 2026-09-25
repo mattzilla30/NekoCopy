@@ -23,6 +23,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size as ComposeSize
 import androidx.compose.ui.geometry.isEmpty
 import androidx.compose.ui.geometry.isSpecified
@@ -60,12 +61,16 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import me.saket.telephoto.ExperimentalTelephotoApi
 import me.saket.telephoto.zoomable.DoubleClickToZoomListener
+import me.saket.telephoto.zoomable.Viewport
 import me.saket.telephoto.zoomable.ZoomSpec
 import me.saket.telephoto.zoomable.ZoomableContentLocation
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
+import me.saket.telephoto.zoomable.spatial.CoordinateSpace
+import me.saket.telephoto.zoomable.spatial.isSpecified
 import me.saket.telephoto.zoomable.zoomable
 import org.nekomanga.domain.reader.ReaderPreferences
 import org.nekomanga.presentation.extensions.collectAsState
@@ -73,6 +78,7 @@ import org.nekomanga.presentation.theme.Size
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
+@OptIn(ExperimentalTelephotoApi::class)
 @Composable
 fun PagerPageItem(
     viewer: PagerViewerState,
@@ -390,10 +396,18 @@ fun PagerPageItem(
                         viewportWidthPx > 0f &&
                         viewportHeightPx > 0f
                 ) {
-                    @Suppress("DEPRECATION")
                     val bounds =
                         withTimeoutOrNull(2000L) {
-                            snapshotFlow { zoomableState.transformedContentBounds }
+                            snapshotFlow {
+                                with(zoomableState.coordinateSystem) {
+                                    val contentBounds = contentBounds(clipToViewport = false)
+                                    if (contentBounds.isSpecified) {
+                                        contentBounds.rectIn(CoordinateSpace.Viewport)
+                                    } else {
+                                        Rect.Zero
+                                    }
+                                }
+                            }
                                 .filter { !it.isEmpty }
                                 .first()
                         }

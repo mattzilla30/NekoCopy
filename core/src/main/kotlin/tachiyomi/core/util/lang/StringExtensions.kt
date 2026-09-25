@@ -2,11 +2,9 @@ package eu.kanade.tachiyomi.util.lang
 
 import android.content.Context
 import android.text.Spannable
-import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
-import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.core.text.parseAsHtml
 import java.util.Locale
@@ -56,26 +54,6 @@ fun String.capitalized(): String {
             it.titlecase(Locale.US)
         } else {
             it.toString()
-        }
-    }
-}
-
-fun CharSequence.tintText(@ColorInt color: Int): Spanned {
-    val s = SpannableString(this)
-    s.setSpan(ForegroundColorSpan(color), 0, this.length, 0)
-    return s
-}
-
-fun String.indexesOf(substr: String, ignoreCase: Boolean = true): List<Int> {
-    val list = mutableListOf<Int>()
-    if (substr.isBlank()) return list
-
-    var i = -1
-    while (true) {
-        i = indexOf(substr, i + 1, ignoreCase)
-        when (i) {
-            -1 -> return list
-            else -> list.add(i)
         }
     }
 }

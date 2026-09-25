@@ -18,7 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import jp.wasabeef.gap.Gap
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.extensions.collectAsState
 import org.nekomanga.presentation.theme.Size
@@ -26,17 +25,6 @@ import org.nekomanga.presentation.theme.Size.large as horizontalPadding
 import org.nekomanga.presentation.theme.Size.medium as verticalPadding
 import tachiyomi.core.preference.Preference
 import tachiyomi.core.preference.toggle
-
-@Composable
-fun HeadingItem(text: UiText) {
-    Text(
-        text = text.asString(),
-        style = MaterialTheme.typography.headlineLarge,
-        modifier =
-            Modifier.fillMaxWidth()
-                .padding(horizontal = horizontalPadding, vertical = verticalPadding),
-    )
-}
 
 @Composable
 fun IconItem(
@@ -55,25 +43,6 @@ fun IconItem(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
             )
-        },
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun BaseSortItem(labelText: UiText, icon: ImageVector?, onClick: () -> Unit) {
-    BaseSettingsItem(
-        labelText = labelText,
-        widget = {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                Gap(Size.large)
-            }
         },
         onClick = onClick,
     )

@@ -37,10 +37,3 @@ enum class MangaBakaMediaType {
     @SerialName("oel") OEL,
     @SerialName("other") OTHER,
 }
-
-@Serializable
-enum class MangaBakaNewsType {
-    @SerialName("default") DEFAULT,
-    @SerialName("review") REVIEW,
-    @SerialName("releases") RELEASES,
-}

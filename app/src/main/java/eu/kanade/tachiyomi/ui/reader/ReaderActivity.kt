@@ -18,7 +18,6 @@ import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
-import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -1170,23 +1169,13 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
             val systemInsets = insets.ignoredSystemInsets
             val vis = insets.isVisible(statusBars())
             val fullscreen = readerPreferences.fullscreen().get() && !isSplitScreen
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (!firstPass && lastVis != vis && fullscreen) {
-                    onVisibilityChange(vis)
-                }
-                firstPass = false
-                lastVis = vis
+            if (!firstPass && lastVis != vis && fullscreen) {
+                onVisibilityChange(vis)
             }
+            firstPass = false
+            lastVis = vis
             wic.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            @Suppress("DEPRECATION")
-            window.decorView.setOnSystemUiVisibilityChangeListener {
-                if (readerPreferences.fullscreen().get()) {
-                    onVisibilityChange((it and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
-                }
-            }
         }
     }
 

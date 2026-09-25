@@ -33,7 +33,7 @@ class DownloadPageLoader(
             wm?.currentWindowMetrics?.bounds?.height()
                 ?: context.resources.displayMetrics.heightPixels
         } else {
-            @Suppress("DEPRECATION") context.resources.displayMetrics.heightPixels
+            context.resources.displayMetrics.heightPixels
         }
     },
 ) : PageLoader() {
