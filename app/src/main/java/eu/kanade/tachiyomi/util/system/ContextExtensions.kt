@@ -17,7 +17,6 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.util.TypedValue
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.AttrRes
@@ -108,15 +107,6 @@ inline fun Context.notification(
 }
 
 /**
- * Checks if the give permission is granted.
- *
- * @param permission the permission to check.
- * @return true if it has permissions.
- */
-fun Context.hasPermission(permission: String) =
-    ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
-
-/**
  * Returns the color for the given attribute.
  *
  * @param resource the attribute.
@@ -124,10 +114,6 @@ fun Context.hasPermission(permission: String) =
 @ColorInt
 fun Context.getResourceColor(@AttrRes resource: Int): Int {
     return obtainStyledAttributes(intArrayOf(resource)).use { it.getColor(0, 0) }
-}
-
-fun Context.getResourceDrawable(@AttrRes resource: Int): Drawable? {
-    return obtainStyledAttributes(intArrayOf(resource)).use { it.getDrawable(0) }
 }
 
 /**
@@ -159,15 +145,6 @@ val Float.pxToDp: Float
 val Int.dpToPx: Int
     get() = (this * Resources.getSystem().displayMetrics.density).toInt()
 
-val Int.spToPx: Int
-    get() =
-        TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_SP,
-                this.toFloat(),
-                Resources.getSystem().displayMetrics,
-            )
-            .toInt()
-
 val Float.dpToPx: Float
     get() = (this * Resources.getSystem().displayMetrics.density)
 
@@ -190,15 +167,6 @@ fun Context.isTablet() = resources.configuration.smallestScreenWidthDp >= 600
 
 val displayMaxHeightInPx: Int
     get() = Resources.getSystem().displayMetrics.let { max(it.heightPixels, it.widthPixels) }
-
-/**
- * Gets the duration multiplier for general animations on the device
- *
- * @see Settings.Global.ANIMATOR_DURATION_SCALE
- */
-val Context.animatorDurationScale: Float
-    get() =
-        Settings.Global.getFloat(this.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
 
 /**
  * Helper method to create a notification builder.
@@ -248,23 +216,6 @@ val Context.wifiManager: WifiManager
 /** Property to get the power manager from the context. */
 val Context.powerManager: PowerManager
     get() = getSystemService()!!
-
-/** Returns true if device is connected to Wifi. */
-fun Context.isConnectedToWifi(): Boolean {
-    if (!wifiManager.isWifiEnabled) return false
-
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val activeNetwork = connectivityManager.activeNetwork ?: return false
-        val networkCapabilities =
-            connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
-
-        networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
-            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-    } else {
-        @Suppress("DEPRECATION")
-        wifiManager.connectionInfo.bssid != null
-    }
-}
 
 fun Context.defaultBrowserPackageName(): String? {
     val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://"))

@@ -620,20 +620,6 @@ private fun FilterSettingsTab(readerPreferences: ReaderPreferences) {
     }
 }
 
-@Composable
-fun SettingsSectionHeader(
-    title: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = title.uppercase(),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.Bold,
-        modifier = modifier.padding(vertical = Size.smedium),
-    )
-}
-
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderChipsSelector(

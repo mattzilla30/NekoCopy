@@ -4,12 +4,6 @@ import android.util.Base64
 import kotlinx.serialization.Serializable
 
 @Serializable
-class WebViewCapture(
-    val payload: String,
-    val material: CipherMaterial? = null,
-)
-
-@Serializable
 class CipherMaterial(
     val sboxes: List<List<Int>>,
     val keys: List<List<Int>>,

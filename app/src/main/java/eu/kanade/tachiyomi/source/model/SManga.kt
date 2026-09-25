@@ -156,19 +156,6 @@ interface SManga : Serializable {
     }
 }
 
-fun SManga.toMangaInfo(): MangaInfo {
-    return MangaInfo(
-        key = this.url,
-        title = this.title,
-        artist = this.artist ?: "",
-        author = this.author ?: "",
-        description = this.description ?: "",
-        genres = this.genre?.split(", ") ?: emptyList(),
-        status = this.status,
-        cover = this.thumbnail_url ?: "",
-    )
-}
-
 fun MangaInfo.toSManga(): SManga {
     val mangaInfo = this
     return SManga.create().apply {

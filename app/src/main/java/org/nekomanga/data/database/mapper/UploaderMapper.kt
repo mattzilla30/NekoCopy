@@ -15,11 +15,6 @@ fun UploaderImpl.toEntity(): UploaderEntity {
     )
 }
 
-// Optional List extensions for cleaner Repository code
-fun List<UploaderEntity>.toImplList(): List<UploaderImpl> {
-    return this.map { it.toImpl() }
-}
-
 fun List<UploaderImpl>.toEntityList(): List<UploaderEntity> {
     return this.map { it.toEntity() }
 }

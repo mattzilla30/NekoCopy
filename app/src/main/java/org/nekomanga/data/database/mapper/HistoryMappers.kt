@@ -22,11 +22,6 @@ fun History.toEntity(): HistoryEntity {
     )
 }
 
-// Optional List extensions for cleaner Repository code
-fun List<HistoryEntity>.toHistoryList(): List<HistoryImpl> {
-    return this.map { it.toHistory() }
-}
-
 fun List<History>.toEntityList(): List<HistoryEntity> {
     return this.map { it.toEntity() }
 }

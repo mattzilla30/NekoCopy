@@ -393,14 +393,6 @@ suspend fun syncChaptersWithSource(
     return Pair(newChapters, toDelete - readded.toSet())
 }
 
-private fun bothMerged(dbChapter: Chapter, sourceChapter: Chapter): Boolean {
-    return dbChapter.isMergedChapter() && sourceChapter.isMergedChapter()
-}
-
-private fun bothLocal(dbChapter: Chapter, sourceChapter: Chapter): Boolean {
-    return dbChapter.isLocalSource() && sourceChapter.isLocalSource()
-}
-
 // checks if the chapter in db needs updated
 private fun shouldUpdateDbChapter(dbChapter: Chapter, sourceChapter: Chapter): Boolean {
     return dbChapter.scanlator != sourceChapter.scanlator ||

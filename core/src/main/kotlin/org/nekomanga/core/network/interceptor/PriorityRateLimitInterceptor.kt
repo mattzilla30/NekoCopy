@@ -5,27 +5,7 @@ import java.util.PriorityQueue
 import java.util.concurrent.TimeUnit
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
-import okhttp3.OkHttpClient
 import okhttp3.Response
-
-/**
- * An OkHttp interceptor that handles rate limiting with support for Request Priority.
- *
- * When the rate limit is reached, requests are queued. High priority requests will jump ahead of
- * low priority requests in the queue.
- *
- * @param permits {Int} Number of requests allowed within a period.
- * @param period {Long} The limiting duration.
- * @param unit {TimeUnit} The unit of time for the period.
- * @param prioritySelector {Function} A lambda that returns an Int priority level for a given URL.
- *   Higher numbers = Higher Priority.
- */
-fun OkHttpClient.Builder.rateLimitPriority(
-    permits: Int,
-    period: Long = 1,
-    unit: TimeUnit = TimeUnit.SECONDS,
-    prioritySelector: (HttpUrl) -> Int,
-) = addInterceptor(PriorityRateLimitInterceptor(permits, period, unit, prioritySelector))
 
 class PriorityRateLimitInterceptor(
     private val permits: Int,

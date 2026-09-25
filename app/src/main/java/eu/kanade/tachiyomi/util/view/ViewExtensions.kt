@@ -3,17 +3,13 @@
 package eu.kanade.tachiyomi.util.view
 
 import android.annotation.SuppressLint
-import android.content.res.Resources
-import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewTreeObserver
 import android.view.WindowInsets
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.IdRes
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionContext
@@ -26,9 +22,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.forEach
 import androidx.core.view.updatePaddingRelative
-import com.google.android.material.navigation.NavigationBarItemView
-import com.google.android.material.navigation.NavigationBarMenuView
-import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.Snackbar
 import eu.kanade.tachiyomi.util.lang.tintText
 import eu.kanade.tachiyomi.util.system.getResourceColor
@@ -88,19 +81,6 @@ fun View.doOnApplyWindowInsetsCompat(f: (View, WindowInsetsCompat, ViewPaddingSt
     requestApplyInsetsWhenAttached()
 }
 
-fun View.checkHeightThen(f: () -> Unit) {
-    viewTreeObserver.addOnGlobalLayoutListener(
-        object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                if (height > 0) {
-                    viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    f()
-                }
-            }
-        }
-    )
-}
-
 fun View.requestApplyInsetsWhenAttached() {
     if (isAttachedToWindow) {
         requestApplyInsets()
@@ -135,12 +115,6 @@ data class ViewPaddingState(
     val start: Int,
     val end: Int,
 )
-
-@SuppressLint("RestrictedApi")
-fun NavigationBarView.getItemView(@IdRes id: Int): NavigationBarItemView? {
-    val order = (menu as MenuBuilder).findItemIndex(id)
-    return (getChildAt(0) as NavigationBarMenuView).getChildAt(order) as? NavigationBarItemView
-}
 
 var View.compatToolTipText: CharSequence?
     get() = tooltipText
@@ -196,22 +170,3 @@ var View.backgroundColor: Int?
     set(value) {
         if (value != null) setBackgroundColor(value) else background = null
     }
-
-fun View?.isVisibleOnScreen(): Boolean {
-    if (this == null) {
-        return false
-    }
-    if (!this.isShown) {
-        return false
-    }
-    val actualPosition = Rect()
-    this.getGlobalVisibleRect(actualPosition)
-    val screen =
-        Rect(
-            0,
-            0,
-            Resources.getSystem().displayMetrics.widthPixels,
-            Resources.getSystem().displayMetrics.heightPixels,
-        )
-    return actualPosition.intersect(screen)
-}

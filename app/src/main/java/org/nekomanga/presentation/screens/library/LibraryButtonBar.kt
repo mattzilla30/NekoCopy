@@ -195,9 +195,3 @@ private fun ConnectedToggleButtons(
         }
     }
 }
-
-private data class ToggleButtonFields(
-    val buttonChecked: Boolean,
-    val buttonOnCheckedChange: (Boolean) -> Unit,
-    val buttonText: String,
-)

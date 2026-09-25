@@ -1,17 +1,11 @@
 package eu.kanade.tachiyomi.util.lang
 
 import android.content.Context
-import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
-import android.text.style.RelativeSizeSpan
-import android.text.style.StyleSpan
-import android.text.style.SuperscriptSpan
-import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.core.text.parseAsHtml
@@ -32,10 +26,6 @@ fun String.chop(count: Int, replacement: String = "⋅"): String {
     }
 }
 
-fun String?.orIfBlank(other: String?): String {
-    return if (this.isNullOrBlank()) other ?: "" else this
-}
-
 fun String.removeArticles(): String {
     return when {
         startsWith("a ", true) -> substring(2)
@@ -44,9 +34,6 @@ fun String.removeArticles(): String {
         else -> this
     }
 }
-
-val String.sqLite: String
-    get() = replace("'", "''")
 
 fun String.capitalizeWords(): String {
     val firstReplace =
@@ -79,20 +66,6 @@ fun CharSequence.tintText(@ColorInt color: Int): Spanned {
     return s
 }
 
-fun String.highlightText(highlight: String, @ColorInt color: Int): Spanned {
-    val wordToSpan: Spannable = SpannableString(this)
-    if (highlight.isBlank()) return wordToSpan
-    indexesOf(highlight).forEach {
-        wordToSpan.setSpan(
-            BackgroundColorSpan(color),
-            it,
-            it + highlight.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-        )
-    }
-    return wordToSpan
-}
-
 fun String.indexesOf(substr: String, ignoreCase: Boolean = true): List<Int> {
     val list = mutableListOf<Int>()
     if (substr.isBlank()) return list
@@ -119,36 +92,6 @@ fun String.withSubtitle(context: Context, subtitle: String): Spanned {
         Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
     )
     return spannable
-}
-
-fun String.addBetaTag(context: Context, @AttrRes color: Int): Spanned {
-    val betaText = context.getString(R.string.beta)
-    val betaSpan = SpannableStringBuilder(this + betaText)
-    betaSpan.setSpan(
-        SuperscriptSpan(),
-        length,
-        length + betaText.length,
-        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-    )
-    betaSpan.setSpan(
-        RelativeSizeSpan(0.75f),
-        length,
-        length + betaText.length,
-        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-    )
-    betaSpan.setSpan(
-        StyleSpan(Typeface.BOLD),
-        length,
-        length + betaText.length,
-        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-    )
-    betaSpan.setSpan(
-        ForegroundColorSpan(context.getResourceColor(color)),
-        length,
-        length + betaText.length,
-        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-    )
-    return betaSpan
 }
 
 private val uuidFormatLines = arrayOf(8, 13, 18, 23)

@@ -122,21 +122,3 @@ data class MUCategoryRecommendationDto(
     val series_id: Long,
     val weight: Long,
 )
-
-@Serializable
-data class MUListsDto(
-    val reading: Long,
-    val wish: Long,
-    val complete: Long,
-    val unfinished: Long,
-    val custom: Long,
-)
-
-@Serializable
-data class MUPositionDto(
-    val week: Long,
-    val month: Long,
-    val three_months: Long,
-    val six_months: Long,
-    val year: Long,
-)

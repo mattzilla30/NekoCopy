@@ -35,13 +35,6 @@ class SearchResultsDto(
 }
 
 @Serializable
-class BaseSearchMangaInfoDto(
-    val id: String,
-    val title: String,
-    @JsonNames("poster", "image") val imagePath: JsonElement,
-)
-
-@Serializable
 class MangaDto(
     // Common
     private val id: String,

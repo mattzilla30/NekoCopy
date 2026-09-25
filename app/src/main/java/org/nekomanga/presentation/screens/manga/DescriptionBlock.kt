@@ -1,9 +1,7 @@
 package org.nekomanga.presentation.screens.manga
 
-import android.animation.TimeInterpolator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -455,5 +453,3 @@ private fun MoreLessButton(buttonColor: Color, isMore: Boolean, modifier: Modifi
         )
     }
 }
-
-fun TimeInterpolator.toEasing() = Easing { x -> getInterpolation(x) }

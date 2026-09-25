@@ -117,16 +117,6 @@ data class LibraryCategoryActions(
 )
 
 @Immutable
-data class LibraryViewItem(
-    val libraryDisplayMode: LibraryDisplayMode,
-    val rawColumnCount: Float = 3f,
-    val libraryCategoryItems: List<LibraryCategoryItem>,
-    val currentGroupBy: LibraryGroup,
-    val trackMap: Map<Long, List<String>>,
-    val userCategories: List<CategoryItem>,
-)
-
-@Immutable
 data class LibraryCategoryItem(
     val categoryItem: CategoryItem,
     val isRefreshing: Boolean = false,
