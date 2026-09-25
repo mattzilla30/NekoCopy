@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.data.preference
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.material.color.DynamicColors
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.TrackService
@@ -55,18 +54,16 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
     fun nightMode() =
         this.preferenceStore.getInt(Keys.nightMode, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
-    private val supportsDynamic = DynamicColors.isDynamicColorAvailable()
-
     fun lightTheme() =
         this.preferenceStore.getEnum(
             Keys.lightTheme,
-            if (supportsDynamic) Themes.Monet else Themes.Neko,
+            Themes.Kitty,
         )
 
     fun darkTheme() =
         this.preferenceStore.getEnum(
             Keys.darkTheme,
-            if (supportsDynamic) Themes.Monet else Themes.Neko,
+            Themes.Kitty,
         )
 
     fun useVividColorHeaders() = this.preferenceStore.getBoolean("vivid_color_headers", true)

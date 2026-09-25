@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
@@ -49,6 +48,7 @@ import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.AppBar
 import org.nekomanga.presentation.components.ButtonGroup
+import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.scaffold.RootScaffold
 import org.nekomanga.presentation.screens.browse.BrowseBottomSheet
@@ -270,7 +270,7 @@ private fun BrowseWrapper(
 
         Box(modifier = Modifier.fillMaxSize().padding(contentPadding)) {
             if (browseScreenState.initialLoading) {
-                ContainedLoadingIndicator(modifier = Modifier.align(Alignment.Center))
+                KittyContainedLoadingIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (browseScreenState.error != null) {
                 EmptyScreen(
                     message = browseScreenState.error!!,

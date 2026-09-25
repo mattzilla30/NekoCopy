@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -51,6 +50,7 @@ import kotlinx.coroutines.launch
 import org.nekomanga.R
 import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.manga.DisplayManga
+import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.MangaGrid
 import org.nekomanga.presentation.components.MangaList
 import org.nekomanga.presentation.components.ResultList
@@ -239,7 +239,7 @@ private fun DisplayWrapper(
             Box(modifier = contentModifier) {
                 if (displayScreenState.isLoading && displayScreenState.page == 1) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        ContainedLoadingIndicator(modifier = Modifier.align(Alignment.Center))
+                        KittyContainedLoadingIndicator(modifier = Modifier.align(Alignment.Center))
                     }
                 } else if (displayScreenState.error != null) {
                     EmptyScreen(

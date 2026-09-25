@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
@@ -47,6 +46,7 @@ import org.nekomanga.R
 import org.nekomanga.domain.category.toDbCategory
 import org.nekomanga.domain.chapter.ChapterMarkActions
 import org.nekomanga.presentation.components.AppBar
+import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.dialog.ConfirmationDialog
 import org.nekomanga.presentation.components.scaffold.RootScaffold
@@ -455,7 +455,7 @@ private fun EmptyLibrary(
     ) {
         when (emptyType) {
             LibraryEmptyType.Loading -> {
-                ContainedLoadingIndicator()
+                KittyContainedLoadingIndicator()
             }
             LibraryEmptyType.NoSearchMatches -> {
                 EmptyScreen(

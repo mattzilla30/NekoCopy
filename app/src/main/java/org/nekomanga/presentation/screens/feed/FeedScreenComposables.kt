@@ -3,7 +3,6 @@ package org.nekomanga.presentation.screens.feed
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -12,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.nekomanga.R
+import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.dialog.ClearDownloadQueueDialog
 import org.nekomanga.presentation.components.dialog.ConfirmationDialog
 import org.nekomanga.presentation.screens.download.DownloadScreen
@@ -70,7 +70,7 @@ fun FeedScreenContent(
                     updatesPagingScreenState.pageLoading &&
                     updatesPagingScreenState.offset == 0)
         ) {
-            ContainedLoadingIndicator(modifier = Modifier.align(Alignment.Center))
+            KittyContainedLoadingIndicator(modifier = Modifier.align(Alignment.Center))
         }
 
         val (feedManga, hasMoreResults) =

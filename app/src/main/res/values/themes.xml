@@ -65,8 +65,8 @@
         <item name="bottomNavigationStyle">@style/Widget.Kitty.BottomNavigationView</item>
         <item name="navigationRailStyle">@style/Widget.Kitty.NavigationRail</item>
         <item name="elevationOverlayEnabled">false</item>
-        <item name="android:fontFamily">@font/mplus_rounded</item>
-        <item name="fontFamily">@font/mplus_rounded</item>
+        <item name="android:fontFamily">@font/nunito</item>
+        <item name="fontFamily">@font/nunito</item>
 
         <!-- Themes -->
         <item name="windowActionModeOverlay">true</item>

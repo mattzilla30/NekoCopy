@@ -34,8 +34,8 @@ fun Context.getPrefTheme(preferences: PreferencesHelper): Themes {
             .get()
     } catch (e: Exception) {
         preferences.nightMode().set(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        preferences.lightTheme().set(Themes.Neko)
-        preferences.darkTheme().set(Themes.Neko)
+        preferences.lightTheme().set(Themes.Kitty)
+        preferences.darkTheme().set(Themes.Kitty)
         getPrefTheme(preferences)
     }
 }

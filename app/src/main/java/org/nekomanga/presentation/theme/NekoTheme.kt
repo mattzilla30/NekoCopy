@@ -14,9 +14,9 @@ import org.nekomanga.presentation.theme.Typefaces.appTypography
 import org.nekomanga.presentation.theme.colorschemes.BlueColorScheme
 import org.nekomanga.presentation.theme.colorschemes.BrownColorScheme
 import org.nekomanga.presentation.theme.colorschemes.GreenColorScheme
+import org.nekomanga.presentation.theme.colorschemes.KittyColorScheme
 import org.nekomanga.presentation.theme.colorschemes.MonetColorScheme
 import org.nekomanga.presentation.theme.colorschemes.MonochromeColorScheme
-import org.nekomanga.presentation.theme.colorschemes.NekoColorScheme
 import org.nekomanga.presentation.theme.colorschemes.NeonColorScheme
 import org.nekomanga.presentation.theme.colorschemes.NordColorScheme
 import org.nekomanga.presentation.theme.colorschemes.OrangeColorScheme
@@ -36,6 +36,7 @@ fun NekoTheme(colorScheme: ColorScheme? = null, content: @Composable () -> Unit)
     MaterialExpressiveTheme(
         colorScheme = finalColorScheme,
         motionScheme = MotionScheme.expressive(),
+        shapes = KittyShapes.scale,
         typography = appTypography,
         content = content,
     )
@@ -82,6 +83,6 @@ fun colorSchemeFromTheme(
         Themes.Brown -> BrownColorScheme
         Themes.Tako -> TakoColorScheme
         Themes.TokyoNight -> TokyoNightColorScheme
-        else -> NekoColorScheme
+        else -> KittyColorScheme
     }.getColorScheme(isSystemInDarkTheme)
 }

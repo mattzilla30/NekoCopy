@@ -25,7 +25,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -55,6 +54,7 @@ import org.nekomanga.R
 import org.nekomanga.domain.track.TrackItem
 import org.nekomanga.domain.track.TrackSearchItem
 import org.nekomanga.domain.track.TrackServiceItem
+import org.nekomanga.presentation.components.KittyLoadingIndicator
 import org.nekomanga.presentation.components.NekoColors
 import org.nekomanga.presentation.components.SearchFooter
 import org.nekomanga.presentation.components.dialog.TrackingSwitchDialog
@@ -168,7 +168,7 @@ private fun CenteredBox(themeColorState: ThemeColorState, trackSearchResult: Tra
     ) {
         when (trackSearchResult) {
             is TrackSearchResult.Loading ->
-                LoadingIndicator(
+                KittyLoadingIndicator(
                     color = themeColorState.primaryColor,
                     modifier = Modifier.size(Size.huge),
                 )

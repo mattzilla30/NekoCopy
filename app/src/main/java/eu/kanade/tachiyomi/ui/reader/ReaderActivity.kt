@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -142,6 +141,7 @@ import org.nekomanga.domain.manga.orientationType
 import org.nekomanga.domain.manga.readingModeType
 import org.nekomanga.domain.reader.ReaderPreferences
 import org.nekomanga.logging.TimberKt
+import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.snackbar.NekoSnackbarHost
 import org.nekomanga.presentation.extensions.collectAsState as preferenceCollectAsState
 import org.nekomanga.presentation.screens.reader.GestureNavigationOverlay
@@ -816,7 +816,7 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                                     ),
                             contentAlignment = Alignment.Center,
                         ) {
-                            ContainedLoadingIndicator()
+                            KittyContainedLoadingIndicator()
                         }
                     }
                     Box(modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding()) {

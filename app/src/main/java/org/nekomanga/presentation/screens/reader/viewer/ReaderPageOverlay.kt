@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import eu.kanade.tachiyomi.source.model.Page
 import kotlinx.coroutines.delay
 import org.nekomanga.R
+import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.theme.Size
 
 @Composable
@@ -70,14 +70,14 @@ fun ReaderPageLoadingOverlay(
                 verticalArrangement = Arrangement.spacedBy(Size.small),
             ) {
                 if (progress > 0) {
-                    ContainedLoadingIndicator(progress = { progress / 100f })
+                    KittyContainedLoadingIndicator(progress = { progress / 100f })
                     Text(
                         text = "$progress%",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                 } else {
-                    ContainedLoadingIndicator()
+                    KittyContainedLoadingIndicator()
                 }
             }
         }

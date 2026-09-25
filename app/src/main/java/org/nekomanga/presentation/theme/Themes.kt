@@ -6,8 +6,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import org.nekomanga.R
 
 enum class Themes {
+    Kitty,
     Monet,
-    Neko,
     Purple,
     Green,
     Orange,
@@ -72,7 +72,7 @@ enum class Themes {
             this == Blue -> R.string.crayon
             this == Monochrome -> R.string.monochrome
             this == Neon -> R.string.neon_nights
-            else -> R.string.kitsune_fire // Default
+            else -> R.string.tabby // Default
         }
     }
 }

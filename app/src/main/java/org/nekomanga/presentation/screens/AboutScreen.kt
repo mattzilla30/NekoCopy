@@ -3,6 +3,7 @@ package org.nekomanga.presentation.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,11 +17,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.toShape
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -29,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +40,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -145,12 +150,7 @@ private fun AboutWrapper(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_kitty),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(Size.extraExtraHuge * 3),
-                        contentDescription = null,
-                    )
+                    KittyLogo(size = Size.extraExtraHuge * 3)
                     Spacer(modifier = Modifier.size(Size.large))
                     Text(
                         text = stringResource(R.string.app_name),
@@ -290,10 +290,24 @@ private fun LogoHeader() {
         modifier = Modifier.fillMaxWidth().padding(top = Size.huge),
         contentAlignment = Alignment.Center,
     ) {
+        KittyLogo(size = Size.extraExtraHuge * 2)
+    }
+}
+
+/** The kitty face on a 12-sided cookie, Kitty's app mark. */
+@Composable
+private fun KittyLogo(size: Dp) {
+    Box(
+        modifier =
+            Modifier.size(size)
+                .clip(MaterialShapes.Cookie12Sided.toShape())
+                .background(MaterialTheme.colorScheme.primaryContainer),
+        contentAlignment = Alignment.Center,
+    ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_kitty),
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(Size.extraExtraHuge * 2),
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.size(size * 0.62f),
             contentDescription = null,
         )
     }

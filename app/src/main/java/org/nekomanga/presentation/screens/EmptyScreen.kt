@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
@@ -27,58 +26,34 @@ import jp.wasabeef.gap.Gap
 import org.nekomanga.presentation.components.AutoSizeText
 import org.nekomanga.presentation.components.NekoColors
 import org.nekomanga.presentation.components.UiText
+import org.nekomanga.presentation.theme.KittyShapes
 import org.nekomanga.presentation.theme.Size
 
 private val EmptyShapeSize = 180.dp
 
+/** Cat faces shown inside the kitty head on empty and error screens. */
 private val ErrorFaces =
     listOf(
-        "(･o･;)",
-        "Σ(ಠ_ಠ)",
-        "ಥ_ಥ",
-        "(˘･_･˘)",
-        "(；￣Д￣)",
-        "(･Д･。",
-        "(╬ಠ益ಠ)",
-        "(╥﹏╥)",
-        "(⋟﹏⋞)",
-        "Ò︵Ó",
-        " ˙ᯅ˙)",
-        "(¬_¬)",
-        "(ノಠ益ಠ)ノ彡┻━┻",
-        "(╯°□°）╯︵ ┻━┻",
-        "(｡>﹏<｡)",
-        "m(｡_｡)m",
-        "(•́﹏•̀｡)",
-        "ヾ(･`⌓´･)ﾉﾞ",
-        "(；一_一)",
-        "(-_-;)",
-        "´¬`",
-        "(ó﹏ò)",
-        "(´-﹏-`)",
-        "o(>﹏<)o",
-        "(；ﾟДﾟ)",
-        "ヾ(;ﾟДﾟ)ﾉ",
-        "ヽ(｀⌒´メ)ノ",
-        "(˚Д˚)",
-        "(`皿´)",
-        "Σ（ﾟдﾟlll)",
-        "(・・)？",
-        "(・・。)ゞ",
-        "(ﾟдﾟ；)",
-        "(´-ω-`)",
-        "(╬ ಠ 益 ಠ )",
-        "( ˘･з･)",
-        "(ノ｀Д´)ノ",
-        "(｀⌒´メ)",
-        "(ง •̀_•́)ง",
-        "(￣^￣)ゞ",
-        "(；´д｀)ゞ",
-        "(T_T)",
-        "(._.)",
-        "( ˘•ω•˘ )",
-        "(っ´-`c)",
-        "(´＿｀。)",
+        "=^･ω･^=",
+        "(=ↀωↀ=)",
+        "ฅ^•ﻌ•^ฅ",
+        "(=^-ω-^=)",
+        "=^..^=",
+        "(=｀ω´=)",
+        "(=;ェ;=)",
+        "(ΦωΦ)",
+        "(=ＴェＴ=)",
+        "(^・ω・^ )",
+        "ฅ(=ˇωˇ=)ฅ",
+        "(=´ᆺ`=)",
+        "(=ʘᆽʘ=)",
+        "(=ಠᆽಠ=)",
+        "(ᓀ‸ᓂ)",
+        "ᓚᘏᗢ",
+        "(=◕ᆽ◕ฺ=)",
+        "(^◔ᴥ◔^)",
+        "=^o.o^=",
+        "(=ﾟωﾟ)ﾉ",
     )
 
 @Composable
@@ -97,9 +72,15 @@ fun EmptyScreen(
         Box(
             modifier =
                 Modifier.size(EmptyShapeSize)
-                    .clip(MaterialShapes.Cookie9Sided.toShape())
+                    .clip(KittyShapes.Head.toShape())
                     .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(Size.extraLarge)
+                    // The ears take the top of the head, so the face sits low in the shape.
+                    .padding(
+                        start = Size.extraLarge,
+                        end = Size.extraLarge,
+                        top = Size.extraHuge,
+                        bottom = Size.medium,
+                    )
                     .clearAndSetSemantics {},
             contentAlignment = Alignment.Center,
         ) {

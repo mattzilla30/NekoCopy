@@ -197,18 +197,18 @@
     </style>
 
     <style name="Kitty.Button.TextButton" parent="Theme.Widget.Button.TextButton">
-        <item name="fontFamily">@font/mplus_rounded1c_medium</item>
+        <item name="fontFamily">@font/fredoka</item>
     </style>
 
 
     <style name="Kitty.Toolbar.TitleText" parent="">
-        <item name="fontFamily">@font/mplus_rounded1c_medium</item>
+        <item name="fontFamily">@font/fredoka</item>
         <item name="android:letterSpacing">-.02</item>
         <item name="android:textSize">16sp</item>
     </style>
 
     <style name="Kitty.Toolbar.SubTitleText" parent="">
-        <item name="fontFamily">@font/mplus_rounded1c_regular</item>
+        <item name="fontFamily">@font/nunito</item>
         <item name="android:letterSpacing">-.02</item>
         <item name="android:textSize">14sp</item>
     </style>
