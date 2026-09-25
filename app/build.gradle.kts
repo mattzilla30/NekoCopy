@@ -119,7 +119,6 @@ dependencies {
     implementation(libs.bundles.google)
 
     // TLS 1.3 support for Android < 10
-    implementation(libs.conscrypt)
 
     implementation(libs.bundles.retrofit)
 

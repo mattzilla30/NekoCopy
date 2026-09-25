@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.content.pm.ServiceInfo
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import androidx.work.Constraints
@@ -62,11 +60,7 @@ class AppDownloadInstallJob(private val context: Context, workerParams: WorkerPa
     override suspend fun getForegroundInfo(): ForegroundInfo {
         val notification = notifier.onDownloadStarted().build()
         val id = Notifications.ID_UPDATER
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(id, notification)
-        }
+        return ForegroundInfo(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
     }
 
     override suspend fun doWork(): Result {
@@ -169,11 +163,7 @@ class AppDownloadInstallJob(private val context: Context, workerParams: WorkerPa
                     response.close()
                     throw Exception("Unsuccessful response")
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    startInstalling(apkFile, notifyOnInstall)
-                } else {
-                    notifier.onDownloadFinished(apkFile.getUriCompat(context))
-                }
+                startInstalling(apkFile, notifyOnInstall)
             } catch (error: Exception) {
                 TimberKt.e(error)
                 if (
@@ -188,7 +178,6 @@ class AppDownloadInstallJob(private val context: Context, workerParams: WorkerPa
             }
         }
 
-    @RequiresApi(31)
     private suspend fun startInstalling(file: File, notifyOnInstall: Boolean) {
         try {
             val packageInstaller = context.packageManager.packageInstaller

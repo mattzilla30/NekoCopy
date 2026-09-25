@@ -11,7 +11,6 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
@@ -643,13 +642,8 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                         ) {
                             val hasCutout =
                                 window.decorView.rootWindowInsets?.let { insets ->
-                                    if (
-                                        android.os.Build.VERSION.SDK_INT >=
-                                            android.os.Build.VERSION_CODES.P
-                                    ) {
-                                        insets.displayCutout?.safeInsetTop != null ||
-                                            insets.displayCutout?.safeInsetBottom != null
-                                    } else false
+                                    insets.displayCutout?.safeInsetTop != null ||
+                                        insets.displayCutout?.safeInsetBottom != null
                                 } ?: false
                             ReaderSettingsSheet(
                                 manga = viewModel.manga,
@@ -1344,12 +1338,7 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
     }
 
     override val screenHeight: Int
-        get() =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                windowManager.currentWindowMetrics.bounds.height()
-            } else {
-                resources.displayMetrics.heightPixels
-            }
+        get() = windowManager.currentWindowMetrics.bounds.height()
 
     override fun onViewerItemsChanged() {
         when (val current = viewer) {
@@ -1814,18 +1803,13 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
 
     /** Sets notch cutout mode to "NEVER", if mobile is in a landscape view */
     private fun setNotchCutoutMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val currentOrientation = resources.configuration.orientation
-
-            val params = window.attributes
-            if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-                params.layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
+        val params = window.attributes
+        params.layoutInDisplayCutoutMode =
+            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
             } else {
-                params.layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             }
-        }
     }
 
     private fun setDoublePageMode(viewer: PagerViewerState) {

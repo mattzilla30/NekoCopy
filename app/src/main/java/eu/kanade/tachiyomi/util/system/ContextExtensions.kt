@@ -12,7 +12,6 @@ import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
-import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
@@ -293,10 +292,7 @@ suspend fun CoroutineWorker.tryToSetForeground() {
         setForeground(getForegroundInfo())
         TimberKt.i { "Successfully set foreground info" }
     } catch (e: Exception) {
-        if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                e is ForegroundServiceStartNotAllowedException
-        ) {
+        if (e is ForegroundServiceStartNotAllowedException) {
             // On Android 12+, if the app is in the background, we are not allowed to
             // start a foreground service. We swallow this exception so the worker
             // continues execution as a standard background job (without a notification).
@@ -324,13 +320,9 @@ fun Context.appDelegateNightMode(): Int {
 fun Context.isOnline(): Boolean {
     val networkCapabilities = connectivityManager.activeNetwork ?: return false
     val actNw = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
-    val maxTransport =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            NetworkCapabilities.TRANSPORT_LOWPAN
-        } else {
-            NetworkCapabilities.TRANSPORT_WIFI_AWARE
-        }
-    return (NetworkCapabilities.TRANSPORT_CELLULAR..maxTransport).any(actNw::hasTransport)
+    return (NetworkCapabilities.TRANSPORT_CELLULAR..NetworkCapabilities.TRANSPORT_LOWPAN).any(
+        actNw::hasTransport
+    )
 }
 
 fun Context.launchRequestPackageInstallsPermission() {

@@ -13,7 +13,6 @@ import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
-import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
@@ -116,16 +115,12 @@ object ImageUtil {
         }
     }
 
-    internal fun tachiyomi.decoder.ImageType.isAnimatedAndSupported(
-        sdkInt: Int = Build.VERSION.SDK_INT
-    ): Boolean {
+    internal fun tachiyomi.decoder.ImageType.isAnimatedAndSupported(): Boolean {
         return when (format) {
             Format.Gif -> true
             // https://coil-kt.github.io/coil/getting_started/#supported-image-formats
-            // Animated WebP support on Android 9+
-            Format.Webp -> isAnimated && sdkInt >= Build.VERSION_CODES.P
-            // Animated HEIF support on Android 11+
-            Format.Heif -> isAnimated && sdkInt >= Build.VERSION_CODES.R
+            Format.Webp,
+            Format.Heif -> isAnimated
             else -> false
         }
     }
@@ -669,12 +664,7 @@ object ImageUtil {
         }
 
         val bitmapRegionDecoder =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                ByteArrayInputStream(imageBytes).use { BitmapRegionDecoder.newInstance(it) }
-            } else {
-                @Suppress("DEPRECATION")
-                ByteArrayInputStream(imageBytes).use { BitmapRegionDecoder.newInstance(it, false) }
-            }
+            ByteArrayInputStream(imageBytes).use { BitmapRegionDecoder.newInstance(it) }
 
         if (bitmapRegionDecoder == null) {
             TimberKt.d { "Failed to create new instance of BitmapRegionDecoder" }

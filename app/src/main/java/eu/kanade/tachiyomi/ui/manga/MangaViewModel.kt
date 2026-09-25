@@ -1913,15 +1913,10 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
      */
     suspend fun shareCover(destDir: UniFile, artwork: Artwork): Uri? {
         return withIOContext {
-            return@withIOContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                try {
-                    saveCover(destDir, artwork)
-                } catch (e: java.lang.Exception) {
-                    TimberKt.e(e) { "share manga cover exception" }
-                    null
-                }
-            } else {
-                // returns null because before Q, the share sheet can't show the cover
+            try {
+                saveCover(destDir, artwork)
+            } catch (e: java.lang.Exception) {
+                TimberKt.e(e) { "share manga cover exception" }
                 null
             }
         }

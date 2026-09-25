@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.jobs.follows
 
 import android.content.Context
 import android.content.pm.ServiceInfo
-import android.os.Build
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.work.CoroutineWorker
@@ -56,11 +55,7 @@ class StatusSyncJob(val context: Context, params: WorkerParameters) :
     override suspend fun getForegroundInfo(): ForegroundInfo {
         val notification = progressNotification.build()
         val id = Notifications.Id.Status.Progress
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(id, notification)
-        }
+        return ForegroundInfo(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
     }
 
     override suspend fun doWork(): Result = coroutineScope {

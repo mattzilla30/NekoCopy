@@ -148,14 +148,8 @@ internal class AdvancedSettingsScreen(
                         subtitle = stringResource(R.string.supported_links_summary),
                         onClick = {
                             val intent =
-                                if (android.os.Build.VERSION.SDK_INT >= 31) {
-                                    Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS).apply {
-                                        data = Uri.parse("package:${context.packageName}")
-                                    }
-                                } else {
-                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                        data = Uri.parse("package:${context.packageName}")
-                                    }
+                                Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS).apply {
+                                    data = Uri.parse("package:${context.packageName}")
                                 }
                             context.startActivity(intent)
                         },

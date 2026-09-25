@@ -1,6 +1,5 @@
 package org.nekomanga.presentation.components.dialog
 
-import android.os.Build
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,10 +29,7 @@ fun AppUpdateDialog(release: Release, onDismissRequest: () -> Unit, onConfirm: (
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(onClick = { onConfirm(release) }, shapes = ButtonDefaults.shapes()) {
-                val text =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) R.string.update
-                    else R.string.download
-                Text(text = stringResource(id = text))
+                Text(text = stringResource(id = R.string.update))
             }
         },
         dismissButton = {

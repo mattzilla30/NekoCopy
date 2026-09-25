@@ -46,29 +46,18 @@ class ImageUtilTest {
             }
 
             listOf(
-                    // Gif is always supported
-                    TestCase(Format.Gif, true, 21, true, "Animated GIF below P"),
-                    TestCase(Format.Gif, true, 30, true, "Animated GIF above P"),
-
-                    // WebP supported on P (28) +
-                    TestCase(Format.Webp, true, 28, true, "Animated WebP on P"),
-                    TestCase(Format.Webp, true, 29, true, "Animated WebP on Q"),
-                    TestCase(Format.Webp, true, 27, false, "Animated WebP below P"),
-                    TestCase(Format.Webp, false, 28, false, "Non-animated WebP on P"),
-
-                    // Heif supported on R (30) +
-                    TestCase(Format.Heif, true, 30, true, "Animated HEIF on R"),
-                    TestCase(Format.Heif, true, 31, true, "Animated HEIF on S"),
-                    TestCase(Format.Heif, true, 29, false, "Animated HEIF below R"),
-                    TestCase(Format.Heif, false, 30, false, "Non-animated HEIF on R"),
-
-                    // Others are not supported
-                    TestCase(Format.Jpeg, true, 30, false, "Animated JPEG"),
-                    TestCase(Format.Png, true, 30, false, "Animated PNG"),
+                    TestCase(Format.Gif, true, true, "Animated GIF"),
+                    TestCase(Format.Webp, true, true, "Animated WebP"),
+                    TestCase(Format.Webp, false, false, "Non-animated WebP"),
+                    TestCase(Format.Heif, true, true, "Animated HEIF"),
+                    TestCase(Format.Heif, false, false, "Non-animated HEIF"),
+                    // Other formats never animate
+                    TestCase(Format.Jpeg, true, false, "Animated JPEG"),
+                    TestCase(Format.Png, true, false, "Animated PNG"),
                 )
-                .forEach { (format, isAnimated, sdkInt, expected, description) ->
+                .forEach { (format, isAnimated, expected, description) ->
                     val mock = mockType(format, isAnimated)
-                    val actual = mock.isAnimatedAndSupported(sdkInt = sdkInt)
+                    val actual = mock.isAnimatedAndSupported()
                     assertEquals("Test case '$description' failed", expected, actual)
                 }
         }
@@ -77,7 +66,6 @@ class ImageUtilTest {
     data class TestCase(
         val format: Format,
         val isAnimated: Boolean,
-        val sdkInt: Int,
         val expected: Boolean,
         val description: String,
     )

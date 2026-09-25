@@ -2,15 +2,12 @@ package eu.kanade.tachiyomi.data.coil
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
 import androidx.core.content.getSystemService
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.gif.AnimatedImageDecoder
-import coil3.gif.GifDecoder
 import coil3.memory.MemoryCache
-import coil3.request.allowHardware
 import coil3.request.allowRgb565
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
@@ -24,13 +21,8 @@ fun coilImageLoader(context: Context) =
     ImageLoader.Builder(context)
         .apply {
             val diskCacheInit = { CoilDiskCache.get(context) }
-            val isCurrSDKPieOrGreater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
             components {
-                if (isCurrSDKPieOrGreater) {
-                    add(AnimatedImageDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
+                add(AnimatedImageDecoder.Factory())
                 add(SvgDecoder.Factory())
                 add(TachiyomiImageDecoder.Factory())
                 add(MangaCoverFactory(lazy(diskCacheInit)))
@@ -47,7 +39,6 @@ fun coilImageLoader(context: Context) =
             memoryCache { MemoryCache.Builder().maxSizePercent(context, 0.40).build() }
             crossfade(true)
             allowRgb565(context.getSystemService<ActivityManager>()!!.isLowRamDevice)
-            allowHardware(isCurrSDKPieOrGreater)
             if (Injekt.get<NetworkPreferences>().verboseLogging().get()) {
                 logger(DebugLogger())
             }

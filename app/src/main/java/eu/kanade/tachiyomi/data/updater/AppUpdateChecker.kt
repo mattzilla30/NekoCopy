@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.data.updater
 
 import android.app.Application
 import android.content.Context
-import android.os.Build
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.util.system.withIOContext
@@ -58,10 +57,7 @@ class AppUpdateChecker {
                         }
                 }
             if (doExtrasAfterNewUpdate && result is AppUpdateResult.NewUpdate) {
-                if (
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                        preferences.appShouldAutoUpdate().get() != AppDownloadInstallJob.NEVER
-                ) {
+                if (preferences.appShouldAutoUpdate().get() != AppDownloadInstallJob.NEVER) {
                     AppDownloadInstallJob.start(
                         context,
                         null,

@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
-import android.os.Build
 import android.util.LruCache
 import coil3.ImageLoader
 import coil3.asImage
@@ -184,12 +183,7 @@ class ReaderPageSplitFetcher(private val split: ReaderPageSplit, private val opt
     ): Bitmap? {
         val decoder =
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    BitmapRegionDecoder.newInstance(imageBytes, 0, imageBytes.size)
-                } else {
-                    @Suppress("DEPRECATION")
-                    BitmapRegionDecoder.newInstance(imageBytes, 0, imageBytes.size, false)
-                }
+                BitmapRegionDecoder.newInstance(imageBytes, 0, imageBytes.size)
             } catch (e: Exception) {
                 TimberKt.d(e) {
                     "BitmapRegionDecoder not supported for page ${split.page.index}, slice offset $top, falling back to full decode"

@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.main
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -80,12 +79,10 @@ class MainActivity : BaseMainActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Force the 3-button navigation bar to be transparent
-            // See:
-            // https://developer.android.com/develop/ui/views/layout/edge-to-edge#create-transparent
-            window.isNavigationBarContrastEnforced = false
-        }
+        // Force the 3-button navigation bar to be transparent
+        // See:
+        // https://developer.android.com/develop/ui/views/layout/edge-to-edge#create-transparent
+        window.isNavigationBarContrastEnforced = false
 
         val isInitialDeepLink = isDeepLink(intent)
         val isBenchmark = intent.getBooleanExtra("is_benchmark", false)

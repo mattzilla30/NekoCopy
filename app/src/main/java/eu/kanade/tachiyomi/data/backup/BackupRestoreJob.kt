@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.data.backup
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.net.Uri
-import android.os.Build
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
@@ -28,11 +27,7 @@ class BackupRestoreJob(val context: Context, workerParams: WorkerParameters) :
     override suspend fun getForegroundInfo(): ForegroundInfo {
         val notification = notifier.showRestoreProgress(progress = -1).build()
         val id = Notifications.ID_RESTORE_PROGRESS
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(id, notification)
-        }
+        return ForegroundInfo(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
     }
 
     override suspend fun doWork(): Result {
