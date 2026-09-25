@@ -298,164 +298,55 @@ class ReaderPreloadControllerImpl(
     }
 
     private suspend fun loadItemToDisk(item: ReaderUiItem, key: String): Boolean {
-        return try {
+        val pending =
             when (item) {
-                is ReaderUiItem.Page -> {
-                    val page = item.page
-                    val extra = item.extraPage
+                is ReaderUiItem.Page -> listOfNotNull(item.page, item.extraPage)
+                is ReaderUiItem.SplitPage -> listOf(item.page)
+                is ReaderUiItem.Transition -> emptyList()
+            }.filter { it.status != Page.State.READY }
+        if (pending.isEmpty()) return true
 
-                    val pageNeedsLoad = page.status != Page.State.READY
-                    val extraNeedsLoad = extra != null && extra.status != Page.State.READY
-
-                    if (!pageNeedsLoad && !extraNeedsLoad) {
-                        return true
-                    }
-
-                    coroutineScope {
-                        val pageJob =
-                            if (pageNeedsLoad) {
-                                page.chapter.pageLoader?.let { loader ->
-                                    launch(ioDispatcher) {
-                                        try {
-                                            loader.loadPage(page)
-                                        } catch (e: Exception) {
-                                            if (e !is CancellationException) {
-                                                TimberKt.e(e) {
-                                                    "Failed to load page ${page.index}"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } else null
-
-                        val extraJob =
-                            if (extra != null && extraNeedsLoad) {
-                                extra.chapter.pageLoader?.let { loader ->
-                                    launch(ioDispatcher) {
-                                        try {
-                                            loader.loadPage(extra)
-                                        } catch (e: Exception) {
-                                            if (e !is CancellationException) {
-                                                TimberKt.e(e) {
-                                                    "Failed to load extra page ${extra.index}"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } else null
-
-                        try {
-                            if (pageNeedsLoad) {
-                                val pageStatus =
-                                    withTimeoutOrNull(DOWNLOAD_TIMEOUT_MS) {
-                                        page.statusFlow.first {
-                                            it == Page.State.READY || it == Page.State.ERROR
-                                        }
-                                    }
-                                if (pageStatus != Page.State.READY) {
-                                    val count = retryCounts.getOrDefault(key, 0)
-                                    val error =
-                                        if (pageStatus == null) {
-                                            TimeoutException(
-                                                "Timeout downloading page ${page.index}"
-                                            )
-                                        } else {
-                                            Exception("Failed to load page ${page.index}")
-                                        }
-                                    updatePageStatus(key, PreloadPageStatus.Error(error, count))
-                                    return@coroutineScope false
+        return try {
+            coroutineScope {
+                val jobs = pending.mapNotNull { page ->
+                    page.chapter.pageLoader?.let { loader ->
+                        launch(ioDispatcher) {
+                            try {
+                                loader.loadPage(page)
+                            } catch (e: Exception) {
+                                if (e !is CancellationException) {
+                                    TimberKt.e(e) { "Failed to load page ${page.index}" }
                                 }
                             }
-
-                            if (extra != null && extraNeedsLoad) {
-                                val extraStatus =
-                                    withTimeoutOrNull(DOWNLOAD_TIMEOUT_MS) {
-                                        extra.statusFlow.first {
-                                            it == Page.State.READY || it == Page.State.ERROR
-                                        }
-                                    }
-                                if (extraStatus != Page.State.READY) {
-                                    val count = retryCounts.getOrDefault(key, 0)
-                                    val error =
-                                        if (extraStatus == null) {
-                                            TimeoutException(
-                                                "Timeout downloading extra page ${extra.index}"
-                                            )
-                                        } else {
-                                            Exception("Failed to load extra page ${extra.index}")
-                                        }
-                                    updatePageStatus(key, PreloadPageStatus.Error(error, count))
-                                    return@coroutineScope false
-                                }
-                            }
-
-                            true
-                        } finally {
-                            pageJob?.cancel()
-                            extraJob?.cancel()
                         }
                     }
                 }
-                is ReaderUiItem.SplitPage -> {
-                    val page = item.page
-                    if (page.status == Page.State.READY) {
-                        return true
-                    }
-
-                    coroutineScope {
-                        val pageJob =
-                            page.chapter.pageLoader?.let { loader ->
-                                launch(ioDispatcher) {
-                                    try {
-                                        loader.loadPage(page)
-                                    } catch (e: Exception) {
-                                        if (e !is CancellationException) {
-                                            TimberKt.e(e) { "Failed to load parent page for split" }
-                                        }
-                                    }
-                                }
-                            }
-
-                        try {
-                            val pageStatus =
-                                withTimeoutOrNull(DOWNLOAD_TIMEOUT_MS) {
-                                    page.statusFlow.first {
-                                        it == Page.State.READY || it == Page.State.ERROR
-                                    }
-                                }
-                            if (pageStatus != Page.State.READY) {
-                                val count = retryCounts.getOrDefault(key, 0)
-                                val error =
-                                    if (pageStatus == null) {
-                                        TimeoutException(
-                                            "Timeout downloading parent page for split"
-                                        )
-                                    } else {
-                                        Exception(
-                                            "Failed to load parent page for split ${item.split.topOffset}"
-                                        )
-                                    }
-                                updatePageStatus(key, PreloadPageStatus.Error(error, count))
-                                false
-                            } else {
-                                true
-                            }
-                        } finally {
-                            pageJob?.cancel()
-                        }
-                    }
+                try {
+                    pending.all { page -> awaitDownload(page, key) }
+                } finally {
+                    jobs.forEach { it.cancel() }
                 }
-                is ReaderUiItem.Transition -> true
             }
         } catch (e: Exception) {
             if (e !is CancellationException) {
-                val count = retryCounts.getOrDefault(key, 0)
-                updatePageStatus(key, PreloadPageStatus.Error(e, count))
+                updatePageStatus(key, PreloadPageStatus.Error(e, retryCounts.getOrDefault(key, 0)))
             }
             false
         }
+    }
+
+    /** Waits for [page] to download. On an error or a timeout, records it under [key]. */
+    private suspend fun awaitDownload(page: ReaderPage, key: String): Boolean {
+        val status =
+            withTimeoutOrNull(DOWNLOAD_TIMEOUT_MS) {
+                page.statusFlow.first { it == Page.State.READY || it == Page.State.ERROR }
+            }
+        if (status == Page.State.READY) return true
+        val error =
+            if (status == null) TimeoutException("Timeout downloading page ${page.index}")
+            else Exception("Failed to load page ${page.index}")
+        updatePageStatus(key, PreloadPageStatus.Error(error, retryCounts.getOrDefault(key, 0)))
+        return false
     }
 
     private fun warmItemMemory(item: ReaderUiItem, key: String, isWebtoon: Boolean) {
@@ -465,17 +356,7 @@ class ReaderPreloadControllerImpl(
 
         when (item) {
             is ReaderUiItem.Page -> {
-                memoryCacheWarmManager.warmMemoryCache(
-                    key = key,
-                    data = item.page,
-                    crossfade = !isWebtoon,
-                    onSuccess = { updatePageStatus(key, PreloadPageStatus.MemoryReady) },
-                    onError = { throwable ->
-                        preloadedMemoryKeys.remove(key)
-                        val count = retryCounts.getOrDefault(key, 0)
-                        updatePageStatus(key, PreloadPageStatus.Error(throwable, count))
-                    },
-                )
+                warmWithStatus(key, item.page, crossfade = !isWebtoon)
                 item.extraPage?.let { extra ->
                     val extraKey = "${key}_extra"
                     memoryCacheWarmManager.warmMemoryCache(
@@ -485,22 +366,31 @@ class ReaderPreloadControllerImpl(
                     )
                 }
             }
-            is ReaderUiItem.SplitPage -> {
-                memoryCacheWarmManager.warmMemoryCache(
-                    key = key,
-                    data = item.split,
-                    crossfade = false,
-                    onSuccess = { updatePageStatus(key, PreloadPageStatus.MemoryReady) },
-                    onError = { throwable ->
-                        preloadedMemoryKeys.remove(key)
-                        val count = retryCounts.getOrDefault(key, 0)
-                        updatePageStatus(key, PreloadPageStatus.Error(throwable, count))
-                    },
-                )
-            }
-            is ReaderUiItem.Transition -> {
-                updatePageStatus(key, PreloadPageStatus.Idle)
-            }
+            is ReaderUiItem.SplitPage -> warmWithStatus(key, item.split, crossfade = false)
+            is ReaderUiItem.Transition -> updatePageStatus(key, PreloadPageStatus.Idle)
+        }
+    }
+
+    /** Decodes [data] into the memory cache and tracks its status under [key]. */
+    private fun warmWithStatus(key: String, data: Any, crossfade: Boolean) {
+        memoryCacheWarmManager.warmMemoryCache(
+            key = key,
+            data = data,
+            crossfade = crossfade,
+            onSuccess = { updatePageStatus(key, PreloadPageStatus.MemoryReady) },
+            onError = { throwable ->
+                preloadedMemoryKeys.remove(key)
+                val count = retryCounts.getOrDefault(key, 0)
+                updatePageStatus(key, PreloadPageStatus.Error(throwable, count))
+            },
+        )
+    }
+
+    /** Like [warmWithStatus], once per [key]. */
+    private fun warmOnce(key: String, data: Any) {
+        if (preloadedMemoryKeys.add(key)) {
+            updatePageStatus(key, PreloadPageStatus.MemoryDecoding)
+            warmWithStatus(key, data, crossfade = false)
         }
     }
 
@@ -512,50 +402,7 @@ class ReaderPreloadControllerImpl(
         val precomputed = page.precomputedSplits
         if (precomputed != null) {
             checkedTallPages.add(page)
-            if (precomputed.isNotEmpty()) {
-                if (preloadMemory) {
-                    precomputed.forEach { split ->
-                        val splitKey =
-                            "${DOMAIN_KEY_PREFIX}_split_${split.page.chapter.chapter.id ?: 0}_${split.page.index}_${split.topOffset}"
-                        if (preloadedMemoryKeys.add(splitKey)) {
-                            updatePageStatus(splitKey, PreloadPageStatus.MemoryDecoding)
-                            memoryCacheWarmManager.warmMemoryCache(
-                                key = splitKey,
-                                data = split,
-                                crossfade = false,
-                                onSuccess = {
-                                    updatePageStatus(splitKey, PreloadPageStatus.MemoryReady)
-                                },
-                                onError = { throwable ->
-                                    preloadedMemoryKeys.remove(splitKey)
-                                    val count = retryCounts.getOrDefault(splitKey, 0)
-                                    updatePageStatus(
-                                        splitKey,
-                                        PreloadPageStatus.Error(throwable, count),
-                                    )
-                                },
-                            )
-                        }
-                    }
-                }
-                onPageSplit?.invoke(page, precomputed)
-            } else if (preloadMemory) {
-                val key = "${DOMAIN_KEY_PREFIX}_page_${page.chapter.chapter.id ?: 0}_${page.index}"
-                if (preloadedMemoryKeys.add(key)) {
-                    updatePageStatus(key, PreloadPageStatus.MemoryDecoding)
-                    memoryCacheWarmManager.warmMemoryCache(
-                        key = key,
-                        data = page,
-                        crossfade = false,
-                        onSuccess = { updatePageStatus(key, PreloadPageStatus.MemoryReady) },
-                        onError = { throwable ->
-                            preloadedMemoryKeys.remove(key)
-                            val count = retryCounts.getOrDefault(key, 0)
-                            updatePageStatus(key, PreloadPageStatus.Error(throwable, count))
-                        },
-                    )
-                }
-            }
+            applySplits(page, precomputed, preloadMemory)
             return
         }
 
@@ -564,59 +411,38 @@ class ReaderPreloadControllerImpl(
         itemScope.launch(ioDispatcher) {
             try {
                 page.statusFlow.first { it == Page.State.READY }
-                val screenHeight = getScreenHeight()
-                val splits = checkTallPage(page, screenHeight)
-                page.precomputedSplits = splits ?: emptyList()
-                if (splits != null && splits.isNotEmpty()) {
-                    if (preloadMemory) {
-                        splits.forEach { split ->
-                            val splitKey =
-                                "${DOMAIN_KEY_PREFIX}_split_${split.page.chapter.chapter.id ?: 0}_${split.page.index}_${split.topOffset}"
-                            if (preloadedMemoryKeys.add(splitKey)) {
-                                updatePageStatus(splitKey, PreloadPageStatus.MemoryDecoding)
-                                memoryCacheWarmManager.warmMemoryCache(
-                                    key = splitKey,
-                                    data = split,
-                                    crossfade = false,
-                                    onSuccess = {
-                                        updatePageStatus(splitKey, PreloadPageStatus.MemoryReady)
-                                    },
-                                    onError = { throwable ->
-                                        preloadedMemoryKeys.remove(splitKey)
-                                        val count = retryCounts.getOrDefault(splitKey, 0)
-                                        updatePageStatus(
-                                            splitKey,
-                                            PreloadPageStatus.Error(throwable, count),
-                                        )
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    onPageSplit?.invoke(page, splits)
-                } else if (preloadMemory) {
-                    val key =
-                        "${DOMAIN_KEY_PREFIX}_page_${page.chapter.chapter.id ?: 0}_${page.index}"
-                    if (preloadedMemoryKeys.add(key)) {
-                        updatePageStatus(key, PreloadPageStatus.MemoryDecoding)
-                        memoryCacheWarmManager.warmMemoryCache(
-                            key = key,
-                            data = page,
-                            crossfade = false,
-                            onSuccess = { updatePageStatus(key, PreloadPageStatus.MemoryReady) },
-                            onError = { throwable ->
-                                preloadedMemoryKeys.remove(key)
-                                val count = retryCounts.getOrDefault(key, 0)
-                                updatePageStatus(key, PreloadPageStatus.Error(throwable, count))
-                            },
-                        )
-                    }
-                }
+                val splits = checkTallPage(page, getScreenHeight()).orEmpty()
+                page.precomputedSplits = splits
+                applySplits(page, splits, preloadMemory)
             } catch (e: Exception) {
                 if (e is CancellationException) {
                     checkedTallPages.remove(page)
                 }
             }
+        }
+    }
+
+    /** Warms a tall page's [splits], or the page itself when it needs none. */
+    private fun applySplits(
+        page: ReaderPage,
+        splits: List<ReaderPageSplit>,
+        preloadMemory: Boolean,
+    ) {
+        if (splits.isNotEmpty()) {
+            if (preloadMemory) {
+                splits.forEach { split ->
+                    warmOnce(
+                        "${DOMAIN_KEY_PREFIX}_split_${split.page.chapter.chapter.id ?: 0}_${split.page.index}_${split.topOffset}",
+                        split,
+                    )
+                }
+            }
+            onPageSplit?.invoke(page, splits)
+        } else if (preloadMemory) {
+            warmOnce(
+                "${DOMAIN_KEY_PREFIX}_page_${page.chapter.chapter.id ?: 0}_${page.index}",
+                page,
+            )
         }
     }
 
@@ -790,47 +616,34 @@ class ReaderPreloadControllerImpl(
         items: List<ReaderUiItem>,
         pageBudget: Int = 1,
         minItems: Int = 3,
-    ): Int {
-        if (items.isEmpty()) return 0
-        val safeStart = startIndex.coerceIn(0, items.lastIndex)
-        var distinctPages = 0
-        var lastPage: ReaderPage? = null
-        var lastIdx = safeStart
-        for (i in safeStart downTo 0) {
-            val item = items[i]
-            val page =
-                when (item) {
-                    is ReaderUiItem.Page -> item.page
-                    is ReaderUiItem.SplitPage -> item.page
-                    is ReaderUiItem.Transition -> null
-                }
-            if (page != null && page != lastPage) {
-                distinctPages++
-                lastPage = page
-            }
-            lastIdx = i
-            if (distinctPages > pageBudget && (safeStart - i) >= minItems) {
-                break
-            }
-        }
-        return lastIdx
-    }
+    ): Int = calculateWindowEdge(startIndex, items, pageBudget, minItems, step = -1)
 
     internal fun calculateWindowEnd(
         startIndex: Int,
         items: List<ReaderUiItem>,
         pageBudget: Int,
         minItems: Int,
+    ): Int = calculateWindowEdge(startIndex, items, pageBudget, minItems, step = 1)
+
+    /**
+     * Walks from [startIndex] in the direction of [step] and returns the last index reached once
+     * the walk has passed more than [pageBudget] distinct pages and at least [minItems] items.
+     */
+    private fun calculateWindowEdge(
+        startIndex: Int,
+        items: List<ReaderUiItem>,
+        pageBudget: Int,
+        minItems: Int,
+        step: Int,
     ): Int {
         if (items.isEmpty()) return 0
         val safeStart = startIndex.coerceIn(0, items.lastIndex)
         var distinctPages = 0
         var lastPage: ReaderPage? = null
-        var lastIdx = safeStart
-        for (i in safeStart..items.lastIndex) {
-            val item = items[i]
+        var i = safeStart
+        while (true) {
             val page =
-                when (item) {
+                when (val item = items[i]) {
                     is ReaderUiItem.Page -> item.page
                     is ReaderUiItem.SplitPage -> item.page
                     is ReaderUiItem.Transition -> null
@@ -839,11 +652,11 @@ class ReaderPreloadControllerImpl(
                 distinctPages++
                 lastPage = page
             }
-            lastIdx = i
-            if (distinctPages > pageBudget && (i - safeStart) >= minItems) {
-                break
-            }
+            val next = i + step
+            if (distinctPages > pageBudget && (i - safeStart) * step >= minItems) break
+            if (next !in items.indices) break
+            i = next
         }
-        return lastIdx
+        return i
     }
 }

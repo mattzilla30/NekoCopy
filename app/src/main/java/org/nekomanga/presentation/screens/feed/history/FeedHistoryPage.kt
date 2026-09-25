@@ -10,16 +10,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import java.util.Date
 import jp.wasabeef.gap.Gap
 import org.nekomanga.R
+import org.nekomanga.presentation.components.LoadMoreNearEnd
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.screens.EmptyScreen
 import org.nekomanga.presentation.screens.feed.FeedHistoryGroup
@@ -52,21 +51,12 @@ fun FeedHistoryPage(
     // Optimize: Observe scroll state via snapshotFlow instead of attaching
     // LaunchedEffect to individual LazyColumn items. This avoids unnecessary
     // composition overhead and redundant pagination triggers.
-    if (hasMoreResults && !loadingResults) {
-        LaunchedEffect(scrollState) {
-            snapshotFlow {
-                val layoutInfo = scrollState.layoutInfo
-                val totalItems = layoutInfo.totalItemsCount
-                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                lastVisibleItemIndex >= (totalItems - 5)
-            }
-                .collect { isAtEnd ->
-                    if (isAtEnd) {
-                        loadNextPage()
-                    }
-                }
-        }
-    }
+    scrollState.LoadMoreNearEnd(
+        enabled = hasMoreResults && !loadingResults,
+        itemCount = feedHistoryMangaList.size,
+        itemsFromEnd = 5,
+        loadMore = loadNextPage,
+    )
 
     val now = Date().time
     var timeSpan by remember { mutableStateOf("") }

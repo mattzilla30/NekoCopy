@@ -21,9 +21,28 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import eu.kanade.tachiyomi.ui.manga.TrackingConstants
 import org.nekomanga.R
+import org.nekomanga.domain.track.TrackItem
 import org.nekomanga.presentation.components.ExpressivePicker
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.theme.Size
+
+@Composable
+fun TrackingChapterDialog(
+    themeColorState: ThemeColorState,
+    track: TrackItem,
+    onDismiss: () -> Unit,
+    trackChapterChanged: (Int) -> Unit,
+) {
+    val last = if (track.totalChapters > 0) track.totalChapters else 10000
+    TrackingPickerDialog(
+        title = stringResource(R.string.chapters),
+        themeColorState = themeColorState,
+        items = (0..last).toList(),
+        initial = track.lastChapterRead.toInt(),
+        onDismiss = onDismiss,
+        onConfirm = trackChapterChanged,
+    )
+}
 
 @Composable
 fun TrackingScoreDialog(
@@ -32,28 +51,39 @@ fun TrackingScoreDialog(
     onDismiss: () -> Unit,
     trackScoreChange: (Int) -> Unit,
 ) {
+    val scores = trackAndService.service.scoreList
+    val displayedScore = trackAndService.service.displayScore(trackAndService.track)
+    TrackingPickerDialog(
+        title = stringResource(R.string.score),
+        themeColorState = themeColorState,
+        items = scores,
+        initial = scores.getOrElse(scores.indexOf(displayedScore)) { scores[0] },
+        onDismiss = onDismiss,
+        onConfirm = { score -> trackScoreChange(scores.indexOf(score)) },
+    )
+}
+
+/** A dialog with one scroll wheel over [items]. OK passes the picked item to [onConfirm]. */
+@Composable
+private fun <T> TrackingPickerDialog(
+    title: String,
+    themeColorState: ThemeColorState,
+    items: List<T>,
+    initial: T,
+    onDismiss: () -> Unit,
+    onConfirm: (T) -> Unit,
+) {
     CompositionLocalProvider(
         LocalRippleConfiguration provides themeColorState.rippleConfiguration,
         LocalTextSelectionColors provides themeColorState.textSelectionColors,
     ) {
-        val displayedScore = trackAndService.service.displayScore(trackAndService.track)
-        val index =
-            when {
-                displayedScore == "-" -> 0
-                trackAndService.service.scoreList.indexOf(displayedScore) != -1 ->
-                    trackAndService.service.scoreList.indexOf(displayedScore)
-                else -> 0
-            }
-
-        var currentIndex by remember { mutableStateOf(index) }
+        var current by remember { mutableStateOf(initial) }
+        val buttonColors =
+            ButtonDefaults.textButtonColors(contentColor = themeColorState.primaryColor)
 
         AlertDialog(
             title = {
-                Text(
-                    text = stringResource(id = R.string.score),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Text(text = title, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             },
             text = {
                 Box(
@@ -61,13 +91,11 @@ fun TrackingScoreDialog(
                     modifier = Modifier.padding(Size.medium).fillMaxWidth(),
                 ) {
                     ExpressivePicker(
-                        modifier = Modifier.fillMaxWidth(.4f),
+                        value = current,
                         themeColorState = themeColorState,
-                        items = trackAndService.service.scoreList,
-                        value = trackAndService.service.scoreList[currentIndex],
-                        onValueChange = { newScore ->
-                            currentIndex = trackAndService.service.scoreList.indexOf(newScore)
-                        },
+                        items = items,
+                        onValueChange = { current = it },
+                        modifier = Modifier.fillMaxWidth(.4f),
                     )
                 }
             },
@@ -75,10 +103,7 @@ fun TrackingScoreDialog(
             dismissButton = {
                 TextButton(
                     onClick = onDismiss,
-                    colors =
-                        ButtonDefaults.textButtonColors(
-                            contentColor = themeColorState.primaryColor
-                        ),
+                    colors = buttonColors,
                     shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = R.string.cancel))
@@ -87,13 +112,10 @@ fun TrackingScoreDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        trackScoreChange(currentIndex)
+                        onConfirm(current)
                         onDismiss()
                     },
-                    colors =
-                        ButtonDefaults.textButtonColors(
-                            contentColor = themeColorState.primaryColor
-                        ),
+                    colors = buttonColors,
                     shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(id = android.R.string.ok))

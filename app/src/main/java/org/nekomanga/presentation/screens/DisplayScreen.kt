@@ -46,13 +46,13 @@ import org.nekomanga.presentation.components.MangaGrid
 import org.nekomanga.presentation.components.MangaList
 import org.nekomanga.presentation.components.ResultList
 import org.nekomanga.presentation.components.UiText
+import org.nekomanga.presentation.components.bars.DisplayOptionsTopBar
 import org.nekomanga.presentation.components.scaffold.ChildScreenScaffold
 import org.nekomanga.presentation.components.sheets.Sheet
 import org.nekomanga.presentation.components.sheets.rememberSheetHost
 import org.nekomanga.presentation.functions.numberOfColumns
 import org.nekomanga.presentation.screens.browse.DisplayScreenSheet
 import org.nekomanga.presentation.screens.browse.DisplaySheetScreen
-import org.nekomanga.presentation.screens.display.DisplayTopBar
 import org.nekomanga.presentation.theme.Size
 
 /**
@@ -170,8 +170,9 @@ private fun DisplayWrapper(
     ChildScreenScaffold(
         scrollBehavior = scrollBehavior,
         topBar = {
-            DisplayTopBar(
-                screenState = displayScreenState,
+            DisplayOptionsTopBar(
+                title = displayScreenState.title.asString(),
+                incognitoMode = displayScreenState.incognitoMode,
                 onNavigationIconClicked = onBackPress,
                 scrollBehavior = scrollBehavior,
                 onSettingClick = {

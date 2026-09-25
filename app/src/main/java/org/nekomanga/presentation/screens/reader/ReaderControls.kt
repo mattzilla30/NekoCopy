@@ -301,30 +301,12 @@ private fun HorizontalFloatingSlider(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier,
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-                Modifier.size(Size.extraHuge)
-                    .background(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(Shapes.coverRadius),
-                    ),
-        ) {
-            if (isLoading) {
-                CircularWavyProgressIndicator(
-                    modifier = Modifier.size(Size.large),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                ToolTipButton(
-                    toolTipLabel = stringResource(R.string.previous_chapter),
-                    icon = SkipPrevious,
-                    iconModifier = Modifier.size(Size.largePlus),
-                    enabledTint = MaterialTheme.colorScheme.primary,
-                    onClick = onSkipPrevious,
-                )
-            }
-        }
+        ChapterSkipButton(
+            next = false,
+            isLoading = isLoading,
+            vertical = false,
+            onClick = onSkipPrevious,
+        )
 
         Box(
             contentAlignment = Alignment.Center,
@@ -381,13 +363,7 @@ private fun HorizontalFloatingSlider(
                                 currentOnPageChange(finalValue)
                             },
                             valueRange = 0f..targetMax,
-                            colors =
-                                SliderDefaults.colors(
-                                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                                    inactiveTrackColor =
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
-                                    thumbColor = MaterialTheme.colorScheme.primary,
-                                ),
+                            colors = readerSliderColors(),
                             modifier = Modifier.weight(1f).padding(horizontal = Size.small),
                         )
                     }
@@ -403,30 +379,12 @@ private fun HorizontalFloatingSlider(
             }
         }
 
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-                Modifier.size(Size.extraHuge)
-                    .background(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(Shapes.coverRadius),
-                    ),
-        ) {
-            if (isLoading) {
-                CircularWavyProgressIndicator(
-                    modifier = Modifier.size(Size.large),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                ToolTipButton(
-                    toolTipLabel = stringResource(R.string.next_chapter),
-                    icon = SkipNext,
-                    iconModifier = Modifier.size(Size.largePlus),
-                    enabledTint = MaterialTheme.colorScheme.primary,
-                    onClick = onSkipNext,
-                )
-            }
-        }
+        ChapterSkipButton(
+            next = true,
+            isLoading = isLoading,
+            vertical = false,
+            onClick = onSkipNext,
+        )
     }
 }
 
@@ -462,31 +420,12 @@ private fun VerticalFloatingSlider(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier,
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-                Modifier.size(Size.extraHuge)
-                    .background(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(Shapes.coverRadius),
-                    ),
-        ) {
-            if (isLoading) {
-                CircularWavyProgressIndicator(
-                    modifier = Modifier.size(Size.large),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                ToolTipButton(
-                    toolTipLabel = stringResource(R.string.previous_chapter),
-                    modifier = Modifier.rotate(90f),
-                    iconModifier = Modifier.size(Size.largePlus),
-                    icon = SkipPrevious,
-                    enabledTint = MaterialTheme.colorScheme.primary,
-                    onClick = onSkipPrevious,
-                )
-            }
-        }
+        ChapterSkipButton(
+            next = false,
+            isLoading = isLoading,
+            vertical = true,
+            onClick = onSkipPrevious,
+        )
 
         Box(
             contentAlignment = Alignment.Center,
@@ -560,13 +499,7 @@ private fun VerticalFloatingSlider(
                             draggingValue = null
                             currentOnPageChange(finalValue)
                         },
-                        colors =
-                            SliderDefaults.colors(
-                                activeTrackColor = MaterialTheme.colorScheme.primary,
-                                inactiveTrackColor =
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
-                                thumbColor = MaterialTheme.colorScheme.primary,
-                            ),
+                        colors = readerSliderColors(),
                     )
 
                     Text(
@@ -579,33 +512,58 @@ private fun VerticalFloatingSlider(
             }
         }
 
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-                Modifier.size(Size.extraHuge)
-                    .background(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(Shapes.coverRadius),
-                    ),
-        ) {
-            if (isLoading) {
-                CircularWavyProgressIndicator(
-                    modifier = Modifier.size(Size.large),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                ToolTipButton(
-                    modifier = Modifier.rotate(90f),
-                    toolTipLabel = stringResource(R.string.next_chapter),
-                    iconModifier = Modifier.size(Size.largePlus),
-                    icon = SkipNext,
-                    enabledTint = MaterialTheme.colorScheme.primary,
-                    onClick = onSkipNext,
-                )
-            }
+        ChapterSkipButton(
+            next = true,
+            isLoading = isLoading,
+            vertical = true,
+            onClick = onSkipNext,
+        )
+    }
+}
+
+/** Skips to the previous or [next] chapter. Shows a spinner while that chapter loads. */
+@Composable
+private fun ChapterSkipButton(
+    next: Boolean,
+    isLoading: Boolean,
+    vertical: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier =
+            Modifier.size(Size.extraHuge)
+                .background(
+                    MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(Shapes.coverRadius),
+                ),
+    ) {
+        if (isLoading) {
+            CircularWavyProgressIndicator(
+                modifier = Modifier.size(Size.large),
+                color = MaterialTheme.colorScheme.primary,
+            )
+        } else {
+            ToolTipButton(
+                toolTipLabel =
+                    stringResource(if (next) R.string.next_chapter else R.string.previous_chapter),
+                modifier = if (vertical) Modifier.rotate(90f) else Modifier,
+                icon = if (next) SkipNext else SkipPrevious,
+                iconModifier = Modifier.size(Size.largePlus),
+                enabledTint = MaterialTheme.colorScheme.primary,
+                onClick = onClick,
+            )
         }
     }
 }
+
+@Composable
+private fun readerSliderColors() =
+    SliderDefaults.colors(
+        activeTrackColor = MaterialTheme.colorScheme.primary,
+        inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
+        thumbColor = MaterialTheme.colorScheme.primary,
+    )
 
 @Composable
 private fun BottomActionSheet(

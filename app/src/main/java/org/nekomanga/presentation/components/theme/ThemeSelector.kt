@@ -41,32 +41,20 @@ fun ThemeSelector(
 
     val supportsDynamic = DynamicColors.isDynamicColorAvailable()
 
-    val lightThemes by remember {
-        derivedStateOf {
+    val themeSet =
+        remember(darkThemeSelector) {
             Themes.entries
                 .filter {
-                    (!it.isDarkTheme() || it.followsSystem()) &&
+                    (it.isDarkTheme() == darkThemeSelector || it.followsSystem()) &&
                         (it.styleRes() != R.style.Theme_Kitty_Monet || supportsDynamic)
                 }
                 .toSet()
         }
-    }
-
-    val darkThemes by remember {
-        derivedStateOf {
-            Themes.entries
-                .filter {
-                    (it.isDarkTheme() || it.followsSystem()) &&
-                        (it.styleRes() != R.style.Theme_Kitty_Monet || supportsDynamic)
-                }
-                .toSet()
-        }
-    }
 
     ThemeContent(
         modifier = modifier,
         context = context,
-        themeSet = if (darkThemeSelector) darkThemes else lightThemes,
+        themeSet = themeSet,
         preferences = preferences,
         darkAppTheme = darkAppTheme,
         lightAppTheme = lightAppTheme,
@@ -125,7 +113,7 @@ private fun ThemeContent(
     }
 }
 
-fun isSelected(
+private fun isSelected(
     theme: Themes,
     isDarkTheme: Boolean,
     darkAppTheme: Themes,
@@ -160,9 +148,8 @@ private fun themeClicked(
             }
         }
 
-    if (followingSystemTheme && isSelected) {
-        preferences.nightMode().set(nightMode)
-    } else if (!followingSystemTheme) {
+    // While following the system, a tap only switches modes on the theme already in use.
+    if (!followingSystemTheme || isSelected) {
         preferences.nightMode().set(nightMode)
     }
 

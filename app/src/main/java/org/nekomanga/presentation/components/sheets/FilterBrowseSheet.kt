@@ -408,37 +408,18 @@ private fun <T> FilterRow(
     nameRes: ((T) -> Int)? = null,
     name: ((T) -> String)? = null,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        ExpandableRow(
-            isExpanded = expanded,
-            disabled = disabled,
-            onClick = headerClicked,
-            textColor =
-                if (anyEnabled) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurface,
-            rowText = stringResource(id = headerRes),
-        )
-
-        AnimatedVisibility(visible = expanded, enter = slideEnter(), exit = slideExit()) {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = Size.small),
-                horizontalArrangement = Arrangement.spacedBy(Size.small, Alignment.Start),
-            ) {
-                items.forEach { item ->
-                    val itemName =
-                        when {
-                            nameRes != null -> stringResource(id = nameRes(item))
-                            name != null -> name(item)
-                            else -> ""
-                        }
-                    FilterChipWrapper(
-                        selected = selected(item),
-                        onClick = { onClick(item) },
-                        name = itemName,
-                    )
-                }
-            }
-        }
+    ExpandableChipRow(
+        items,
+        expanded,
+        disabled,
+        anyEnabled,
+        headerClicked,
+        headerRes,
+        modifier,
+        nameRes,
+        name,
+    ) { item, itemName ->
+        FilterChipWrapper(selected = selected(item), onClick = { onClick(item) }, name = itemName)
     }
 }
 
@@ -455,6 +436,41 @@ private fun <T> FilterTriStateRow(
     modifier: Modifier = Modifier,
     nameRes: ((T) -> Int)? = null,
     name: ((T) -> String)? = null,
+) {
+    ExpandableChipRow(
+        items,
+        expanded,
+        disabled,
+        anyEnabled,
+        headerClicked,
+        headerRes,
+        modifier,
+        nameRes,
+        name,
+    ) { item, itemName ->
+        TriStateFilterChip(
+            state = selected(item),
+            toggleState = { state -> toggleState(state, item) },
+            name = itemName,
+        )
+    }
+}
+
+/**
+ * A header that expands to show one [chip] per item. The header turns primary when [anyEnabled].
+ */
+@Composable
+private fun <T> ExpandableChipRow(
+    items: List<T>,
+    expanded: Boolean,
+    disabled: Boolean,
+    anyEnabled: Boolean,
+    headerClicked: () -> Unit,
+    @StringRes headerRes: Int,
+    modifier: Modifier,
+    nameRes: ((T) -> Int)?,
+    name: ((T) -> String)?,
+    chip: @Composable (item: T, itemName: String) -> Unit,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         ExpandableRow(
@@ -479,11 +495,7 @@ private fun <T> FilterTriStateRow(
                             name != null -> name(item)
                             else -> ""
                         }
-                    TriStateFilterChip(
-                        state = selected(item),
-                        toggleState = { state -> toggleState(state, item) },
-                        name = itemName,
-                    )
+                    chip(item, itemName)
                 }
             }
         }

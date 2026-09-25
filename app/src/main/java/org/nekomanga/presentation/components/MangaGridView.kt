@@ -23,9 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -127,23 +125,11 @@ fun MangaGrid(
 
     val scrollState = rememberLazyGridState()
 
-    if (!lastPage && mangaList.isNotEmpty()) {
-        // Optimize: Use snapshotFlow to observe scroll state for pagination instead of
-        // attaching LaunchedEffect to every item, which causes unnecessary composition overhead.
-        LaunchedEffect(scrollState, lastPage) {
-            snapshotFlow {
-                val layoutInfo = scrollState.layoutInfo
-                val totalItems = layoutInfo.totalItemsCount
-                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                lastVisibleItemIndex >= (totalItems - 1)
-            }
-                .collect { isAtEnd ->
-                    if (isAtEnd) {
-                        loadNextItems()
-                    }
-                }
-        }
-    }
+    scrollState.LoadMoreNearEnd(
+        enabled = !lastPage && mangaList.isNotEmpty(),
+        itemCount = mangaList.size,
+        loadMore = loadNextItems,
+    )
 
     LazyVerticalGrid(
         columns = cells,

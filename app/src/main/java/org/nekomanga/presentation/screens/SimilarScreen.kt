@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
@@ -33,6 +34,7 @@ import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.MangaGridWithHeader
 import org.nekomanga.presentation.components.MangaListWithHeader
 import org.nekomanga.presentation.components.UiText
+import org.nekomanga.presentation.components.bars.DisplayOptionsTopBar
 import org.nekomanga.presentation.components.scaffold.ChildScreenScaffold
 import org.nekomanga.presentation.components.sheets.Sheet
 import org.nekomanga.presentation.components.sheets.rememberSheetHost
@@ -40,7 +42,6 @@ import org.nekomanga.presentation.functions.numberOfColumns
 import org.nekomanga.presentation.screens.browse.DisplayScreenSheet
 import org.nekomanga.presentation.screens.browse.DisplaySheetScreen
 import org.nekomanga.presentation.screens.similar.SimilarScreenState
-import org.nekomanga.presentation.screens.similar.SimilarTopBar
 import org.nekomanga.presentation.screens.similar.SimilarViewModel
 
 /**
@@ -123,8 +124,9 @@ private fun SimilarWrapper(
         refreshState = refreshState,
         scrollBehavior = scrollBehavior,
         topBar = {
-            SimilarTopBar(
-                screenState = similarScreenState,
+            DisplayOptionsTopBar(
+                title = stringResource(R.string.similar),
+                incognitoMode = similarScreenState.incognitoMode,
                 onNavigationIconClicked = onBackPress,
                 scrollBehavior = scrollBehavior,
                 onSettingClick = {
