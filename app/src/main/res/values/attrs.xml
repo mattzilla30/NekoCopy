@@ -23,20 +23,6 @@
     <attr name="colorOnDownloadBadge" format="color" />
     <attr name="colorOnHopper" format="color" />
 
-    <declare-styleable name="MaterialSpinnerView">
-        <attr name="title" format="reference|string" />
-        <attr name="android:entries" />
-        <attr name="android:maxLines" />
-        <attr name="summary" format="reference|string" />
-    </declare-styleable>
-
-    <declare-styleable name="SortTextView">
-        <attr name="android:text" format="reference|string" />
-        <attr name="android:maxLines" />
-        <attr name="android:textAppearance" />
-        <attr name="android:drawablePadding" />
-    </declare-styleable>
-
     <bool name="isLightMode">true</bool>
 
 </resources>

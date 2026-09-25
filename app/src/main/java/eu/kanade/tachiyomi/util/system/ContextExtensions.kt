@@ -188,16 +188,6 @@ fun Context.notificationBuilder(
     return builder
 }
 
-fun Context.withOriginalWidth(): Context {
-    val width = resources.configuration.screenWidthDp
-    val configuration = resources.configuration
-    val overrideConf = Configuration()
-    overrideConf.setTo(configuration)
-    overrideConf.screenWidthDp = width
-    resources.configuration.updateFrom(overrideConf)
-    return this
-}
-
 fun Context.isLandscape(): Boolean {
     return resources.configuration?.orientation == Configuration.ORIENTATION_LANDSCAPE
 }

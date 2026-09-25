@@ -2,32 +2,19 @@
 
 package eu.kanade.tachiyomi.util.view
 
-import android.annotation.SuppressLint
 import android.graphics.drawable.ColorDrawable
-import android.view.Gravity
-import android.view.MenuItem
 import android.view.View
 import android.view.WindowInsets
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.view.menu.MenuBuilder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionContext
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
-import androidx.core.view.forEach
 import androidx.core.view.updatePaddingRelative
-import com.google.android.material.snackbar.Snackbar
-import eu.kanade.tachiyomi.util.lang.tintText
-import eu.kanade.tachiyomi.util.system.getResourceColor
-import eu.kanade.tachiyomi.widget.cascadeMenuStyler
-import me.saket.cascade.CascadePopupMenu
-import org.nekomanga.R
 import org.nekomanga.presentation.theme.NekoTheme
 
 inline fun ComponentActivity.setComposeContent(
@@ -40,26 +27,6 @@ inline fun ComponentActivity.setComposeContent(
 fun ComposeView.setComposeContent(content: @Composable () -> Unit) {
     setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     setContent { NekoTheme { content() } }
-}
-
-/**
- * Shows a snackbar in this view.
- *
- * @param message the message to show.
- * @param length the duration of the snack.
- * @param f a function to execute in the snack, allowing for example to define a custom action.
- */
-fun View.snack(
-    message: CharSequence,
-    length: Int = Snackbar.LENGTH_SHORT,
-    f: (Snackbar.() -> Unit)? = null,
-): Snackbar {
-    val snack = Snackbar.make(this, message, length)
-    if (f != null) {
-        snack.f()
-    }
-    snack.show()
-    return snack
 }
 
 object RecyclerWindowInsetsListener : View.OnApplyWindowInsetsListener {
@@ -121,49 +88,6 @@ var View.compatToolTipText: CharSequence?
     set(value) {
         ViewCompat.setTooltipText(this, value)
     }
-
-@SuppressLint("RestrictedApi")
-inline fun View.popupMenu(
-    items: List<Pair<Int, Int>>,
-    selectedItemId: Int? = null,
-    noinline onMenuItemClick: MenuItem.() -> Unit,
-): CascadePopupMenu {
-    val popup =
-        CascadePopupMenu(context, this, Gravity.NO_GRAVITY, styler = cascadeMenuStyler(context))
-    items.forEach { (id, stringRes) -> popup.menu.add(0, id, 0, stringRes) }
-
-    if (selectedItemId != null) {
-        val blendedAccent =
-            ColorUtils.blendARGB(
-                context.getResourceColor(R.attr.colorSecondary),
-                context.getResourceColor(R.attr.colorOnBackground),
-                0.5f,
-            )
-        (popup.menu as? MenuBuilder)?.setOptionalIconsVisible(true)
-        val emptyIcon = ContextCompat.getDrawable(context, R.drawable.ic_blank_24dp)
-        popup.menu.forEach { item ->
-            item.icon =
-                when (item.itemId) {
-                    selectedItemId ->
-                        ContextCompat.getDrawable(context, R.drawable.ic_check_24dp)
-                            ?.mutate()
-                            ?.apply { setTint(blendedAccent) }
-                    else -> emptyIcon
-                }
-            if (item.itemId == selectedItemId) {
-                item.title = item.title?.tintText(blendedAccent)
-            }
-        }
-    }
-
-    popup.setOnMenuItemClickListener {
-        it.onMenuItemClick()
-        true
-    }
-
-    popup.show()
-    return popup
-}
 
 var View.backgroundColor: Int?
     get() = (background as? ColorDrawable)?.color

@@ -13,8 +13,6 @@ import android.graphics.Paint
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.style.DynamicDrawableSpan
-import android.text.style.ImageSpan
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.Menu
@@ -42,6 +40,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,8 +54,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.core.content.ContextCompat
-import androidx.core.text.buildSpannedString
-import androidx.core.text.inSpans
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat.Type.statusBars
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
@@ -63,7 +62,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.snackbar.Snackbar
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
@@ -98,7 +96,6 @@ import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonViewerState
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.util.lang.orUnknownError
 import eu.kanade.tachiyomi.util.storage.getUriWithAuthority
-import eu.kanade.tachiyomi.util.system.contextCompatDrawable
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
 import eu.kanade.tachiyomi.util.system.isLTR
@@ -106,7 +103,6 @@ import eu.kanade.tachiyomi.util.system.isTablet
 import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.launchNonCancellable
 import eu.kanade.tachiyomi.util.system.launchUI
-import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.openInWebView
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
@@ -115,13 +111,10 @@ import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.withUIContext
 import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.hide
-import eu.kanade.tachiyomi.util.view.popupMenu
-import eu.kanade.tachiyomi.util.view.snack
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -152,8 +145,10 @@ import org.nekomanga.domain.manga.orientationType
 import org.nekomanga.domain.manga.readingModeType
 import org.nekomanga.domain.reader.ReaderPreferences
 import org.nekomanga.logging.TimberKt
+import org.nekomanga.presentation.components.snackbar.NekoSnackbarHost
 import org.nekomanga.presentation.extensions.collectAsState as preferenceCollectAsState
 import org.nekomanga.presentation.screens.reader.GestureNavigationOverlay
+import org.nekomanga.presentation.screens.reader.PageLayoutDialog
 import org.nekomanga.presentation.screens.reader.PageNumberIndicator
 import org.nekomanga.presentation.screens.reader.ReaderAppBar
 import org.nekomanga.presentation.screens.reader.ReaderBottomControls
@@ -161,6 +156,7 @@ import org.nekomanga.presentation.screens.reader.ReaderChaptersSheet
 import org.nekomanga.presentation.screens.reader.ReaderPageAction
 import org.nekomanga.presentation.screens.reader.ReaderPageActionsSheet
 import org.nekomanga.presentation.screens.reader.ReaderSettingsSheet
+import org.nekomanga.presentation.screens.reader.SetCoverDialog
 import org.nekomanga.presentation.screens.reader.viewer.ComposePagerViewer
 import org.nekomanga.presentation.screens.reader.viewer.ComposeWebtoonViewer
 import org.nekomanga.presentation.theme.NekoTheme
@@ -283,7 +279,11 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
     private val wic by lazy { WindowInsetsControllerCompat(window, window.decorView) }
     var lastVis = false
 
-    private var snackbar: Snackbar? = null
+    private val snackbarHostState = SnackbarHostState()
+
+    private var showPageLayoutDialog by mutableStateOf(false)
+
+    private var coverPromptPage by mutableStateOf<ReaderPage?>(null)
 
     private var intentPageNumber: Int? = null
 
@@ -827,6 +827,22 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                             ContainedLoadingIndicator()
                         }
                     }
+                    Box(modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding()) {
+                        NekoSnackbarHost(snackbarHostState)
+                    }
+                    if (showPageLayoutDialog) {
+                        PageLayoutDialog(
+                            selected = currentPageLayout(),
+                            onSelect = ::applyPageLayout,
+                            onDismiss = { showPageLayoutDialog = false },
+                        )
+                    }
+                    coverPromptPage?.let { page ->
+                        SetCoverDialog(
+                            onConfirm = { setAsCover(page) },
+                            onDismiss = { coverPromptPage = null },
+                        )
+                    }
                 }
             }
         }
@@ -946,8 +962,7 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
         viewer?.destroy()
         viewer = null
         config = null
-        snackbar?.dismiss()
-        snackbar = null
+        snackbarHostState.currentSnackbarData?.dismiss()
     }
 
     /**
@@ -1176,36 +1191,31 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
     }
 
     private fun showPageLayoutMenu() {
-        with(window.decorView) {
-            val config = (viewer as? PagerViewerState)?.config
-            val selectedId =
-                when {
-                    config?.doublePages == true -> PageLayout.DOUBLE_PAGES
-                    config?.splitPages == true -> PageLayout.SPLIT_PAGES
-                    else -> PageLayout.SINGLE_PAGE
-                }
-            popupMenu(
-                items =
-                    listOf(PageLayout.SINGLE_PAGE, PageLayout.DOUBLE_PAGES, PageLayout.SPLIT_PAGES)
-                        .map { it.value to it.stringRes },
-                selectedItemId = selectedId.value,
-            ) {
-                val newLayout = PageLayout.fromPreference(itemId)
+        showPageLayoutDialog = true
+    }
 
-                if (readerPreferences.pageLayout().get() == PageLayout.AUTOMATIC.value) {
-                    (viewer as? PagerViewerState)?.config?.let { config ->
-                        config.doublePages = newLayout == PageLayout.DOUBLE_PAGES
-                        if (newLayout == PageLayout.SINGLE_PAGE) {
-                            readerPreferences.automaticSplitsPage().set(false)
-                        } else if (newLayout == PageLayout.SPLIT_PAGES) {
-                            readerPreferences.automaticSplitsPage().set(true)
-                        }
-                        reloadChapters(config.doublePages, true)
-                    }
-                } else {
-                    readerPreferences.pageLayout().set(newLayout.value)
+    private fun currentPageLayout(): PageLayout {
+        val config = (viewer as? PagerViewerState)?.config
+        return when {
+            config?.doublePages == true -> PageLayout.DOUBLE_PAGES
+            config?.splitPages == true -> PageLayout.SPLIT_PAGES
+            else -> PageLayout.SINGLE_PAGE
+        }
+    }
+
+    private fun applyPageLayout(newLayout: PageLayout) {
+        if (readerPreferences.pageLayout().get() == PageLayout.AUTOMATIC.value) {
+            (viewer as? PagerViewerState)?.config?.let { config ->
+                config.doublePages = newLayout == PageLayout.DOUBLE_PAGES
+                if (newLayout == PageLayout.SINGLE_PAGE) {
+                    readerPreferences.automaticSplitsPage().set(false)
+                } else if (newLayout == PageLayout.SPLIT_PAGES) {
+                    readerPreferences.automaticSplitsPage().set(true)
                 }
+                reloadChapters(config.doublePages, true)
             }
+        } else {
+            readerPreferences.pageLayout().set(newLayout.value)
         }
     }
 
@@ -1226,7 +1236,7 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
 
         if (visible) coroutine?.cancel()
         if (visible) {
-            snackbar?.dismiss()
+            snackbarHostState.currentSnackbarData?.dismiss()
             wic.show(systemBars())
         } else {
             if (readerPreferences.fullscreen().get()) {
@@ -1264,27 +1274,33 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                 viewModel.manga?.readingModeType!! > 0 &&
                 viewModel.manga?.readingModeType!! != readerPreferences.defaultReadingMode().get()
         ) {
-            snackbar =
-                window.decorView.snack(
+            val message =
+                getString(
+                    R.string.reading_,
                     getString(
-                        R.string.reading_,
-                        getString(
-                                when (mangaViewer) {
-                                    ReadingModeType.RIGHT_TO_LEFT.flagValue ->
-                                        R.string.right_to_left_viewer
-                                    ReadingModeType.VERTICAL.flagValue -> R.string.vertical_viewer
-                                    ReadingModeType.WEBTOON.flagValue -> R.string.webtoon_style
-                                    else -> R.string.left_to_right_viewer
-                                }
-                            )
-                            .lowercase(Locale.getDefault()),
-                    ),
-                    4000,
-                ) {
-                    if (viewModel.manga?.isLongStrip() != true) {
-                        setAction(R.string.use_default) { viewModel.setMangaReadingMode(0) }
-                    }
+                            when (mangaViewer) {
+                                ReadingModeType.RIGHT_TO_LEFT.flagValue ->
+                                    R.string.right_to_left_viewer
+                                ReadingModeType.VERTICAL.flagValue -> R.string.vertical_viewer
+                                ReadingModeType.WEBTOON.flagValue -> R.string.webtoon_style
+                                else -> R.string.left_to_right_viewer
+                            }
+                        )
+                        .lowercase(Locale.getDefault()),
+                )
+            val actionLabel =
+                getString(R.string.use_default).takeIf { viewModel.manga?.isLongStrip() != true }
+            lifecycleScope.launch {
+                val result =
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = actionLabel,
+                        duration = SnackbarDuration.Short,
+                    )
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.setMangaReadingMode(0)
                 }
+            }
         }
 
         setOrientation(viewModel.getMangaOrientationType())
@@ -1634,11 +1650,7 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
     private fun showSetCoverPrompt(page: ReaderPage) {
         if (page.status != Page.State.READY) return
 
-        materialAlertDialog()
-            .setMessage(R.string.use_image_as_cover)
-            .setPositiveButton(android.R.string.ok) { _, _ -> setAsCover(page) }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        coverPromptPage = page
     }
 
     /**
@@ -1774,37 +1786,20 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
 
     private fun showTrackingError(errors: List<Pair<TrackService, String?>>) {
         if (errors.isEmpty()) return
-        snackbar?.dismiss()
+        val (service, errorMessage) = errors.first()
         val errorText =
-            if (errors.size > 1) {
+            if (errors.size > 1 || errorMessage == null) {
                 getString(
                     R.string.failed_to_update_,
                     errors.joinToString(", ") { getString(it.first.nameRes()) },
                 )
             } else {
-                val (service, errorMessage) = errors.first()
-                buildSpannedString {
-                    if (errorMessage != null) {
-                        val icon =
-                            contextCompatDrawable(service.getLogo())?.mutate()?.apply {
-                                val size =
-                                    resources.getDimension(
-                                        com.google.android.material.R.dimen
-                                            .design_snackbar_text_size
-                                    )
-                                val dRatio = intrinsicWidth / intrinsicHeight.toFloat()
-                                setBounds(0, 0, (size * dRatio).roundToInt(), size.roundToInt())
-                            } ?: return
-                        val alignment =
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                                DynamicDrawableSpan.ALIGN_CENTER
-                            else DynamicDrawableSpan.ALIGN_BASELINE
-                        inSpans(ImageSpan(icon, alignment)) { append("image") }
-                        append(" - $errorMessage")
-                    }
-                }
+                "${getString(service.nameRes())} - $errorMessage"
             }
-        snackbar = window.decorView.snack(errorText, 5000)
+        lifecycleScope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar(message = errorText, duration = SnackbarDuration.Long)
+        }
     }
 
     private fun onVisibilityChange(visible: Boolean) {
