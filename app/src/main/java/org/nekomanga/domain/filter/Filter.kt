@@ -4,7 +4,6 @@ import androidx.compose.ui.state.ToggleableState
 import eu.kanade.tachiyomi.source.model.MangaTag
 import eu.kanade.tachiyomi.source.online.utils.MdLang
 import eu.kanade.tachiyomi.source.online.utils.MdSort
-import eu.kanade.tachiyomi.util.lang.isUUID
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.domain.manga.MangaContentRating
 import org.nekomanga.domain.manga.MangaDemographic
@@ -66,19 +65,9 @@ sealed class Filter {
     @kotlinx.serialization.Serializable
     data class TagExclusionMode(val mode: TagMode = TagMode.Or) : Filter()
 
-    @kotlinx.serialization.Serializable
-    data class AuthorId(val uuid: String = "") : Filter() {
-        fun isNotBlankAndInvalidUUID(): Boolean {
-            return uuid.isNotBlank() && !uuid.isUUID()
-        }
-    }
+    @kotlinx.serialization.Serializable data class AuthorId(val uuid: String = "") : Filter() {}
 
-    @kotlinx.serialization.Serializable
-    data class GroupId(val uuid: String = "") : Filter() {
-        fun isNotBlankAndInvalidUUID(): Boolean {
-            return uuid.isNotBlank() && !uuid.isUUID()
-        }
-    }
+    @kotlinx.serialization.Serializable data class GroupId(val uuid: String = "") : Filter() {}
 
     @kotlinx.serialization.Serializable
     data class Sort(val sort: MdSort, val state: Boolean) : Filter() {

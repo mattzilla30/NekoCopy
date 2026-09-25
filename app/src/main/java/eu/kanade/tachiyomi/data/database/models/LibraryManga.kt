@@ -54,12 +54,5 @@ class LibraryManga : MangaImpl() {
         return result
     }
 
-    companion object {
-        fun createBlank(categoryId: Int): LibraryManga =
-            LibraryManga().apply {
-                title = ""
-                id = Long.MIN_VALUE
-                category = categoryId
-            }
-    }
+    companion object {}
 }

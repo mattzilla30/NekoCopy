@@ -8,7 +8,5 @@ package eu.kanade.tachiyomi.data.database.models
  * @param history object containing history
  */
 data class MangaChapterHistory(val manga: Manga, val chapter: Chapter, val history: History) {
-    companion object {
-        fun createBlank() = MangaChapterHistory(MangaImpl(), ChapterImpl(), HistoryImpl())
-    }
+    companion object {}
 }

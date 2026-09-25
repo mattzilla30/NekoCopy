@@ -14,7 +14,3 @@ fun UploaderImpl.toEntity(): UploaderEntity {
         uuid = this.uuid,
     )
 }
-
-fun List<UploaderImpl>.toEntityList(): List<UploaderEntity> {
-    return this.map { it.toEntity() }
-}

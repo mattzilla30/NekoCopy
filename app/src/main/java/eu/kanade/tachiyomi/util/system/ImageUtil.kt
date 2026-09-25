@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
 import android.webkit.MimeTypeMap
@@ -16,7 +15,6 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import com.hippo.unifile.UniFile
-import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -184,191 +182,6 @@ object ImageUtil {
             }
             else -> null
         }
-    }
-
-    /**
-     * Check whether the image is a double-page spread
-     *
-     * @return true if the width is greater than the height
-     */
-    fun isDoublePage(imageStream: InputStream): Boolean {
-        imageStream.mark(imageStream.available() + 1)
-
-        val imageBytes = imageStream.readBytes()
-
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size, options)
-
-        imageStream.reset()
-
-        return options.outWidth > options.outHeight
-    }
-
-    fun splitBitmap(
-        imageBitmap: Bitmap,
-        secondHalf: Boolean,
-        progressCallback: ((Int) -> Unit)? = null,
-    ): BufferedSource {
-        val height = imageBitmap.height
-        val width = imageBitmap.width
-        val result = Bitmap.createBitmap(width / 2, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        progressCallback?.invoke(98)
-        canvas.drawBitmap(
-            imageBitmap,
-            Rect(
-                if (!secondHalf) 0 else width / 2,
-                0,
-                if (secondHalf) width else width / 2,
-                height,
-            ),
-            result.rect,
-            null,
-        )
-        progressCallback?.invoke(99)
-        val output = ByteArrayOutputStream()
-        result.compress(Bitmap.CompressFormat.JPEG, 100, output)
-        progressCallback?.invoke(100)
-        return Buffer().write(output.toByteArray())
-    }
-
-    fun rotateImage(imageStream: InputStream, degrees: Float): InputStream {
-        val imageBytes = imageStream.readBytes()
-
-        val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-        val rotated = rotateBitMap(imageBitmap, degrees)
-
-        val output = ByteArrayOutputStream()
-        rotated.compress(Bitmap.CompressFormat.JPEG, 100, output)
-
-        return ByteArrayInputStream(output.toByteArray())
-    }
-
-    fun rotateImage(imageSource: BufferedSource, degrees: Float): BufferedSource {
-        val imageBytes = imageSource.readByteArray()
-
-        val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-        val rotated = rotateBitMap(imageBitmap, degrees)
-
-        val output = ByteArrayOutputStream()
-        rotated.compress(Bitmap.CompressFormat.JPEG, 100, output)
-
-        return Buffer().write(output.toByteArray())
-    }
-
-    private fun rotateBitMap(bitmap: Bitmap, degrees: Float): Bitmap {
-        val matrix = Matrix().apply { postRotate(degrees) }
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-    }
-
-    /**
-     * Check whether the image is wide (which we consider a double-page spread).
-     *
-     * @return true if the width is greater than the height
-     */
-    fun isWideImage(imageStream: BufferedInputStream): Boolean {
-        val options = extractImageOptions(imageStream)
-        imageStream.reset()
-        return options.outWidth > options.outHeight
-    }
-
-    fun isWideImage(imageSource: BufferedSource): Boolean {
-        val options = extractImageOptions(imageSource)
-        return options.outWidth > options.outHeight
-    }
-
-    fun splitAndStackBitmap(
-        imageStream: InputStream,
-        rightSideOnTop: Boolean,
-        hasMargins: Boolean,
-        progressCallback: ((Int) -> Unit)? = null,
-    ): ByteArrayInputStream {
-        val imageBytes = imageStream.readBytes()
-        val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-
-        val height = imageBitmap.height
-        val width = imageBitmap.width
-        val gap = if (hasMargins) 15.dpToPx else 0
-        val result = Bitmap.createBitmap(width / 2, height * 2 + gap, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        canvas.drawColor(Color.BLACK)
-        progressCallback?.invoke(98)
-        val upperPart = Rect(0, 0, result.width, result.height / 2)
-        val lowerPart = Rect(0, result.height / 2 + gap, result.width, result.height)
-        canvas.drawBitmap(
-            imageBitmap,
-            Rect(
-                if (!rightSideOnTop) 0 else width / 2,
-                0,
-                if (!rightSideOnTop) width / 2 else width,
-                height,
-            ),
-            upperPart,
-            null,
-        )
-        canvas.drawBitmap(
-            imageBitmap,
-            Rect(
-                if (rightSideOnTop) 0 else width / 2,
-                0,
-                if (rightSideOnTop) width / 2 else width,
-                height,
-            ),
-            lowerPart,
-            null,
-        )
-        progressCallback?.invoke(99)
-        val output = ByteArrayOutputStream()
-        result.compress(Bitmap.CompressFormat.JPEG, 100, output)
-        progressCallback?.invoke(100)
-        return ByteArrayInputStream(output.toByteArray())
-    }
-
-    fun splitAndStackBitmap(
-        imageSource: BufferedSource,
-        rightSideOnTop: Boolean,
-        hasMargins: Boolean,
-        progressCallback: ((Int) -> Unit)? = null,
-    ): BufferedSource {
-        val imageBytes = imageSource.readByteArray()
-        val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-
-        val height = imageBitmap.height
-        val width = imageBitmap.width
-        val gap = if (hasMargins) 15.dpToPx else 0
-        val result = Bitmap.createBitmap(width / 2, height * 2 + gap, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        canvas.drawColor(Color.BLACK)
-        progressCallback?.invoke(98)
-        val upperPart = Rect(0, 0, result.width, result.height / 2)
-        val lowerPart = Rect(0, result.height / 2 + gap, result.width, result.height)
-        canvas.drawBitmap(
-            imageBitmap,
-            Rect(
-                if (!rightSideOnTop) 0 else width / 2,
-                0,
-                if (!rightSideOnTop) width / 2 else width,
-                height,
-            ),
-            upperPart,
-            null,
-        )
-        canvas.drawBitmap(
-            imageBitmap,
-            Rect(
-                if (rightSideOnTop) 0 else width / 2,
-                0,
-                if (rightSideOnTop) width / 2 else width,
-                height,
-            ),
-            lowerPart,
-            null,
-        )
-        progressCallback?.invoke(99)
-        val output = ByteArrayOutputStream()
-        result.compress(Bitmap.CompressFormat.JPEG, 100, output)
-        progressCallback?.invoke(100)
-        return Buffer().write(output.toByteArray())
     }
 
     fun mergeBitmaps(
@@ -561,15 +374,6 @@ object ImageUtil {
             ColorUtils.colorToHSL(this, bgArray)
             return red < 40 && blue < 40 && green < 40 && alpha > 200 && bgArray[1] <= 0.2f
         }
-
-    fun canUseHardwareBitmap(bitmap: Bitmap): Boolean =
-        canUseHardwareBitmap(bitmap.width, bitmap.height)
-
-    fun canUseHardwareBitmap(imageSource: BufferedSource): Boolean =
-        with(extractImageOptions(imageSource)) { canUseHardwareBitmap(outWidth, outHeight) }
-
-    private fun canUseHardwareBitmap(width: Int, height: Int): Boolean =
-        max(width, height) <= GLUtil.maxTextureSize
 
     /** Used to check an image's dimensions without loading it in the memory. */
     private fun extractImageOptions(

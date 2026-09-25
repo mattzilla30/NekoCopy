@@ -7,18 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -27,7 +23,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,8 +36,8 @@ import eu.kanade.tachiyomi.ui.manga.MangaConstants
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.manga.toLibraryManga
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import org.nekomanga.R
+import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.category.toDbCategory
 import org.nekomanga.domain.chapter.ChapterMarkActions
 import org.nekomanga.presentation.components.AppBar
@@ -50,6 +45,8 @@ import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.dialog.ConfirmationDialog
 import org.nekomanga.presentation.components.scaffold.RootScaffold
+import org.nekomanga.presentation.components.sheets.Sheet
+import org.nekomanga.presentation.components.sheets.rememberSheetHost
 import org.nekomanga.presentation.screens.library.HorizontalCategoriesPage
 import org.nekomanga.presentation.screens.library.LibraryBottomSheet
 import org.nekomanga.presentation.screens.library.LibraryBottomSheetScreen
@@ -202,12 +199,7 @@ private fun LibraryWrapper(
 
     val libraryScreenState by libraryStateFlow.collectAsState()
 
-    val scope = rememberCoroutineScope()
-    val sheetState =
-        rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        )
+    val sheets = rememberSheetHost<LibraryBottomSheetScreen>()
 
     var selectionMode by
         remember(libraryScreenState.selectedItems) {
@@ -222,54 +214,21 @@ private fun LibraryWrapper(
         mutableStateOf<MangaConstants.DownloadAction?>(null)
     }
 
-    var currentBottomSheet: LibraryBottomSheetScreen? by remember { mutableStateOf(null) }
+    BackHandler(enabled = selectionMode) { libraryScreenActions.clearSelectedManga() }
 
-    LaunchedEffect(currentBottomSheet) {
-        if (currentBottomSheet != null) {
-            sheetState.show()
-        } else {
-            sheetState.hide()
-        }
+    val sortClick = { categoryItem: CategoryItem ->
+        sheets.open(LibraryBottomSheetScreen.SortSheet(categoryItem = categoryItem))
     }
-
-    /** Close the bottom sheet on back if its open */
-    BackHandler(enabled = currentBottomSheet != null || selectionMode) {
-        if (currentBottomSheet != null) {
-            currentBottomSheet == null
-        } else {
-            libraryScreenActions.clearSelectedManga()
-        }
-    }
-
-    // set the current sheet to null when bottom sheet is closed
-    LaunchedEffect(key1 = sheetState.isVisible) {
-        if (!sheetState.isVisible) {
-            currentBottomSheet = null
-        }
-    }
-
-    val openSheet: (LibraryBottomSheetScreen) -> Unit = { scope.launch { currentBottomSheet = it } }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (currentBottomSheet != null) {
-
-            ModalBottomSheet(
-                sheetState = sheetState,
-                shape =
-                    RoundedCornerShape(topStart = Shapes.sheetRadius, topEnd = Shapes.sheetRadius),
-                onDismissRequest = { currentBottomSheet = null },
-                content = {
-                    Box(modifier = Modifier.defaultMinSize(minHeight = Size.extraExtraTiny)) {
-                        currentBottomSheet?.let { currentSheet ->
-                            LibraryBottomSheet(
-                                libraryScreenState = libraryScreenState,
-                                librarySheetActions = librarySheetActions,
-                                currentScreen = currentSheet,
-                                closeSheet = { scope.launch { currentBottomSheet = null } },
-                            )
-                        }
-                    }
-                },
+        sheets.Sheet(
+            shape = RoundedCornerShape(topStart = Shapes.sheetRadius, topEnd = Shapes.sheetRadius)
+        ) { sheet ->
+            LibraryBottomSheet(
+                libraryScreenState = libraryScreenState,
+                librarySheetActions = librarySheetActions,
+                currentScreen = sheet,
+                closeSheet = sheets::close,
             )
         }
 
@@ -310,14 +269,10 @@ private fun LibraryWrapper(
                     libraryScreenActions = libraryScreenActions,
                     onSearchLoaded = onSearchLoaded,
                     displayOptionsClick = {
-                        scope.launch { openSheet(LibraryBottomSheetScreen.DisplayOptionsSheet) }
+                        sheets.open(LibraryBottomSheetScreen.DisplayOptionsSheet)
                     },
-                    groupByClick = {
-                        scope.launch { openSheet(LibraryBottomSheetScreen.GroupBySheet) }
-                    },
-                    editCategoryClick = {
-                        scope.launch { openSheet(LibraryBottomSheetScreen.CategorySheet) }
-                    },
+                    groupByClick = { sheets.open(LibraryBottomSheetScreen.GroupBySheet) },
+                    editCategoryClick = { sheets.open(LibraryBottomSheetScreen.CategorySheet) },
                     removeFromLibraryClick = { deleteMangaConfirmation = true },
                     markActionClick = { markAction -> markActionConfirmation = markAction },
                     removeActionClick = { removeAction -> removeActionConfirmation = removeAction },
@@ -380,15 +335,7 @@ private fun LibraryWrapper(
                                 libraryScreenState = libraryScreenState,
                                 libraryScreenActions = libraryScreenActions,
                                 libraryCategoryActions = libraryCategoryActions,
-                                categorySortClick = { categoryItem ->
-                                    scope.launch {
-                                        openSheet(
-                                            LibraryBottomSheetScreen.SortSheet(
-                                                categoryItem = categoryItem
-                                            )
-                                        )
-                                    }
-                                },
+                                categorySortClick = sortClick,
                             )
                         } else {
                             VerticalCategoriesPage(
@@ -397,15 +344,7 @@ private fun LibraryWrapper(
                                 libraryScreenState = libraryScreenState,
                                 libraryScreenActions = libraryScreenActions,
                                 libraryCategoryActions = libraryCategoryActions,
-                                categorySortClick = { categoryItem ->
-                                    scope.launch {
-                                        openSheet(
-                                            LibraryBottomSheetScreen.SortSheet(
-                                                categoryItem = categoryItem
-                                            )
-                                        )
-                                    }
-                                },
+                                categorySortClick = sortClick,
                             )
                         }
                     }

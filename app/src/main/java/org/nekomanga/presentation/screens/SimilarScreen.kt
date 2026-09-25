@@ -1,29 +1,22 @@
 package org.nekomanga.presentation.screens
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import eu.kanade.tachiyomi.ui.main.states.RefreshState
-import kotlinx.coroutines.launch
 import org.nekomanga.R
 import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.manga.DisplayManga
@@ -42,13 +34,14 @@ import org.nekomanga.presentation.components.MangaGridWithHeader
 import org.nekomanga.presentation.components.MangaListWithHeader
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.scaffold.ChildScreenScaffold
+import org.nekomanga.presentation.components.sheets.Sheet
+import org.nekomanga.presentation.components.sheets.rememberSheetHost
 import org.nekomanga.presentation.functions.numberOfColumns
 import org.nekomanga.presentation.screens.browse.DisplayScreenSheet
 import org.nekomanga.presentation.screens.browse.DisplaySheetScreen
 import org.nekomanga.presentation.screens.similar.SimilarScreenState
 import org.nekomanga.presentation.screens.similar.SimilarTopBar
 import org.nekomanga.presentation.screens.similar.SimilarViewModel
-import org.nekomanga.presentation.theme.Size
 
 /**
  * SimilarScreen displays manga recommendations similar to a given manga.
@@ -98,12 +91,7 @@ private fun SimilarWrapper(
     toggleFavorite: (Long, List<CategoryItem>) -> Unit,
     onRefresh: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val sheetState =
-        rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        )
+    val sheets = rememberSheetHost<DisplaySheetScreen>()
 
     val refreshState =
         remember(similarScreenState.isRefreshing) {
@@ -114,41 +102,16 @@ private fun SimilarWrapper(
             )
         }
 
-    var currentBottomSheet: DisplaySheetScreen? by remember { mutableStateOf(null) }
-
-    LaunchedEffect(currentBottomSheet) {
-        if (currentBottomSheet != null) {
-            sheetState.show()
-        } else {
-            sheetState.hide()
-        }
-    }
-
-    /** Close the bottom sheet on back if its open */
-    BackHandler(enabled = sheetState.isVisible) { scope.launch { sheetState.hide() } }
-
-    val openSheet: (DisplaySheetScreen) -> Unit = { scope.launch { currentBottomSheet = it } }
-
-    currentBottomSheet?.let { currentSheet ->
-        ModalBottomSheet(
-            sheetState = sheetState,
-            onDismissRequest = { currentBottomSheet = null },
-            content = {
-                Box(modifier = Modifier.defaultMinSize(minHeight = Size.extraExtraTiny)) {
-                    DisplayScreenSheet(
-                        currentScreen = currentSheet,
-                        addNewCategory = addNewCategory,
-                        contentPadding =
-                            WindowInsets.navigationBars
-                                .only(WindowInsetsSides.Bottom)
-                                .asPaddingValues(),
-                        closeSheet = { currentBottomSheet = null },
-                        categories = similarScreenState.categories,
-                        isList = similarScreenState.isList,
-                        libraryEntryVisibility = similarScreenState.libraryEntryVisibility,
-                    )
-                }
-            },
+    sheets.Sheet { sheet ->
+        DisplayScreenSheet(
+            currentScreen = sheet,
+            addNewCategory = addNewCategory,
+            contentPadding =
+                WindowInsets.navigationBars.only(WindowInsetsSides.Bottom).asPaddingValues(),
+            closeSheet = sheets::close,
+            categories = similarScreenState.categories,
+            isList = similarScreenState.isList,
+            libraryEntryVisibility = similarScreenState.libraryEntryVisibility,
         )
     }
 
@@ -165,15 +128,13 @@ private fun SimilarWrapper(
                 onNavigationIconClicked = onBackPress,
                 scrollBehavior = scrollBehavior,
                 onSettingClick = {
-                    scope.launch {
-                        openSheet(
-                            DisplaySheetScreen.BrowseDisplayOptionsSheet(
-                                showIsList = true,
-                                switchDisplayClick = switchDisplayClick,
-                                libraryEntryVisibilityClick = libraryEntryVisibilityClick,
-                            )
+                    sheets.open(
+                        DisplaySheetScreen.BrowseDisplayOptionsSheet(
+                            showIsList = true,
+                            switchDisplayClick = switchDisplayClick,
+                            libraryEntryVisibilityClick = libraryEntryVisibilityClick,
                         )
-                    }
+                    )
                 },
             )
         },
@@ -192,16 +153,14 @@ private fun SimilarWrapper(
                 mangaLongClick = { displayManga: DisplayManga ->
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     if (!displayManga.inLibrary && similarScreenState.promptForCategories) {
-                        scope.launch {
-                            openSheet(
-                                DisplaySheetScreen.CategoriesSheet(
-                                    setCategories = { selectedCategories ->
-                                        scope.launch { sheetState.hide() }
-                                        toggleFavorite(displayManga.mangaId, selectedCategories)
-                                    }
-                                )
+                        sheets.open(
+                            DisplaySheetScreen.CategoriesSheet(
+                                setCategories = { selectedCategories ->
+                                    sheets.close()
+                                    toggleFavorite(displayManga.mangaId, selectedCategories)
+                                }
                             )
-                        }
+                        )
                     } else {
                         toggleFavorite(displayManga.mangaId, emptyList())
                     }

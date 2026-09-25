@@ -251,32 +251,8 @@ private fun ContentRatingView(
     viewType: ViewType,
     sortChipClick: () -> Unit,
 ) {
-    val sortedSeries =
-        remember(sortType) {
-            detailedStats.manga
-                .groupBy { it.contentRating.prettyPrint() }
-                .entries
-                .sortedWith(mapEntryComparator(sortType))
-        }
-    val colorMap = remember { colorMap(sortedSeries.map { it.key }, colors) }
-    val totalCount = remember { sortedSeries.sumOf { it.value.size } }
-    val totalDuration = remember {
-        sortedSeries.sumOf { values -> values.value.sumOf { it.readDuration } }
-    }
-    val pieData = remember(sortType) { pieData(sortedSeries, colorMap, sortType) }
-
-    DefaultView(
-        contentPadding = contentPadding,
-        viewType = viewType,
-        sortType = sortType,
-        sortChipClick = sortChipClick,
-        sortedSeries = sortedSeries,
-        colorMap = colorMap,
-        totalCount = totalCount,
-        totalDuration = totalDuration,
-    ) { modifier, chartWidth ->
-        Pie(pieData = pieData, chartWidth = chartWidth, modifier = modifier)
-    }
+    val groups = remember { detailedStats.manga.groupBy { it.contentRating.prettyPrint() } }
+    PieView(sortType, groups, colors, contentPadding, viewType, sortChipClick)
 }
 
 @Composable
@@ -289,33 +265,48 @@ private fun CategoryView(
     sortChipClick: () -> Unit,
 ) {
     val defaultCategoryName = stringResource(id = R.string.default_value)
+    val groups = remember {
+        detailedStats.categories
+            .associateWith { category ->
+                detailedStats.manga.filter { it.categories.contains(category) }
+            }
+            // Hide the default category when it holds nothing.
+            .filterNot { (name, manga) -> name == defaultCategoryName && manga.isEmpty() }
+    }
+    PieView(sortType, groups, colors, contentPadding, viewType, sortChipClick)
+}
 
+/**
+ * A pie chart and list of manga [groups], sorted by [sortType]. Groups beyond the palette size get
+ * random colors.
+ */
+@Composable
+private fun PieView(
+    sortType: Sort,
+    groups: Map<String, List<StatsConstants.DetailedStatManga>>,
+    colors: List<Color>,
+    contentPadding: PaddingValues,
+    viewType: ViewType,
+    sortChipClick: () -> Unit,
+) {
     val sortedSeries =
-        remember(sortType) {
-            detailedStats.categories
-                .associateWith { category ->
-                    detailedStats.manga.filter { it.categories.contains(category) }
-                }
-                .entries
-                .filter { it.key != defaultCategoryName || it.value.isNotEmpty() }
-                .sortedWith(mapEntryComparator(sortType))
-        }
-    val colorsToUse = remember {
-        when (sortedSeries.size <= colors.size) {
-            true -> colors
-            false ->
+        remember(sortType, groups) { groups.entries.sortedWith(mapEntryComparator(sortType)) }
+    val colorsToUse =
+        remember(sortedSeries.size) {
+            if (sortedSeries.size <= colors.size) colors
+            else
                 sortedSeries.map {
                     Color(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
                 }
         }
-    }
-
-    val colorMap = remember { colorMap(sortedSeries.map { it.key }, colorsToUse) }
-    val totalCount = remember { sortedSeries.sumOf { it.value.size } }
-    val totalDuration = remember {
-        sortedSeries.sumOf { values -> values.value.sumOf { it.readDuration } }
-    }
-    val pieData = remember(sortType) { pieData(sortedSeries, colorMap, sortType) }
+    // Colors are assigned once per group, so they stay put when the sort changes.
+    val colorMap = remember(groups) { colorMap(sortedSeries.map { it.key }, colorsToUse) }
+    val totalCount = remember(groups) { sortedSeries.sumOf { it.value.size } }
+    val totalDuration =
+        remember(sortedSeries) {
+            sortedSeries.sumOf { values -> values.value.sumOf { it.readDuration } }
+        }
+    val pieData = remember(sortedSeries) { pieData(sortedSeries, colorMap, sortType) }
 
     DefaultView(
         contentPadding = contentPadding,
@@ -383,32 +374,8 @@ private fun StatusView(
     viewType: ViewType,
     sortChipClick: () -> Unit,
 ) {
-    val sortedSeries =
-        remember(sortType) {
-            detailedStats.manga
-                .groupBy { context.getString(it.status.statusRes) }
-                .entries
-                .sortedWith(mapEntryComparator(sortType))
-        }
-    val colorMap = remember { colorMap(sortedSeries.map { it.key }, colors) }
-    val totalCount = remember { sortedSeries.sumOf { it.value.size } }
-    val totalDuration = remember {
-        sortedSeries.sumOf { values -> values.value.sumOf { it.readDuration } }
-    }
-    val pieData = remember(sortType) { pieData(sortedSeries, colorMap, sortType) }
-
-    DefaultView(
-        contentPadding = contentPadding,
-        viewType = viewType,
-        sortType = sortType,
-        sortChipClick = sortChipClick,
-        sortedSeries = sortedSeries,
-        colorMap = colorMap,
-        totalCount = totalCount,
-        totalDuration = totalDuration,
-    ) { modifier, chartWidth ->
-        Pie(pieData = pieData, chartWidth = chartWidth, modifier = modifier)
-    }
+    val groups = remember { detailedStats.manga.groupBy { context.getString(it.status.statusRes) } }
+    PieView(sortType, groups, colors, contentPadding, viewType, sortChipClick)
 }
 
 @Composable
@@ -421,32 +388,8 @@ private fun TypeView(
     viewType: ViewType,
     sortChipClick: () -> Unit,
 ) {
-    val sortedSeries =
-        remember(sortType) {
-            detailedStats.manga
-                .groupBy { context.getString(it.type.typeRes) }
-                .entries
-                .sortedWith(mapEntryComparator(sortType))
-        }
-    val colorMap = remember { colorMap(sortedSeries.map { it.key }, colors) }
-    val totalCount = remember { sortedSeries.sumOf { it.value.size } }
-    val totalDuration = remember {
-        sortedSeries.sumOf { values -> values.value.sumOf { it.readDuration } }
-    }
-    val pieData = remember(sortType) { pieData(sortedSeries, colorMap, sortType) }
-
-    DefaultView(
-        contentPadding = contentPadding,
-        viewType = viewType,
-        sortType = sortType,
-        sortChipClick = sortChipClick,
-        sortedSeries = sortedSeries,
-        colorMap = colorMap,
-        totalCount = totalCount,
-        totalDuration = totalDuration,
-    ) { modifier, chartWidth ->
-        Pie(pieData = pieData, chartWidth = chartWidth, modifier = modifier)
-    }
+    val groups = remember { detailedStats.manga.groupBy { context.getString(it.type.typeRes) } }
+    PieView(sortType, groups, colors, contentPadding, viewType, sortChipClick)
 }
 
 @Composable

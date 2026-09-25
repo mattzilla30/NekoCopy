@@ -8,8 +8,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import org.nekomanga.R
 import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.dialog.ClearDownloadQueueDialog
@@ -24,8 +22,6 @@ fun FeedScreenDialogs(
     onClearHistoryConfirm: () -> Unit,
     onClearDownloadsDismiss: () -> Unit,
     onClearDownloadsConfirm: () -> Unit,
-    scope: CoroutineScope,
-    sheetStateHide: suspend () -> Unit,
 ) {
     if (showClearHistoryDialog) {
         ConfirmationDialog(
@@ -40,10 +36,7 @@ fun FeedScreenDialogs(
     if (showClearDownloadsDialog) {
         ClearDownloadQueueDialog(
             onDismiss = onClearDownloadsDismiss,
-            onConfirm = {
-                onClearDownloadsConfirm()
-                scope.launch { sheetStateHide() }
-            },
+            onConfirm = onClearDownloadsConfirm,
         )
     }
 }

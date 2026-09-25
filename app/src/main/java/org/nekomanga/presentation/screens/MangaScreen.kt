@@ -17,12 +17,9 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -85,6 +82,8 @@ import org.nekomanga.presentation.components.dialog.RemovedChaptersDialog
 import org.nekomanga.presentation.components.dynamicTextSelectionColor
 import org.nekomanga.presentation.components.nekoRippleConfiguration
 import org.nekomanga.presentation.components.scaffold.ChildScreenScaffold
+import org.nekomanga.presentation.components.sheets.Sheet
+import org.nekomanga.presentation.components.sheets.rememberSheetHost
 import org.nekomanga.presentation.components.snackbar.NekoSnackbarHost
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.components.theme.defaultThemeColorState
@@ -392,12 +391,7 @@ private fun MangaScreenWrapper(
     onBackPressed: () -> Unit,
     snackbarHost: @Composable () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val sheetState =
-        rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        )
+    val sheets = rememberSheetHost<DetailsBottomSheetScreen>()
 
     val themeColorState =
         rememberThemeColorState(
@@ -415,36 +409,18 @@ private fun MangaScreenWrapper(
         )
     }
 
-    var currentBottomSheet by remember { mutableStateOf<DetailsBottomSheetScreen?>(null) }
-
-    LaunchedEffect(currentBottomSheet) {
-        if (currentBottomSheet != null) {
-            sheetState.show()
-        }
-    }
-
-    fun openSheet(sheet: DetailsBottomSheetScreen) {
-        scope.launch { currentBottomSheet = sheet }
-    }
-
-    if (currentBottomSheet != null) {
-        ModalBottomSheet(
-            onDismissRequest = { scope.launch { currentBottomSheet = null } },
-            sheetState = sheetState,
-            content = {
-                DetailsBottomSheet(
-                    currentScreen = currentBottomSheet!!,
-                    themeColorState = themeColorState,
-                    mangaDetailScreenState = screenState,
-                    addNewCategory = categoryActions.addNew,
-                    dateFormat = dateFormat,
-                    trackActions = trackActions,
-                    coverActions = coverActions,
-                    chapterFilterActions = chapterFilterActions,
-                    openInWebView = { url, title -> openWebView(url, title) },
-                    onNavigate = { newSheet -> scope.launch { currentBottomSheet = newSheet } },
-                )
-            },
+    sheets.Sheet { sheet ->
+        DetailsBottomSheet(
+            currentScreen = sheet,
+            themeColorState = themeColorState,
+            mangaDetailScreenState = screenState,
+            addNewCategory = categoryActions.addNew,
+            dateFormat = dateFormat,
+            trackActions = trackActions,
+            coverActions = coverActions,
+            chapterFilterActions = chapterFilterActions,
+            openInWebView = { url, title -> openWebView(url, title) },
+            onNavigate = { next -> if (next == null) sheets.close() else sheets.open(next) },
         )
     }
 
@@ -467,7 +443,7 @@ private fun MangaScreenWrapper(
                     if (screenState.general.hasDefaultCategory) {
                         onToggleFavorite(true)
                     } else {
-                        openSheet(
+                        sheets.open(
                             DetailsBottomSheetScreen.CategoriesSheet(
                                 addingToLibrary = true,
                                 setCategories = categoryActions.set,
@@ -549,16 +525,16 @@ private fun MangaScreenWrapper(
                 generatePalette = generatePalette,
                 toggleFavorite = onToggleFavoriteAction,
                 onCategoriesClick = {
-                    openSheet(
+                    sheets.open(
                         DetailsBottomSheetScreen.CategoriesSheet(
                             setCategories = categoryActions.set
                         )
                     )
                 },
-                onTrackingClick = { openSheet(DetailsBottomSheetScreen.TrackingSheet) },
-                onArtworkClick = { openSheet(DetailsBottomSheetScreen.ArtworkSheet) },
+                onTrackingClick = { sheets.open(DetailsBottomSheetScreen.TrackingSheet) },
+                onArtworkClick = { sheets.open(DetailsBottomSheetScreen.ArtworkSheet) },
                 onSimilarClick = onSimilarClick,
-                onLinksClick = { openSheet(DetailsBottomSheetScreen.ExternalLinksSheet) },
+                onLinksClick = { sheets.open(DetailsBottomSheetScreen.ExternalLinksSheet) },
                 onShareClick = onShareClick,
                 descriptionActions = descriptionActions,
                 informationActions = informationActions,
@@ -576,7 +552,7 @@ private fun MangaScreenWrapper(
                     chapterActions = chapterActions,
                     onBookmark = onBookmark,
                     onRead = onRead,
-                    onOpenSheet = ::openSheet,
+                    onOpenSheet = sheets::open,
                 )
             }
         }

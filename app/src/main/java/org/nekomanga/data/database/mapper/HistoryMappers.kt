@@ -21,7 +21,3 @@ fun History.toEntity(): HistoryEntity {
         timeRead = this.time_read,
     )
 }
-
-fun List<History>.toEntityList(): List<HistoryEntity> {
-    return this.map { it.toEntity() }
-}

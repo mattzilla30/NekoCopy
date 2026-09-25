@@ -6,13 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -20,11 +16,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -38,7 +30,6 @@ import androidx.navigation3.runtime.NavKey
 import eu.kanade.tachiyomi.ui.source.latest.SerializableDisplayScreenType
 import eu.kanade.tachiyomi.ui.source.latest.toSerializable
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import org.nekomanga.R
 import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.manga.DisplayManga
@@ -46,6 +37,8 @@ import org.nekomanga.presentation.components.AppBar
 import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.scaffold.RootScaffold
+import org.nekomanga.presentation.components.sheets.Sheet
+import org.nekomanga.presentation.components.sheets.rememberSheetHost
 import org.nekomanga.presentation.screens.browse.BrowseBottomSheet
 import org.nekomanga.presentation.screens.browse.BrowseBottomSheetScreen
 import org.nekomanga.presentation.screens.browse.BrowseFilterPage
@@ -153,57 +146,22 @@ private fun BrowseWrapper(
 
     val browseScreenState by browseScreenFlow.collectAsState()
 
-    val scope = rememberCoroutineScope()
-    val sheetState =
-        rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        )
-
-    var currentBottomSheet: BrowseBottomSheetScreen? by remember { mutableStateOf(null) }
+    val sheets = rememberSheetHost<BrowseBottomSheetScreen>()
 
     val browseScreenType = browseScreenState.screenType
-
-    LaunchedEffect(currentBottomSheet) {
-        if (currentBottomSheet != null) {
-            sheetState.show()
-        } else {
-            sheetState.hide()
-        }
-    }
 
     // Back from search results or follows returns to the home page.
     BackHandler(enabled = browseScreenType != BrowseScreenType.Homepage) {
         changeScreenType(BrowseScreenType.Homepage)
     }
 
-    /** Close the bottom sheet on back if its open */
-    BackHandler(enabled = sheetState.isVisible) { scope.launch { sheetState.hide() } }
-
-    val openSheet: (BrowseBottomSheetScreen) -> Unit = { scope.launch { currentBottomSheet = it } }
-
-    if (currentBottomSheet != null) {
-        ModalBottomSheet(
-            sheetState = sheetState,
-            onDismissRequest = { currentBottomSheet = null },
-            content = {
-                Box(modifier = Modifier.defaultMinSize(minHeight = Size.extraExtraTiny)) {
-                    currentBottomSheet?.let { currentSheet ->
-                        BrowseBottomSheet(
-                            currentScreen = currentSheet,
-                            browseScreenState = browseScreenState,
-                            addNewCategory = addNewCategory,
-                            closeSheet = {
-                                scope.launch {
-                                    sheetState.hide()
-                                    currentBottomSheet = null
-                                }
-                            },
-                            filterActions = filterActions,
-                        )
-                    }
-                }
-            },
+    sheets.Sheet { sheet ->
+        BrowseBottomSheet(
+            currentScreen = sheet,
+            browseScreenState = browseScreenState,
+            addNewCategory = addNewCategory,
+            closeSheet = sheets::close,
+            filterActions = filterActions,
         )
     }
 
@@ -219,7 +177,7 @@ private fun BrowseWrapper(
                 browseScreenState = browseScreenState,
                 scrollBehavior = scrollBehavior,
                 mainDropDown = mainDropdown,
-                searchClick = { openSheet(BrowseBottomSheetScreen.FilterSheet) },
+                searchClick = { sheets.open(BrowseBottomSheetScreen.FilterSheet) },
                 homeClick = { changeScreenType(BrowseScreenType.Homepage) },
                 followsClick = {
                     changeScreenType(
@@ -250,16 +208,14 @@ private fun BrowseWrapper(
         fun mangaLongClick(displayManga: DisplayManga) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             if (!displayManga.inLibrary && browseScreenState.promptForCategories) {
-                scope.launch {
-                    openSheet(
-                        BrowseBottomSheetScreen.CategoriesSheet(
-                            setCategories = { selectedCategories ->
-                                scope.launch { sheetState.hide() }
-                                toggleFavorite(displayManga.mangaId, selectedCategories)
-                            }
-                        )
+                sheets.open(
+                    BrowseBottomSheetScreen.CategoriesSheet(
+                        setCategories = { selectedCategories ->
+                            sheets.close()
+                            toggleFavorite(displayManga.mangaId, selectedCategories)
+                        }
                     )
-                }
+                )
             } else {
                 toggleFavorite(displayManga.mangaId, emptyList())
             }

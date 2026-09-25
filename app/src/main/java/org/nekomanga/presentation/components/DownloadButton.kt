@@ -375,49 +375,51 @@ private fun Draining(buttonColor: Color, modifier: Modifier, onAnimationEnd: () 
 
     LaunchedEffect(key1 = Unit) { progress = 0f }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "infinite")
-    val waveOffset by
-        infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec =
-                infiniteRepeatable(
-                    animation = tween(durationMillis = 2000, easing = EaseInOutCirc),
-                    repeatMode = RepeatMode.Restart,
-                ),
-            label = "waveOffset",
-        )
-
     Background(
         color = buttonColor.copy(alpha = .4f),
         borderStroke = BorderStroke(borderSize.dp, buttonColor),
         modifier = modifier,
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-            val fillHeight = height * (1 - animatedProgress)
+        WaveFill(progress = animatedProgress, color = buttonColor)
+    }
+}
 
-            val path = Path()
-            path.moveTo(0f, fillHeight)
+/** Fills the button from the bottom up to [progress], with a moving wave on top. */
+@Composable
+private fun WaveFill(progress: Float, color: Color) {
+    val waveOffset by
+        rememberInfiniteTransition(label = "wave")
+            .animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec =
+                    infiniteRepeatable(
+                        animation = tween(durationMillis = 2000, easing = EaseInOutCirc),
+                        repeatMode = RepeatMode.Restart,
+                    ),
+                label = "waveOffset",
+            )
 
-            val amplitude = height * 0.1f // Adjust for wave height
-            val frequency = 2 * Math.PI / width // Adjust for wave frequency
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val width = size.width
+        val height = size.height
+        val fillHeight = height * (1 - progress)
+        val amplitude = height * 0.1f
+        val frequency = 2 * Math.PI / width
 
-            for (x in 0..width.toInt()) {
-                val y =
-                    fillHeight +
-                        amplitude *
-                            kotlin.math.sin((x * frequency + waveOffset * 2 * Math.PI)).toFloat()
-                path.lineTo(x.toFloat(), y)
-            }
-
-            path.lineTo(width, height)
-            path.lineTo(0f, height)
-            path.close()
-
-            drawPath(path = path, color = buttonColor)
+        val path = Path()
+        path.moveTo(0f, fillHeight)
+        for (x in 0..width.toInt()) {
+            val y =
+                fillHeight +
+                    amplitude * kotlin.math.sin(x * frequency + waveOffset * 2 * Math.PI).toFloat()
+            path.lineTo(x.toFloat(), y)
         }
+        path.lineTo(width, height)
+        path.lineTo(0f, height)
+        path.close()
+
+        drawPath(path = path, color = color)
     }
 }
 
@@ -454,19 +456,6 @@ private fun Downloading(buttonColor: Color, modifier: Modifier, downloadProgress
             label = "downloadingProgress",
         )
 
-    val infiniteTransition = rememberInfiniteTransition(label = "infinite")
-    val waveOffset by
-        infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec =
-                infiniteRepeatable(
-                    animation = tween(durationMillis = 2000, easing = EaseInOutCirc),
-                    repeatMode = RepeatMode.Restart,
-                ),
-            label = "waveOffset",
-        )
-
     val iconPainter = rememberVectorPainter(image = Icons.Filled.ArrowDownward)
 
     val iconColor by
@@ -494,31 +483,7 @@ private fun Downloading(buttonColor: Color, modifier: Modifier, downloadProgress
         borderStroke = BorderStroke(borderSize.dp, buttonColor),
         modifier = modifier,
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-            val fillHeight = height * (1 - animatedProgress)
-
-            val path = Path()
-            path.moveTo(0f, fillHeight)
-
-            val amplitude = height * 0.1f // Adjust for wave height
-            val frequency = 2 * Math.PI / width // Adjust for wave frequency
-
-            for (x in 0..width.toInt()) {
-                val y =
-                    fillHeight +
-                        amplitude *
-                            kotlin.math.sin((x * frequency + waveOffset * 2 * Math.PI)).toFloat()
-                path.lineTo(x.toFloat(), y)
-            }
-
-            path.lineTo(width, height)
-            path.lineTo(0f, height)
-            path.close()
-
-            drawPath(path = path, color = buttonColor)
-        }
+        WaveFill(progress = animatedProgress, color = buttonColor)
         DownloadIcon(color = iconColor, icon = iconPainter, alpha = alpha)
     }
 }

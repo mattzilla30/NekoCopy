@@ -1,11 +1,9 @@
 package org.nekomanga.presentation.screens
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
@@ -14,20 +12,14 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,7 +38,6 @@ import eu.kanade.tachiyomi.ui.source.latest.DisplayScreenState
 import eu.kanade.tachiyomi.ui.source.latest.DisplayScreenType
 import eu.kanade.tachiyomi.ui.source.latest.DisplayViewModel
 import eu.kanade.tachiyomi.ui.source.latest.toSerializable
-import kotlinx.coroutines.launch
 import org.nekomanga.R
 import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.manga.DisplayManga
@@ -56,6 +47,8 @@ import org.nekomanga.presentation.components.MangaList
 import org.nekomanga.presentation.components.ResultList
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.scaffold.ChildScreenScaffold
+import org.nekomanga.presentation.components.sheets.Sheet
+import org.nekomanga.presentation.components.sheets.rememberSheetHost
 import org.nekomanga.presentation.functions.numberOfColumns
 import org.nekomanga.presentation.screens.browse.DisplayScreenSheet
 import org.nekomanga.presentation.screens.browse.DisplaySheetScreen
@@ -141,69 +134,35 @@ private fun DisplayWrapper(
     loadNextPage: () -> Unit,
     retryClick: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val sheetState =
-        rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        )
+    val sheets = rememberSheetHost<DisplaySheetScreen>()
 
-    var currentBottomSheet: DisplaySheetScreen? by remember { mutableStateOf(null) }
-
-    LaunchedEffect(currentBottomSheet) {
-        if (currentBottomSheet != null) {
-            sheetState.show()
-        } else {
-            sheetState.hide()
-        }
-    }
-
-    /** Close the bottom sheet on back if its open */
-    BackHandler(enabled = sheetState.isVisible) { scope.launch { sheetState.hide() } }
-
-    val openSheet: (DisplaySheetScreen) -> Unit = { scope.launch { currentBottomSheet = it } }
-
-    if (currentBottomSheet != null) {
-
-        ModalBottomSheet(
-            sheetState = sheetState,
-            onDismissRequest = { currentBottomSheet = null },
-            content = {
-                Box(modifier = Modifier.defaultMinSize(minHeight = Size.extraExtraTiny)) {
-                    currentBottomSheet?.let { currentSheet ->
-                        DisplayScreenSheet(
-                            currentScreen = currentSheet,
-                            addNewCategory = addNewCategory,
-                            contentPadding =
-                                WindowInsets.navigationBars
-                                    .only(WindowInsetsSides.Bottom)
-                                    .asPaddingValues(),
-                            closeSheet = { currentBottomSheet = null },
-                            categories = displayScreenState.categories,
-                            isList = displayScreenState.isList,
-                            libraryEntryVisibility = displayScreenState.libraryEntryVisibility,
-                        )
-                    }
-                }
-            },
+    sheets.Sheet { sheet ->
+        DisplayScreenSheet(
+            currentScreen = sheet,
+            addNewCategory = addNewCategory,
+            contentPadding =
+                WindowInsets.navigationBars.only(WindowInsetsSides.Bottom).asPaddingValues(),
+            closeSheet = sheets::close,
+            categories = displayScreenState.categories,
+            isList = displayScreenState.isList,
+            libraryEntryVisibility = displayScreenState.libraryEntryVisibility,
         )
     }
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val haptic = LocalHapticFeedback.current
     fun mangaLongClick(displayManga: DisplayManga) {
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         if (!displayManga.inLibrary && displayScreenState.promptForCategories) {
-            scope.launch {
-                openSheet(
-                    DisplaySheetScreen.CategoriesSheet(
-                        setCategories = { selectedCategories ->
-                            scope.launch { sheetState.hide() }
-                            toggleFavorite(displayManga.mangaId, selectedCategories)
-                        }
-                    )
+            sheets.open(
+                DisplaySheetScreen.CategoriesSheet(
+                    setCategories = { selectedCategories ->
+                        sheets.close()
+                        toggleFavorite(displayManga.mangaId, selectedCategories)
+                    }
                 )
-            }
+            )
         } else {
             toggleFavorite(displayManga.mangaId, emptyList())
         }
@@ -216,15 +175,13 @@ private fun DisplayWrapper(
                 onNavigationIconClicked = onBackPress,
                 scrollBehavior = scrollBehavior,
                 onSettingClick = {
-                    scope.launch {
-                        openSheet(
-                            DisplaySheetScreen.BrowseDisplayOptionsSheet(
-                                showIsList = true,
-                                switchDisplayClick = switchDisplayClick,
-                                libraryEntryVisibilityClick = libraryEntryVisibilityClick,
-                            )
+                    sheets.open(
+                        DisplaySheetScreen.BrowseDisplayOptionsSheet(
+                            showIsList = true,
+                            switchDisplayClick = switchDisplayClick,
+                            libraryEntryVisibilityClick = libraryEntryVisibilityClick,
                         )
-                    }
+                    )
                 },
             )
         },

@@ -1,29 +1,22 @@
 package org.nekomanga.presentation.screens
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,10 +32,11 @@ import eu.kanade.tachiyomi.ui.main.states.RefreshState
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.presentation.components.AppBar
 import org.nekomanga.presentation.components.scaffold.RootScaffold
+import org.nekomanga.presentation.components.sheets.Sheet
+import org.nekomanga.presentation.components.sheets.rememberSheetHost
 import org.nekomanga.presentation.screens.feed.DownloadScreenActions
 import org.nekomanga.presentation.screens.feed.FeedBottomSheet
 import org.nekomanga.presentation.screens.feed.FeedScreenActions
@@ -181,25 +175,7 @@ private fun FeedWrapper(
     val updatesPagingScreenState by updateScreenFlow.collectAsState()
     val historyPagingScreenState by historyScreenFlow.collectAsState()
 
-    val scope = rememberCoroutineScope()
-    val sheetState =
-        rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        )
-
-    var showBottomSheet by remember { mutableStateOf(false) }
-
-    LaunchedEffect(showBottomSheet) {
-        if (showBottomSheet) {
-            sheetState.show()
-        } else {
-            sheetState.hide()
-        }
-    }
-
-    /** Close the bottom sheet on back if its open */
-    BackHandler(enabled = sheetState.isVisible) { scope.launch { sheetState.hide() } }
+    val sheets = rememberSheetHost<Unit>()
 
     val feedScreenType = feedScreenState.feedScreenType
 
@@ -214,40 +190,28 @@ private fun FeedWrapper(
         }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                sheetState = sheetState,
-                onDismissRequest = { showBottomSheet = false },
-                content = {
-                    Box(modifier = Modifier.defaultMinSize(minHeight = Size.extraExtraTiny)) {
-                        FeedBottomSheet(
-                            feedScreenType = feedScreenState.feedScreenType,
-                            downloadScreenVisible = downloadScreenVisible,
-                            downloadOnlyOnUnmetered = feedScreenState.downloadOnlyOnUnmetered,
-                            historyGrouping = historyPagingScreenState.historyGrouping,
-                            sortByFetched = updatesPagingScreenState.updatesSortedByFetch,
-                            outlineCovers = feedScreenState.outlineCovers,
-                            outlineCards = feedScreenState.outlineCards,
-                            swipeRefreshEnabled = feedScreenState.swipeRefreshEnabled,
-                            groupUpdateChapters = feedScreenState.groupUpdateChapters,
-                            groupHistoryClick = { feedHistoryGroup ->
-                                feedSettingActions.groupHistoryClick(feedHistoryGroup)
-                            },
-                            clearHistoryClick = { showClearHistoryDialog = true },
-                            clearDownloadsClick = { showClearDownloadsDialog = true },
-                            sortClick = { feedSettingActions.switchUploadsSortOrder() },
-                            outlineCoversClick = { feedSettingActions.outlineCoversClick() },
-                            outlineCardsClick = { feedSettingActions.outlineCardsClick() },
-                            toggleDownloadOnUnmetered = {
-                                feedSettingActions.toggleDownloadOnUnmetered()
-                            },
-                            toggleGroupUpdateChapters = {
-                                feedSettingActions.toggleGroupUpdateChapters()
-                            },
-                            toggleSwipeRefresh = { feedSettingActions.toggleSwipeRefresh() },
-                        )
-                    }
+        sheets.Sheet {
+            FeedBottomSheet(
+                feedScreenType = feedScreenState.feedScreenType,
+                downloadScreenVisible = downloadScreenVisible,
+                downloadOnlyOnUnmetered = feedScreenState.downloadOnlyOnUnmetered,
+                historyGrouping = historyPagingScreenState.historyGrouping,
+                sortByFetched = updatesPagingScreenState.updatesSortedByFetch,
+                outlineCovers = feedScreenState.outlineCovers,
+                outlineCards = feedScreenState.outlineCards,
+                swipeRefreshEnabled = feedScreenState.swipeRefreshEnabled,
+                groupUpdateChapters = feedScreenState.groupUpdateChapters,
+                groupHistoryClick = { feedHistoryGroup ->
+                    feedSettingActions.groupHistoryClick(feedHistoryGroup)
                 },
+                clearHistoryClick = { showClearHistoryDialog = true },
+                clearDownloadsClick = { showClearDownloadsDialog = true },
+                sortClick = { feedSettingActions.switchUploadsSortOrder() },
+                outlineCoversClick = { feedSettingActions.outlineCoversClick() },
+                outlineCardsClick = { feedSettingActions.outlineCardsClick() },
+                toggleDownloadOnUnmetered = { feedSettingActions.toggleDownloadOnUnmetered() },
+                toggleGroupUpdateChapters = { feedSettingActions.toggleGroupUpdateChapters() },
+                toggleSwipeRefresh = { feedSettingActions.toggleSwipeRefresh() },
             )
         }
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -277,7 +241,7 @@ private fun FeedWrapper(
                     mainDropDown = mainDropdown,
                     feedScreenState = feedScreenState,
                     feedScreenActions = feedScreenActions,
-                    openSheetClick = { showBottomSheet = true },
+                    openSheetClick = { sheets.open(Unit) },
                 )
             },
         ) { innerPadding ->
@@ -320,9 +284,10 @@ private fun FeedWrapper(
             onClearHistoryDismiss = { showClearHistoryDialog = false },
             onClearHistoryConfirm = { feedSettingActions.clearHistoryClick() },
             onClearDownloadsDismiss = { showClearDownloadsDialog = false },
-            onClearDownloadsConfirm = { feedSettingActions.clearDownloadQueueClick() },
-            scope = scope,
-            sheetStateHide = { sheetState.hide() },
+            onClearDownloadsConfirm = {
+                feedSettingActions.clearDownloadQueueClick()
+                sheets.close()
+            },
         )
     }
 }
