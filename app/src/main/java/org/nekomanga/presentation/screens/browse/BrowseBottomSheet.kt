@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import org.nekomanga.domain.category.CategoryItem
-import org.nekomanga.presentation.components.sheets.BrowseDisplayOptionsSheet
 import org.nekomanga.presentation.components.sheets.EditCategorySheet
 import org.nekomanga.presentation.components.sheets.FilterBrowseSheet
 
@@ -18,12 +17,6 @@ sealed class BrowseBottomSheetScreen {
     ) : BrowseBottomSheetScreen()
 
     object FilterSheet : BrowseBottomSheetScreen()
-
-    @Immutable
-    data class BrowseDisplayOptionsSheet(
-        val switchDisplayClick: () -> Unit,
-        val libraryEntryVisibilityClick: (Int) -> Unit,
-    ) : BrowseBottomSheetScreen()
 }
 
 @Composable
@@ -37,16 +30,6 @@ fun BrowseBottomSheet(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     when (currentScreen) {
-        is BrowseBottomSheetScreen.BrowseDisplayOptionsSheet -> {
-
-            BrowseDisplayOptionsSheet(
-                showIsList = browseScreenState.screenType != BrowseScreenType.Homepage,
-                isList = browseScreenState.isList,
-                switchDisplayClick = currentScreen.switchDisplayClick,
-                currentLibraryEntryVisibility = browseScreenState.libraryEntryVisibility,
-                libraryEntryVisibilityClick = currentScreen.libraryEntryVisibilityClick,
-            )
-        }
         is BrowseBottomSheetScreen.CategoriesSheet ->
             EditCategorySheet(
                 addingToLibrary = currentScreen.addingToLibrary,

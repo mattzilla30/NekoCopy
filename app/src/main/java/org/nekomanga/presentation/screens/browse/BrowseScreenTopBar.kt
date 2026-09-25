@@ -11,7 +11,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Bookmarks
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,16 +33,14 @@ import org.nekomanga.presentation.functions.getTopAppBarColor
 import org.nekomanga.presentation.theme.Size
 
 /**
- * The Browse top bar: a search bar that opens the search filters, then Follows (when logged in),
- * display settings and the main menu. Away from the home page, the search bar's back arrow returns
- * to it.
+ * The Browse top bar: a search bar that opens the search filters, then Follows (when logged in) and
+ * the main menu. Away from the home page, the search bar's back arrow returns to it.
  */
 @Composable
 fun BrowseScreenTopBar(
     browseScreenState: BrowseScreenState,
     scrollBehavior: TopAppBarScrollBehavior,
     mainDropDown: AppBar.MainDropdown,
-    openSheetClick: () -> Unit,
     searchClick: () -> Unit,
     homeClick: () -> Unit,
     followsClick: () -> Unit,
@@ -87,13 +84,6 @@ fun BrowseScreenTopBar(
                                 )
                             )
                         }
-                        add(
-                            AppBar.Action(
-                                title = UiText.StringResource(R.string.settings),
-                                icon = Icons.Outlined.Tune,
-                                onClick = openSheetClick,
-                            )
-                        )
                         add(mainDropDown)
                     }
             )

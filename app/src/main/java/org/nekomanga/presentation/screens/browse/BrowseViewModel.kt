@@ -8,11 +8,9 @@ import eu.kanade.tachiyomi.data.database.models.BrowseFilterImpl
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.ui.source.latest.DisplayScreenType
 import eu.kanade.tachiyomi.util.category.CategoryUtil
-import eu.kanade.tachiyomi.util.manga.filterVisibility
 import eu.kanade.tachiyomi.util.manga.resyncDisplayManga
 import eu.kanade.tachiyomi.util.manga.resyncHomePageManga
 import eu.kanade.tachiyomi.util.manga.unique
-import eu.kanade.tachiyomi.util.manga.updateVisibility
 import eu.kanade.tachiyomi.util.system.activeNetworkState
 import eu.kanade.tachiyomi.util.system.launchIO
 import kotlinx.coroutines.channels.Channel
@@ -67,8 +65,6 @@ class BrowseViewModel : ViewModel() {
     private val _browseScreenState =
         MutableStateFlow(
             BrowseScreenState(
-                isList = preferences.browseAsList().get(),
-                libraryEntryVisibility = preferences.browseDisplayMode().get(),
                 outlineCovers = libraryPreferences.outlineOnCovers().get(),
                 dynamicCovers = mangaDetailsPreferences.dynamicCovers().get(),
                 isComfortableGrid =
@@ -140,7 +136,7 @@ class BrowseViewModel : ViewModel() {
                     (_browseScreenState.value.displayMangaHolder.allDisplayManga + items)
                         .distinctBy { it.url }
 
-                val filteredDisplayManga = allDisplayManga.filterVisibility(preferences).toList()
+                val filteredDisplayManga = allDisplayManga.toList()
                 _browseScreenState.update { state ->
                     state.copy(
                         screenType = BrowseScreenType.Filter,
@@ -187,10 +183,6 @@ class BrowseViewModel : ViewModel() {
                 )
             }
         }
-        preferences.browseAsList().changes().observeAndUpdate(viewModelScope) { isList ->
-            _browseScreenState.update { state -> state.copy(isList = isList) }
-        }
-
         preferences.useVividColorHeaders().changes().observeAndUpdate(viewModelScope) { enabled ->
             _browseScreenState.update { it.copy(useVividColorHeaders = enabled) }
         }
@@ -201,35 +193,6 @@ class BrowseViewModel : ViewModel() {
 
         browseRepository.loginHelper.isLoggedInFlow().observeAndUpdate(viewModelScope) {
             _browseScreenState.update { state -> state.copy(isLoggedIn = it) }
-        }
-
-        preferences.browseDisplayMode().changes().observeAndUpdate(viewModelScope) { visibility ->
-            _browseScreenState.update { it.copy(libraryEntryVisibility = visibility) }
-            viewModelScope.launchIO {
-                _browseScreenState.update {
-                    it.copy(homePageManga = it.homePageManga.updateVisibility(preferences))
-                }
-            }
-            viewModelScope.launchIO {
-                _browseScreenState.update {
-                    it.copy(
-                        displayMangaHolder =
-                            it.displayMangaHolder.copy(
-                                filteredDisplayManga =
-                                    it.displayMangaHolder.allDisplayManga
-                                        .filterVisibility(preferences)
-                                        .toList(),
-                                groupedDisplayManga =
-                                    it.displayMangaHolder.groupedDisplayManga
-                                        .map { (stringRes, mangaList) ->
-                                            stringRes to
-                                                mangaList.updateVisibility(preferences).toList()
-                                        }
-                                        .toMap(),
-                            )
-                    )
-                }
-            }
         }
     }
 
@@ -253,7 +216,7 @@ class BrowseViewModel : ViewModel() {
                 .onOk {
                     _browseScreenState.update { state ->
                         state.copy(
-                            homePageManga = it.updateVisibility(preferences),
+                            homePageManga = it,
                             initialLoading = false,
                         )
                     }
@@ -279,8 +242,7 @@ class BrowseViewModel : ViewModel() {
                     }
                     .onOk {
                         val groupedManga =
-                            it.updateVisibility(preferences)
-                                .groupBy { manga -> manga.displayTextRes!! }
+                            it.groupBy { manga -> manga.displayTextRes!! }
                                 .map { entry ->
                                     entry.key to
                                         entry.value
@@ -297,8 +259,7 @@ class BrowseViewModel : ViewModel() {
                                         resultType = BrowseScreenType.Follows,
                                         allDisplayManga =
                                             it.distinctBy { manga -> manga.url }.toList(),
-                                        filteredDisplayManga =
-                                            it.filterVisibility(preferences).toList(),
+                                        filteredDisplayManga = it.toList(),
                                         groupedDisplayManga = groupedManga,
                                     ),
                                 initialLoading = false,
@@ -419,12 +380,6 @@ class BrowseViewModel : ViewModel() {
     }
 
     private fun updateDisplayManga(mangaId: Long, favorite: Boolean) {
-        val isVisible =
-            when (preferences.browseDisplayMode().get() % 3) {
-                LibraryEntryVisibility.SHOW_IN_LIBRARY -> favorite
-                LibraryEntryVisibility.SHOW_NOT_IN_LIBRARY -> !favorite
-                else -> true
-            }
         viewModelScope.launchIO {
             _browseScreenState.update {
                 val updatedHomePage =
@@ -440,10 +395,7 @@ class BrowseViewModel : ViewModel() {
                                             addAll(list)
                                             set(
                                                 index,
-                                                list[index].copy(
-                                                    inLibrary = favorite,
-                                                    isVisible = isVisible,
-                                                ),
+                                                list[index].copy(inLibrary = favorite),
                                             )
                                         }
                                 )
@@ -455,14 +407,14 @@ class BrowseViewModel : ViewModel() {
                 else {
                     val tempList = buildList {
                         addAll(list)
-                        set(index, list[index].copy(inLibrary = favorite, isVisible = isVisible))
+                        set(index, list[index].copy(inLibrary = favorite))
                     }
                     it.copy(
                         homePageManga = updatedHomePage,
                         displayMangaHolder =
                             it.displayMangaHolder.copy(
                                 allDisplayManga = tempList,
-                                filteredDisplayManga = tempList.filterVisibility(preferences),
+                                filteredDisplayManga = tempList,
                                 groupedDisplayManga =
                                     it.displayMangaHolder.groupedDisplayManga.mapValues { (_, list)
                                         ->
@@ -475,10 +427,7 @@ class BrowseViewModel : ViewModel() {
                                                 addAll(list)
                                                 set(
                                                     index,
-                                                    list[index].copy(
-                                                        inLibrary = favorite,
-                                                        isVisible = isVisible,
-                                                    ),
+                                                    list[index].copy(inLibrary = favorite),
                                                 )
                                             }
                                     },
@@ -553,10 +502,6 @@ class BrowseViewModel : ViewModel() {
         }
     }
 
-    fun switchDisplayMode() {
-        preferences.browseAsList().set(!browseScreenState.value.isList)
-    }
-
     fun changeScreenType(browseScreenType: BrowseScreenType, forceUpdate: Boolean = false) {
         viewModelScope.launchIO {
             when (browseScreenType) {
@@ -566,10 +511,6 @@ class BrowseViewModel : ViewModel() {
             }
             _browseScreenState.update { it.copy(screenType = browseScreenType, error = null) }
         }
-    }
-
-    fun switchLibraryEntryVisibility(visibility: Int) {
-        preferences.browseDisplayMode().set(visibility)
     }
 
     private fun updateBrowseFilters(initialLoad: Boolean = false) {
@@ -591,9 +532,7 @@ class BrowseViewModel : ViewModel() {
         if (!_browseScreenState.value.firstLoad) {
             viewModelScope.launchIO {
                 val newHomePageManga =
-                    _browseScreenState.value.homePageManga
-                        .resyncHomePageManga(mangaRepository)
-                        .updateVisibility(preferences)
+                    _browseScreenState.value.homePageManga.resyncHomePageManga(mangaRepository)
                 _browseScreenState.update { it.copy(homePageManga = newHomePageManga) }
             }
             viewModelScope.launchIO {
@@ -606,8 +545,7 @@ class BrowseViewModel : ViewModel() {
                         displayMangaHolder =
                             it.displayMangaHolder.copy(
                                 allDisplayManga = allDisplayManga.toList(),
-                                filteredDisplayManga =
-                                    allDisplayManga.filterVisibility(preferences).toList(),
+                                filteredDisplayManga = allDisplayManga.toList(),
                                 groupedDisplayManga =
                                     it.displayMangaHolder.groupedDisplayManga.mapValues { (_, list)
                                         ->

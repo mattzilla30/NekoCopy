@@ -9,7 +9,6 @@ import androidx.compose.runtime.setValue
 import org.nekomanga.R
 import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.MangaGridWithHeader
-import org.nekomanga.presentation.components.MangaListWithHeader
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.functions.numberOfColumns
 import org.nekomanga.presentation.screens.EmptyScreen
@@ -17,7 +16,6 @@ import org.nekomanga.presentation.screens.EmptyScreen
 @Composable
 fun BrowseFollowsPage(
     displayMangaHolder: DisplayMangaHolder,
-    isList: Boolean,
     isComfortableGrid: Boolean,
     outlineCovers: Boolean,
     dynamicCovers: Boolean,
@@ -37,30 +35,17 @@ fun BrowseFollowsPage(
             contentPadding = contentPadding,
         )
     } else {
-        if (isList) {
-            MangaListWithHeader(
-                groupedManga = displayMangaHolder.groupedDisplayManga,
-                shouldOutlineCover = outlineCovers,
-                dynamicCover = dynamicCovers,
-                onClick = onClick,
-                onLongClick = onLongClick,
-                contentPadding = contentPadding,
-                collapsedGroups = collapsedGroups,
-                onToggleGroupCollapse = toggleGroupCollapse,
-            )
-        } else {
-            MangaGridWithHeader(
-                groupedManga = displayMangaHolder.groupedDisplayManga,
-                shouldOutlineCover = outlineCovers,
-                dynamicCover = dynamicCovers,
-                columns = numberOfColumns(rawValue = rawColumnCount),
-                isComfortable = isComfortableGrid,
-                onClick = onClick,
-                onLongClick = onLongClick,
-                contentPadding = contentPadding,
-                collapsedGroups = collapsedGroups,
-                onToggleGroupCollapse = toggleGroupCollapse,
-            )
-        }
+        MangaGridWithHeader(
+            groupedManga = displayMangaHolder.groupedDisplayManga,
+            shouldOutlineCover = outlineCovers,
+            dynamicCover = dynamicCovers,
+            columns = numberOfColumns(rawValue = rawColumnCount),
+            isComfortable = isComfortableGrid,
+            onClick = onClick,
+            onLongClick = onLongClick,
+            contentPadding = contentPadding,
+            collapsedGroups = collapsedGroups,
+            onToggleGroupCollapse = toggleGroupCollapse,
+        )
     }
 }

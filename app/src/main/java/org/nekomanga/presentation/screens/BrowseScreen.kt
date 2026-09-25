@@ -108,8 +108,6 @@ fun BrowseScreen(
         browseScreenFlow = browseViewModel.browseScreenState,
         mainDropdown = mainDropdown,
         mainDropdownShowing = mainDropdownShowing,
-        switchDisplayClick = browseViewModel::switchDisplayMode,
-        libraryEntryVisibilityClick = browseViewModel::switchLibraryEntryVisibility,
         windowSizeClass = windowSizeClass,
         homeScreenTitleClick = { type -> onNavigateTo(Screens.Display(type)) },
         openManga = { mangaId -> onNavigateTo(Screens.Manga(mangaId)) },
@@ -140,8 +138,6 @@ private fun BrowseWrapper(
     browseScreenFlow: StateFlow<BrowseScreenState>,
     mainDropdown: AppBar.MainDropdown,
     mainDropdownShowing: Boolean,
-    switchDisplayClick: () -> Unit,
-    libraryEntryVisibilityClick: (Int) -> Unit,
     windowSizeClass: WindowSizeClass,
     openManga: (Long) -> Unit,
     addNewCategory: (String) -> Unit,
@@ -223,16 +219,6 @@ private fun BrowseWrapper(
                 browseScreenState = browseScreenState,
                 scrollBehavior = scrollBehavior,
                 mainDropDown = mainDropdown,
-                openSheetClick = {
-                    scope.launch {
-                        openSheet(
-                            BrowseBottomSheetScreen.BrowseDisplayOptionsSheet(
-                                switchDisplayClick = switchDisplayClick,
-                                libraryEntryVisibilityClick = libraryEntryVisibilityClick,
-                            )
-                        )
-                    }
-                },
                 searchClick = { openSheet(BrowseBottomSheetScreen.FilterSheet) },
                 homeClick = { changeScreenType(BrowseScreenType.Homepage) },
                 followsClick = {
@@ -313,7 +299,6 @@ private fun BrowseWrapper(
                         BrowseScreenType.Follows -> {
                             BrowseFollowsPage(
                                 displayMangaHolder = browseScreenState.displayMangaHolder,
-                                isList = browseScreenState.isList,
                                 isComfortableGrid = browseScreenState.isComfortableGrid,
                                 outlineCovers = browseScreenState.outlineCovers,
                                 dynamicCovers = browseScreenState.dynamicCovers,
@@ -327,7 +312,6 @@ private fun BrowseWrapper(
                         BrowseScreenType.Filter -> {
                             BrowseFilterPage(
                                 displayMangaHolder = browseScreenState.displayMangaHolder,
-                                isList = browseScreenState.isList,
                                 isComfortableGrid = browseScreenState.isComfortableGrid,
                                 outlineCovers = browseScreenState.outlineCovers,
                                 dynamicCovers = browseScreenState.dynamicCovers,
