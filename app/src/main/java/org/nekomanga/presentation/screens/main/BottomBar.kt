@@ -1,12 +1,10 @@
 package org.nekomanga.presentation.screens.main
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavKey
 import eu.kanade.tachiyomi.ui.main.NavigationItem
 
@@ -18,7 +16,9 @@ fun BottomBar(
     selectedItemIndex: Int,
     onNavigate: (NavKey) -> Unit,
 ) {
-    ShortNavigationBar(modifier = Modifier.fillMaxWidth()) {
+    // ShortNavigationBar already spans the full width. A fillMaxWidth modifier would raise the
+    // items' minimum width to the whole bar and push every item after the first off-screen.
+    ShortNavigationBar {
         items.forEachIndexed { index, item ->
             val selected = selectedItemIndex == index
             ShortNavigationBarItem(

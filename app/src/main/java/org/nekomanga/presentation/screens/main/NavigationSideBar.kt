@@ -1,7 +1,6 @@
 package org.nekomanga.presentation.screens.main
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuOpen
@@ -52,7 +51,6 @@ fun NavigationSideBar(
     val expanded = railState.targetValue == WideNavigationRailValue.Expanded
 
     WideNavigationRail(
-        modifier = Modifier.fillMaxHeight(),
         state = railState,
         arrangement = arrangement,
         header = {
