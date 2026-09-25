@@ -201,76 +201,76 @@ class AppModule(val app: Application) : InjektModule {
 
         addSingletonFactory { StorageManager(app, get()) }
 
-        addSingleton(FollowsHandler())
+        addSingletonFactory { FollowsHandler() }
 
-        addSingleton(ArtworkHandler())
+        addSingletonFactory { ArtworkHandler() }
 
-        addSingleton(MangaHandler())
+        addSingletonFactory { MangaHandler() }
 
-        addSingleton(ApiMangaParser())
+        addSingletonFactory { ApiMangaParser() }
 
-        addSingleton(SearchHandler())
+        addSingletonFactory { SearchHandler() }
 
-        addSingleton(ListHandler())
+        addSingletonFactory { ListHandler() }
 
-        addSingleton(PageHandler())
+        addSingletonFactory { PageHandler() }
 
-        addSingleton(ImageHandler())
+        addSingletonFactory { ImageHandler() }
 
-        addSingleton(SimilarHandler())
+        addSingletonFactory { SimilarHandler() }
 
-        addSingleton(LatestChapterHandler())
+        addSingletonFactory { LatestChapterHandler() }
 
-        addSingleton(FeedUpdatesHandler())
+        addSingletonFactory { FeedUpdatesHandler() }
 
-        addSingleton(MangaDexLoginHelper())
+        addSingletonFactory { MangaDexLoginHelper() }
 
-        addSingleton(MangaPlusHandler())
+        addSingletonFactory { MangaPlusHandler() }
 
-        addSingleton(NamiComiHandler())
+        addSingletonFactory { NamiComiHandler() }
 
-        addSingleton(AzukiHandler())
+        addSingletonFactory { AzukiHandler() }
 
-        addSingleton(ComikeyHandler())
+        addSingletonFactory { ComikeyHandler() }
 
-        addSingleton(MangaHotHandler())
+        addSingletonFactory { MangaHotHandler() }
 
-        addSingleton(MangaUpHandler())
+        addSingletonFactory { MangaUpHandler() }
 
-        addSingleton(StatusHandler())
+        addSingletonFactory { StatusHandler() }
 
-        addSingleton(FollowsSyncProcessor())
+        addSingletonFactory { FollowsSyncProcessor() }
 
-        addSingleton(TrackSyncProcessor())
+        addSingletonFactory { TrackSyncProcessor() }
 
-        addSingleton(DelayedTrackingStore(app))
+        addSingletonFactory { DelayedTrackingStore(app) }
 
-        addSingleton(SimilarRepo())
+        addSingletonFactory { SimilarRepo() }
 
-        addSingleton(MangaUpdateCoordinator())
+        addSingletonFactory { MangaUpdateCoordinator() }
 
-        addSingleton(DisplayRepository())
+        addSingletonFactory { DisplayRepository() }
 
-        addSingleton(BrowseRepository())
+        addSingletonFactory { BrowseRepository() }
 
-        addSingleton(CalculateChapterFilterUseCase())
-        addSingleton(ParseChapterNameUseCase())
-        addSingleton(ChapterUseCases())
+        addSingletonFactory { CalculateChapterFilterUseCase() }
+        addSingletonFactory { ParseChapterNameUseCase() }
+        addSingletonFactory { ChapterUseCases() }
 
-        addSingleton(CalculateDexFilterUseCase())
+        addSingletonFactory { CalculateDexFilterUseCase() }
 
-        addSingleton(FilterLibraryMangaUseCase())
-        addSingleton(ShouldUpdateMangaUseCase())
+        addSingletonFactory { FilterLibraryMangaUseCase() }
+        addSingletonFactory { ShouldUpdateMangaUseCase() }
 
-        addSingleton(MangaUseCases())
+        addSingletonFactory { MangaUseCases() }
 
-        addSingleton(CategoryUseCases())
+        addSingletonFactory { CategoryUseCases() }
 
-        addSingleton(TrackUseCases())
+        addSingletonFactory { TrackUseCases() }
 
-        addSingleton(FeedRepository())
+        addSingletonFactory { FeedRepository() }
 
-        addSingleton(AppSnackbarManager())
+        addSingletonFactory { AppSnackbarManager() }
 
         addSingletonFactory { Json { ignoreUnknownKeys = true } }
 

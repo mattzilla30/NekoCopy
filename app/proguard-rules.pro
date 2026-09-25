@@ -1,76 +1,22 @@
+# Keep class and member names readable in crash logs. R8 still shrinks and optimizes.
 -dontobfuscate
 
--keep,allowoptimization class eu.kanade.tachiyomi.** { public protected *; }
--keep,allowoptimization class tachiyomi.** { public protected *; }
--keep,allowoptimization class org.nekomanga.** { public protected *; }
--keep,allowoptimization class androidx.preference.** { *; }
--keep,allowoptimization class kotlin.** { public protected *; }
--keep,allowoptimization class kotlinx.coroutines.** { public protected *; }
--keep,allowoptimization class okhttp3.** { public protected *; }
--keep,allowoptimization class okio.** { public protected *; }
--keep,allowoptimization class logcat.** { public protected *; }
--keep,allowoptimization class org.jsoup.** { public protected *; }
--keep,allowoptimization class com.google.gson.** { public protected *; }
+-keepattributes Signature, InnerClasses, EnclosingMethod, *Annotation*
+
+##---------------Injekt ----------
+# Injekt keys every dependency by the generic type captured in an anonymous FullTypeReference
+# subclass, so those subclasses must keep their generic signatures.
 -keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
--keep class androidx.window.** { *; }
--dontwarn androidx.window.**
-# Design library
--dontwarn com.google.android.material.**
--keep class com.google.android.material.** { *; }
--keep interface com.google.android.material.** { *; }
--keep public class com.google.android.material.R$* { *; }
+-keep,allowoptimization class * extends uy.kohesive.injekt.api.FullTypeReference
+-keep,allowoptimization class * extends uy.kohesive.injekt.api.TypeReference
 
--keep class com.hippo.image.** { *; }
--keep interface com.hippo.image.** { *; }
--dontwarn nucleus.view.NucleusActionBarActivity
+##---------------androidx.window ----------
+-dontwarn androidx.window.extensions.**
+-dontwarn androidx.window.sidecar.**
 
-# Extensions may require methods unused in the core app
--keep class org.jsoup.** { *; }
--keep class kotlin.** { *; }
--keep class okhttp3.** { *; }
--keep class com.google.gson.** { *; }
+##---------------kotlinx.serialization ----------
+-dontnote kotlinx.serialization.AnnotationsKt
 
-# OkHttp
--dontwarn okhttp3.**
--dontwarn okio.**
--dontwarn javax.annotation.**
-
-# Coil3
--keep class * extends coil3.util.DecoderServiceLoaderTarget { *; }
--keep class * extends coil3.util.FetcherServiceLoaderTarget { *; }
-
-
-##---------------End: proguard configuration for RxJava 1.x  ----------
-
-##---------------Begin: proguard configuration for Gson  ----------
-# Gson uses generic type information stored in a class file when working with fields. Proguard
-# removes such information by default, so configure it to keep all of it.
--keepattributes Signature
-
-# For using GSON @Expose annotation
--keepattributes *Annotation*
-
-# Gson specific classes
--dontwarn sun.misc.**
-
-# Prevent proguard from stripping interface information from TypeAdapter, TypeAdapterFactory,
-# JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
--keep class * extends com.google.gson.TypeAdapter
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
-
-# Prevent R8 from leaving Data object members always null
--keepclassmembers,allowobfuscation class * {
-  @com.google.gson.annotations.SerializedName <fields>;
-}
-##---------------End: proguard configuration for Gson  ----------
-
-##---------------Begin: proguard configuration for kotlinx.serialization  ----------
--keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.AnnotationsKt # core serialization annotations
-
-# kotlinx-serialization-json specific. Add this if you have java.lang.NoClassDefFoundError kotlinx.serialization.json.JsonObjectSerializer
 -keepclassmembers class kotlinx.serialization.json.** {
     *** Companion;
 }
@@ -94,18 +40,12 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
--keep class kotlinx.serialization.**
--keepclassmembers class kotlinx.serialization.** {
-    <methods>;
-}
+##---------------Coil ----------
+-keep class * extends coil3.util.DecoderServiceLoaderTarget { *; }
+-keep class * extends coil3.util.FetcherServiceLoaderTarget { *; }
 
-
-#Remove after lifecyle 2.8.3
--if public class androidx.compose.ui.platform.AndroidCompositionLocals_androidKt {
-    public static *** getLocalLifecycleOwner();
-}
--keep public class androidx.compose.ui.platform.AndroidCompositionLocals_androidKt {
-    public static *** getLocalLifecycleOwner();
-}
-
-##---------------End: proguard configuration for kotlinx.serialization  ----------
+##---------------Warnings for optional dependencies ----------
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn javax.annotation.**
+-dontwarn sun.misc.**

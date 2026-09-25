@@ -1,9 +1,7 @@
 [versions]
 aboutlibVersion = "15.2.0"
 cascadeComposeVersion = "2.3.0"
-cascadeVersion = "2.3.0"
 coilVersion = "3.6.3"
-fastAdapterVersion = "5.7.0"
 injektCoreVersion = "1.16.1"
 kotlinResultVersion = "2.3.1"
 detektVersion = "1.23.8"
@@ -20,11 +18,9 @@ telephoto-zoomable = { module = "me.saket.telephoto:zoomable", version.ref = "te
 telephoto-zoomable-image-coil = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "telephotoVersion" }
 telephoto-subsampling = { module = "me.saket.telephoto:sub-sampling-image", version.ref = "telephotoVersion" }
 cascade-compose = { module = "me.saket.cascade:cascade-compose", version.ref = "cascadeComposeVersion" }
-cascade = { module = "me.saket.cascade:cascade", version.ref = "cascadeVersion" }
 injekt-core = { module = "uy.kohesive.injekt:injekt-core", version.ref = "injektCoreVersion" }
 material = "com.google.android.material:material:1.14.0"
 desugaring = "com.android.tools:desugar_jdk_libs:2.1.5"
-flex-box = "com.google.android.flexbox:flexbox:3.0.0"
 #needed for token bucket to work
 guava-fix = "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava"
 
@@ -43,14 +39,9 @@ kotlin-result = { module = "com.michael-bull.kotlin-result:kotlin-result", versi
 kotlin-result-coroutines = { module = "com.michael-bull.kotlin-result:kotlin-result-coroutines", version.ref = "kotlinResultVersion" }
 
 sqlite = { module = "androidx.sqlite:sqlite", version.ref = "sqliteVersion" }
-tachi-image-decoder = "com.github.ivaniskandar:image-decoder:d7e0d3dfaa"
-tachi-source-api = "org.tachiyomi:source-api:1.1"
-tachi-directional-view-pager = "com.github.tachiyomiorg:DirectionalViewPager:1.0.0"
 tachi-unifile = "com.github.tachiyomiorg:unifile:a9de196cc7"
 
 
-fast-adapter = { module = "com.mikepenz:fastadapter", version.ref = "fastAdapterVersion" }
-fast-adapter-binding = { module = "com.mikepenz:fastadapter-extensions-binding", version.ref = "fastAdapterVersion" }
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttpVersion" }
 okhttp-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttpVersion" }
@@ -88,11 +79,9 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }
 
 [bundles]
 coil = [ "coil3", "coil3-compose", "coil3-svg", "coil3-gif", "coil3-okhttp" ]
-fastadapter = ["fast-adapter", "fast-adapter-binding"]
-google = ["material", "guava-fix", "flex-box"]
+google = ["material", "guava-fix"]
 ok = ["okhttp", "okhttp-logging-interceptor", "okhttp-dnsoverhttps", "okio"]
 sandwich = ["sandwich", "sandwich-retrofit", "sandwich-retrofit-serialization"]
-tachiyomi = ["tachi-image-decoder", "tachi-source-api", "tachi-directional-view-pager", "tachi-unifile"]
 tests = ["junit", "mockk", "kotest-assertions"]
 retrofit = ["retrofit-core", "retrofit-serialization", "retrofit-scalars"]
 results = ["kotlin-result", "kotlin-result-coroutines"]

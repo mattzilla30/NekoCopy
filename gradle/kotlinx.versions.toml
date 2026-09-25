@@ -18,7 +18,7 @@ serialization-okio = { module = "org.jetbrains.kotlinx:kotlinx-serialization-jso
 
 [bundles]
 
-kotlin = ["stdlib", "reflect", "coroutines-core", "coroutines-android", "serialization-json", "serialization-protobuf", "serialization-okio"]
+kotlin = ["stdlib", "coroutines-core", "coroutines-android", "serialization-json", "serialization-protobuf", "serialization-okio"]
 
 [plugins]
 

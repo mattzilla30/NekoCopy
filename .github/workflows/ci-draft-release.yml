@@ -72,11 +72,8 @@ jobs:
           ls -l "$RELEASE_DIR"
           echo "------------------------------------"
           # Move and rename the files using the correct path.
-          mv "$RELEASE_DIR"/*universal-release-unsigned-signed.apk kitty-universal.apk
-          mv "$RELEASE_DIR"/*arm64-v8a-release-unsigned-signed.apk kitty-arm64-v8a.apk
-          mv "$RELEASE_DIR"/*armeabi-v7a-release-unsigned-signed.apk kitty-armeabi-v7a.apk
-          mv "$RELEASE_DIR"/*x86-release-unsigned-signed.apk kitty-x86.apk
-          mv "$RELEASE_DIR"/*x86_64-release-unsigned-signed.apk kitty-x86_64.apk
+          # Kitty has no sizable native code, so one universal APK serves every device.
+          mv "$RELEASE_DIR"/*release-unsigned-signed.apk kitty-universal.apk
           {
             echo 'sha_table<<EOF'
             echo ""

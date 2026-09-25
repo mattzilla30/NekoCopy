@@ -271,14 +271,19 @@ class SimilarHandler {
         similarDto ?: return
 
         // Get our page of mangaList
+        val edges = similarDto.data.Media.recommendations.edges
+        val dexIds =
+            mappings.getMangadexUUIDs(
+                edges.map { it.node.mediaRecommendation.id.toString() },
+                "al",
+            )
         val idPairs =
-            similarDto.data.Media.recommendations.edges
+            edges
                 .map {
                     if (it.node.mediaRecommendation.format != "MANGA") {
                         return@map null
                     }
-                    val id =
-                        mappings.getMangadexUUID(it.node.mediaRecommendation.id.toString(), "al")
+                    val id = dexIds[it.node.mediaRecommendation.id.toString()]
                     val text = it.node.rating.toString() + " user votes"
                     id to text
                 }
@@ -344,9 +349,11 @@ class SimilarHandler {
         similarDto ?: return
 
         // Get our page of mangaList
+        val dexIds =
+            mappings.getMangadexUUIDs(similarDto.data.map { it.entry.mal_id.toString() }, "mal")
         val idPairs =
             similarDto.data.associate {
-                val id = mappings.getMangadexUUID(it.entry.mal_id.toString(), "mal")
+                val id = dexIds[it.entry.mal_id.toString()]
                 val text = it.votes.toString() + " user votes"
                 id to text
             }
@@ -413,17 +420,23 @@ class SimilarHandler {
         similarDto ?: return
 
         // Get our page of mangaList
+        val dexIds =
+            mappings.getMangadexUUIDs(
+                similarDto.recommendations.map { it.series_id.toString() } +
+                    similarDto.category_recommendations.map { it.series_id.toString() },
+                "mu_new",
+            )
         val idPairs =
             similarDto.recommendations
                 .associate {
-                    val id = mappings.getMangadexUUID(it.series_id.toString(), "mu_new")
+                    val id = dexIds[it.series_id.toString()]
                     val text = it.weight.toString() + " user votes"
                     id to text
                 }
                 .toMutableMap()
         idPairs +=
             similarDto.category_recommendations.associate {
-                val id = mappings.getMangadexUUID(it.series_id.toString(), "mu_new")
+                val id = dexIds[it.series_id.toString()]
                 val text = "Similar"
                 id to text
             }

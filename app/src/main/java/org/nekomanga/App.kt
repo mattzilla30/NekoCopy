@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Looper
-import android.webkit.CookieManager
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
@@ -70,16 +69,15 @@ open class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.F
 
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
-        kotlin
-            .runCatching { CookieManager.getInstance() }
-            .onFailure {
-                Toast.makeText(
-                        applicationContext,
-                        "Error! App requires WebView to be installed",
-                        Toast.LENGTH_LONG,
-                    )
-                    .show()
-            }
+        // Checking the WebView package avoids loading the whole WebView engine at startup.
+        if (WebView.getCurrentWebViewPackage() == null) {
+            Toast.makeText(
+                    applicationContext,
+                    "Error! App requires WebView to be installed",
+                    Toast.LENGTH_LONG,
+                )
+                .show()
+        }
 
         // Avoid potential crashes
         val process = getProcessName()

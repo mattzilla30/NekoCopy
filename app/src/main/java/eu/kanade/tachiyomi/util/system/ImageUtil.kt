@@ -35,8 +35,6 @@ import okio.Buffer
 import okio.BufferedSource
 import org.nekomanga.R
 import org.nekomanga.logging.TimberKt
-import tachiyomi.decoder.Format
-import tachiyomi.decoder.ImageDecoder
 import timber.log.Timber
 
 object ImageUtil {
@@ -61,7 +59,7 @@ object ImageUtil {
 
     fun findImageType(stream: InputStream): ImageType? {
         return try {
-            getImageType(stream)?.toImageUtilType()
+            getImageType(stream)?.type
         } catch (e: Exception) {
             TimberKt.e(e) { "Error getting image type from stream" }
             null
@@ -70,7 +68,7 @@ object ImageUtil {
 
     fun findImageType(stream: BufferedSource): ImageType? {
         return try {
-            getImageType(stream)?.toImageUtilType()
+            getImageType(stream)?.type
         } catch (e: Exception) {
             TimberKt.e(e) { "Error getting image type from stream" }
             null
@@ -103,28 +101,6 @@ object ImageUtil {
         return false
     }
 
-    internal fun tachiyomi.decoder.ImageType.toImageUtilType(): ImageType? {
-        return when (format) {
-            Format.Avif -> ImageType.AVIF
-            Format.Gif -> ImageType.GIF
-            Format.Heif -> ImageType.HEIF
-            Format.Jpeg -> ImageType.JPEG
-            Format.Jxl -> ImageType.JXL
-            Format.Png -> ImageType.PNG
-            Format.Webp -> ImageType.WEBP
-        }
-    }
-
-    internal fun tachiyomi.decoder.ImageType.isAnimatedAndSupported(): Boolean {
-        return when (format) {
-            Format.Gif -> true
-            // https://coil-kt.github.io/coil/getting_started/#supported-image-formats
-            Format.Webp,
-            Format.Heif -> isAnimated
-            else -> false
-        }
-    }
-
     enum class ImageType(val mime: String, val extension: String) {
         AVIF("image/avif", "avif"),
         GIF("image/gif", "gif"),
@@ -135,8 +111,22 @@ object ImageUtil {
         WEBP("image/webp", "webp"),
     }
 
-    private fun getImageType(stream: InputStream): tachiyomi.decoder.ImageType? {
-        val bytes = ByteArray(32)
+    /** An image format read from the file header, and whether the image animates. */
+    internal data class DetectedImage(val type: ImageType, val isAnimated: Boolean) {
+        /** Coil animates GIF, WebP and HEIF images. */
+        fun isAnimatedAndSupported(): Boolean =
+            when (type) {
+                ImageType.GIF -> true
+                ImageType.WEBP,
+                ImageType.HEIF -> isAnimated
+                else -> false
+            }
+    }
+
+    private const val HEADER_SIZE = 32
+
+    private fun getImageType(stream: InputStream): DetectedImage? {
+        val bytes = ByteArray(HEADER_SIZE)
 
         val length =
             if (stream.markSupported()) {
@@ -146,21 +136,66 @@ object ImageUtil {
                 stream.read(bytes, 0, bytes.size)
             }
 
-        if (length == -1) {
+        if (length <= 0) {
             return null
         }
 
-        return ImageDecoder.findType(bytes)
+        return detectImage(bytes.copyOf(length))
     }
 
-    private fun getImageType(stream: BufferedSource): tachiyomi.decoder.ImageType? {
-        val bytes = stream.peek().readByteArray(32)
+    private fun getImageType(stream: BufferedSource): DetectedImage? {
+        stream.request(HEADER_SIZE.toLong())
+        val bytes = stream.peek().readByteArray(minOf(HEADER_SIZE.toLong(), stream.buffer.size))
 
         if (bytes.isEmpty()) {
             return null
         }
 
-        return ImageDecoder.findType(bytes)
+        return detectImage(bytes)
+    }
+
+    private val heifBrands = setOf("heic", "heix", "heim", "heis", "hevc", "hevx", "mif1", "msf1")
+    private val heifSequenceBrands = setOf("hevc", "hevx", "msf1")
+
+    /** Reads the image format from the magic bytes at the start of a file. */
+    internal fun detectImage(header: ByteArray): DetectedImage? {
+        fun at(offset: Int, vararg expected: Int): Boolean =
+            header.size >= offset + expected.size &&
+                expected.indices.all { header[offset + it].toInt() and 0xFF == expected[it] }
+
+        fun ascii(offset: Int, text: String): Boolean =
+            at(offset, *text.map { it.code }.toIntArray())
+
+        fun brand(offset: Int): String? =
+            if (header.size >= offset + 4) String(header, offset, 4, Charsets.US_ASCII) else null
+
+        return when {
+            at(0, 0xFF, 0xD8, 0xFF) -> DetectedImage(ImageType.JPEG, false)
+            at(0, 0x89, 0x50, 0x4E, 0x47) -> DetectedImage(ImageType.PNG, false)
+            ascii(0, "GIF8") -> DetectedImage(ImageType.GIF, true)
+            ascii(0, "RIFF") && ascii(8, "WEBP") -> {
+                // An extended VP8X header sets bit 1 of its flags byte for animations.
+                val animated =
+                    ascii(12, "VP8X") && header.size > 20 && header[20].toInt() and 0x02 != 0
+                DetectedImage(ImageType.WEBP, animated)
+            }
+            at(0, 0xFF, 0x0A) ||
+                at(0, 0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87, 0x0A) ->
+                DetectedImage(ImageType.JXL, false)
+            ascii(4, "ftyp") -> {
+                // The major brand sits at offset 8 and compatible brands follow from offset 16.
+                val brands =
+                    listOfNotNull(brand(8)) + (16 until header.size - 3 step 4).mapNotNull(::brand)
+                when {
+                    "avis" in brands -> DetectedImage(ImageType.AVIF, true)
+                    "avif" in brands -> DetectedImage(ImageType.AVIF, false)
+                    brands.any { it in heifBrands } ->
+                        DetectedImage(ImageType.HEIF, brands.any { it in heifSequenceBrands })
+                    else -> null
+                }
+            }
+            else -> null
+        }
     }
 
     fun autoSetBackground(

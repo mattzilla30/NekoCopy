@@ -24,7 +24,6 @@ fun coilImageLoader(context: Context) =
             components {
                 add(AnimatedImageDecoder.Factory())
                 add(SvgDecoder.Factory())
-                add(TachiyomiImageDecoder.Factory())
                 add(MangaCoverFactory(lazy(diskCacheInit)))
                 add(ArtworkFactory(lazy(diskCacheInit)))
                 add(ArtworkKeyer())

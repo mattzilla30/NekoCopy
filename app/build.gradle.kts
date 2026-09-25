@@ -10,8 +10,6 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val supportedAbis = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-
 android {
     compileSdk = AndroidConfig.compileSdkVersion
     namespace = "org.nekomanga"
@@ -34,17 +32,6 @@ android {
         )
 
         ksp { arg("room.schemaLocation", "$projectDir/schemas") }
-
-        ndk { abiFilters += supportedAbis }
-    }
-
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include(*supportedAbis.toTypedArray())
-            isUniversalApk = true
-        }
     }
 
     buildTypes {
@@ -62,12 +49,27 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
         compose = true
         // Disable some unused things
         aidl = false
         shaders = false
         buildConfig = true
+    }
+
+    // Kitty ships English only, so drop library translations and license files from the APK.
+    androidResources { localeFilters += "en" }
+
+    packaging {
+        resources {
+            excludes +=
+                listOf(
+                    "META-INF/**/LICENSE*",
+                    "META-INF/*.version",
+                    "META-INF/*.kotlin_module",
+                    "kotlin/**.kotlin_builtins",
+                    "DebugProbesKt.bin",
+                )
+        }
     }
 
     flavorDimensions.add("default")
@@ -111,12 +113,9 @@ dependencies {
     implementation(libs.bundles.ok)
     implementation(libs.tachi.unifile)
 
-    implementation(libs.bundles.tachiyomi)
     implementation(androidx.bundles.androidx)
     implementation(androidx.profileinstaller)
     implementation(libs.bundles.google)
-
-    // TLS 1.3 support for Android < 10
 
     implementation(libs.bundles.retrofit)
 
@@ -144,16 +143,13 @@ dependencies {
     implementation(libs.timber)
 
     // UI
-    implementation(libs.bundles.fastadapter)
-
-    implementation(libs.cascade)
     implementation(libs.cascade.compose)
 
     // Compose
     implementation(compose.bundles.compose)
+    debugImplementation(compose.ui.tooling)
     implementation(compose.gap)
     implementation(compose.bundles.accompanist)
-    implementation(compose.number.picker)
 
     implementation(compose.bundles.charting)
 
