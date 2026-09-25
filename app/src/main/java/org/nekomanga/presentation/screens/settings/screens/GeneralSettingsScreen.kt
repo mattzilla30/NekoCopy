@@ -27,7 +27,8 @@ internal class GeneralSettingsScreen(
                     mapOf(
                         1 to stringResource(R.string.last_used_library_recents),
                         -1 to stringResource(R.string.library),
-                        -2 to stringResource(R.string.feed),
+                        -2 to stringResource(R.string.updates),
+                        -4 to stringResource(R.string.history),
                         -3 to stringResource(R.string.browse),
                     ),
                 subtitleProvider = { value, options ->

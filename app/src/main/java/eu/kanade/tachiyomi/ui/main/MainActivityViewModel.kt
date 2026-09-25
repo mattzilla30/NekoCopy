@@ -70,11 +70,8 @@ class MainActivityViewModel : ViewModel() {
         viewModelScope.launch { preferences.hasShownOnboarding().set(true) }
     }
 
-    fun saveExtras(currentTabIsLibrary: Boolean) {
-        viewModelScope.launch {
-            val startingTab = if (currentTabIsLibrary) 0 else 1
-            preferences.lastUsedStartingTab().set(startingTab)
-        }
+    fun saveExtras(lastUsedTab: Int) {
+        viewModelScope.launch { preferences.lastUsedStartingTab().set(lastUsedTab) }
 
         viewModelScope.launch {
             mangaShortcutManager.updateShortcuts()

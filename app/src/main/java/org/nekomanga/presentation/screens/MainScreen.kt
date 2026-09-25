@@ -35,6 +35,7 @@ import org.nekomanga.presentation.screens.about.AboutViewModel
 import org.nekomanga.presentation.screens.browse.BrowseViewModel
 import org.nekomanga.presentation.screens.deepLink.DeepLinkScreen
 import org.nekomanga.presentation.screens.deepLink.DeepLinkViewModel
+import org.nekomanga.presentation.screens.feed.FeedScreenType
 import org.nekomanga.presentation.screens.feed.FeedViewModel
 import org.nekomanga.presentation.screens.library.LibraryViewModel
 import org.nekomanga.presentation.screens.similar.SimilarViewModel
@@ -180,10 +181,20 @@ fun MainScreen(
                             bottomBar = bottomBar,
                         )
                     }
-                    entry<Screens.Feed> {
-                        val feedViewModel: FeedViewModel = viewModel()
+                    entry<Screens.Updates> {
                         FeedScreen(
-                            feedViewModel = feedViewModel,
+                            feedViewModel = viewModel { FeedViewModel(FeedScreenType.Updates) },
+                            mainDropdown = mainDropDown,
+                            mainDropdownShowing = mainDropdownShowing,
+                            openManga = { mangaId -> backStack.add(Screens.Manga(mangaId)) },
+                            windowSizeClass = windowSizeClass,
+                            navigationRail = navigationRail,
+                            bottomBar = bottomBar,
+                        )
+                    }
+                    entry<Screens.History> {
+                        FeedScreen(
+                            feedViewModel = viewModel { FeedViewModel(FeedScreenType.History) },
                             mainDropdown = mainDropDown,
                             mainDropdownShowing = mainDropdownShowing,
                             openManga = { mangaId -> backStack.add(Screens.Manga(mangaId)) },
@@ -304,6 +315,7 @@ private fun isTopLevel(key: Any?): Boolean {
     if (key == null) return false
     val keyString = key.toString()
     return keyString.contains("Library") ||
-        keyString.contains("Feed") ||
+        keyString.contains("Updates") ||
+        keyString.contains("History") ||
         keyString.contains("Browse")
 }

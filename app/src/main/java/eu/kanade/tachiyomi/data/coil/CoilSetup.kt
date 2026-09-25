@@ -10,7 +10,6 @@ import coil3.gif.AnimatedImageDecoder
 import coil3.memory.MemoryCache
 import coil3.request.allowRgb565
 import coil3.request.crossfade
-import coil3.svg.SvgDecoder
 import coil3.util.DebugLogger
 import eu.kanade.tachiyomi.data.image.coil.ArtworkFactory
 import org.nekomanga.core.network.NetworkPreferences
@@ -23,7 +22,6 @@ fun coilImageLoader(context: Context) =
             val diskCacheInit = { CoilDiskCache.get(context) }
             components {
                 add(AnimatedImageDecoder.Factory())
-                add(SvgDecoder.Factory())
                 add(MangaCoverFactory(lazy(diskCacheInit)))
                 add(ArtworkFactory(lazy(diskCacheInit)))
                 add(ArtworkKeyer())

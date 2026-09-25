@@ -15,10 +15,6 @@ class ArtworkRepositoryImpl(private val artworkDao: ArtworkDao) : ArtworkReposit
         }
     }
 
-    override suspend fun getArtworkByMangaId(mangaId: Long): List<ArtworkImpl> {
-        return artworkDao.getArtworkForManga(mangaId).map { it.toImpl() }
-    }
-
     override suspend fun insertArtworks(artworks: List<ArtworkImpl>) {
         val entities = artworks.map { it.toEntity() }
         artworkDao.insertArtworks(entities)

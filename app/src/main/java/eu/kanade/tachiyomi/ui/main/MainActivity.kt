@@ -11,8 +11,10 @@ import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
@@ -92,15 +94,14 @@ class MainActivity : BaseMainActivity() {
                 Screens.Onboarding
             } else {
                 when (viewModel.preferences.startingTab().get()) {
-                    1 -> {
-                        if (viewModel.preferences.lastUsedStartingTab().get() == 0) {
-                            Screens.Library()
-                        } else {
-                            Screens.Feed
+                    1 ->
+                        when (viewModel.preferences.lastUsedStartingTab().get()) {
+                            1 -> Screens.Updates
+                            2 -> Screens.History
+                            else -> Screens.Library()
                         }
-                    }
-
-                    -2 -> Screens.Feed
+                    -2 -> Screens.Updates
+                    -4 -> Screens.History
                     -3 -> Screens.Browse()
                     else -> Screens.Library()
                 }
@@ -131,8 +132,9 @@ class MainActivity : BaseMainActivity() {
                 remember(backStack.lastOrNull()) {
                     when (backStack.lastOrNull()) {
                         is Screens.Library -> 0
-                        is Screens.Feed -> 1
-                        is Screens.Browse -> 2
+                        is Screens.Updates -> 1
+                        is Screens.History -> 2
+                        is Screens.Browse -> 3
                         else -> -1
                     }
                 }
@@ -160,13 +162,19 @@ class MainActivity : BaseMainActivity() {
                 }
             }
 
-            val isLibrary = backStack.firstOrNull() is Screens.Library
+            // Remembered for the "last used" starting screen: 0 Library, 1 Updates, 2 History.
+            val lastUsedTab =
+                when (backStack.firstOrNull()) {
+                    is Screens.Updates -> 1
+                    is Screens.History -> 2
+                    else -> 0
+                }
 
-            DisposableEffect(lifecycleOwner, isLibrary) {
+            DisposableEffect(lifecycleOwner, lastUsedTab) {
                 // Create an observer
                 val observer = LifecycleEventObserver { _, event ->
                     if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_DESTROY) {
-                        viewModel.saveExtras(isLibrary)
+                        viewModel.saveExtras(lastUsedTab)
                     }
                 }
 
@@ -208,8 +216,14 @@ class MainActivity : BaseMainActivity() {
                         selectedIcon = Icons.AutoMirrored.Filled.LibraryBooks,
                     ),
                     NavigationItem(
-                        screen = Screens.Feed,
-                        title = stringResource(R.string.feed),
+                        screen = Screens.Updates,
+                        title = stringResource(R.string.updates),
+                        unselectedIcon = Icons.Outlined.NewReleases,
+                        selectedIcon = Icons.Filled.NewReleases,
+                    ),
+                    NavigationItem(
+                        screen = Screens.History,
+                        title = stringResource(R.string.history),
                         unselectedIcon = Icons.Outlined.AccessTime,
                         selectedIcon = Icons.Filled.AccessTimeFilled,
                     ),

@@ -35,8 +35,6 @@ interface HistoryRepository {
         offset: Int,
     ): List<LegacyMangaChapterHistory>
 
-    fun getHistoryPerPeriod(startDate: Long, endDate: Long): Flow<List<MangaChapterHistory>>
-
     fun observeAllRecentsTypes(
         search: String,
         includeRead: Boolean,

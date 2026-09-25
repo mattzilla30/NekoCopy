@@ -25,9 +25,7 @@ import org.nekomanga.presentation.components.icons.CollapseAllIcon
 import org.nekomanga.presentation.components.icons.ExpandAllIcon
 import org.nekomanga.presentation.screens.library.filter.FilterBookmarked
 import org.nekomanga.presentation.screens.library.filter.FilterCompleted
-import org.nekomanga.presentation.screens.library.filter.FilterDownloaded
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-import org.nekomanga.presentation.screens.library.filter.FilterMissingChapters
 import org.nekomanga.presentation.screens.library.filter.FilterTracked
 import org.nekomanga.presentation.screens.library.filter.FilterUnavailable
 import org.nekomanga.presentation.screens.library.filter.FilterUnread
@@ -106,24 +104,16 @@ fun LibraryButtonBar(
                 FilterUnread.Read,
             )
 
-        val downloadToggleList = listOf(FilterDownloaded.Downloaded, FilterDownloaded.NotDownloaded)
         val completedToggleList = listOf(FilterCompleted.Completed, FilterCompleted.Ongoing)
         val mangaTypeToggleList =
             listOf(FilterMangaType.Manga, FilterMangaType.Manhwa, FilterMangaType.Manhua)
         val bookmarkToggleList = listOf(FilterBookmarked.Bookmarked, FilterBookmarked.NotBookmarked)
-        val missingToggleList =
-            listOf(FilterMissingChapters.MissingChapter, FilterMissingChapters.NoMissingChapters)
         val unavailableToggleList =
             listOf(FilterUnavailable.Unavailable, FilterUnavailable.NoUnavailable)
         val trackedToggleList = listOf(FilterTracked.Tracked, FilterTracked.NotTracked)
         ConnectedToggleButtons(
             libraryScreenState.libraryFilters.filterUnread,
             unreadToggleList,
-            libraryScreenActions.filterToggled,
-        )
-        ConnectedToggleButtons(
-            libraryScreenState.libraryFilters.filterDownloaded,
-            downloadToggleList,
             libraryScreenActions.filterToggled,
         )
         ConnectedToggleButtons(
@@ -139,11 +129,6 @@ fun LibraryButtonBar(
         ConnectedToggleButtons(
             libraryScreenState.libraryFilters.filterBookmarked,
             bookmarkToggleList,
-            libraryScreenActions.filterToggled,
-        )
-        ConnectedToggleButtons(
-            libraryScreenState.libraryFilters.filterMissingChapters,
-            missingToggleList,
             libraryScreenActions.filterToggled,
         )
         if (libraryScreenState.showUnavailableFilter) {

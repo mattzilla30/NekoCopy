@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Application Colors -->
-    <color name="iconColor">#2A2121</color>
     <color name="iconOutline">#E07B24</color>
-    <color name="material_red_500">#F44336</color>
-    <color name="colorPrimaryInactive">#C2424242</color>
     <color name="read_chapter">@color/material_on_background_disabled</color>
 
     <color name="navigation_menu">#CC95818D</color>

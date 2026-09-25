@@ -17,9 +17,6 @@ interface ArtworkDao {
     fun getArtworkForManga(mangaId: Long): List<ArtworkEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertArtwork(artwork: ArtworkEntity): Long
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertArtworks(artworks: List<ArtworkEntity>)
 
     @Query("DELETE FROM artwork WHERE manga_id = :mangaId")

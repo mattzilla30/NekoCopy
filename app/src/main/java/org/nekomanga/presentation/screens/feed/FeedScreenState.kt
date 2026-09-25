@@ -47,18 +47,7 @@ data class UpdatesScreenPagingState(
     val searchQuery: String = "",
 )
 
-@Immutable
-data class SummaryScreenPagingState(
-    val updatingUpdates: Boolean = true,
-    val updatesFeedMangaList: List<FeedManga> = listOf(),
-    val updatingContinueReading: Boolean = true,
-    val continueReadingList: List<FeedManga> = listOf(),
-    val updatingNewlyAdded: Boolean = true,
-    val newlyAddedFeedMangaList: List<FeedManga> = listOf(),
-)
-
 enum class FeedScreenType {
-    Summary,
     History,
     Updates,
 }
@@ -94,7 +83,6 @@ data class FeedScreenActions(
     val mangaClick: (Long) -> Unit,
     val chapterClick: (Long, Long) -> Unit,
     val chapterSwipe: (ChapterItem) -> Unit,
-    val switchViewType: (FeedScreenType) -> Unit,
     val toggleShowingDownloads: () -> Unit,
     val deleteHistoryClick: (FeedManga, SimpleChapter) -> Unit,
     val deleteAllHistoryClick: (FeedManga) -> Unit,

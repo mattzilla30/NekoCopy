@@ -10,9 +10,7 @@ import org.nekomanga.domain.manga.LibraryMangaItem
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.screens.library.filter.FilterBookmarked
 import org.nekomanga.presentation.screens.library.filter.FilterCompleted
-import org.nekomanga.presentation.screens.library.filter.FilterDownloaded
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-import org.nekomanga.presentation.screens.library.filter.FilterMissingChapters
 import org.nekomanga.presentation.screens.library.filter.FilterTracked
 import org.nekomanga.presentation.screens.library.filter.FilterUnavailable
 import org.nekomanga.presentation.screens.library.filter.FilterUnread
@@ -134,9 +132,7 @@ data class LibraryViewPreferences(
 data class LibraryFilters(
     val filterBookmarked: FilterBookmarked = FilterBookmarked.Inactive,
     val filterCompleted: FilterCompleted = FilterCompleted.Inactive,
-    val filterDownloaded: FilterDownloaded = FilterDownloaded.Inactive,
     val filterMangaType: FilterMangaType = FilterMangaType.Inactive,
-    val filterMissingChapters: FilterMissingChapters = FilterMissingChapters.Inactive,
     val filterTracked: FilterTracked = FilterTracked.Inactive,
     val filterUnavailable: FilterUnavailable = FilterUnavailable.Inactive,
     val filterUnread: FilterUnread = FilterUnread.Inactive,
@@ -144,9 +140,7 @@ data class LibraryFilters(
     fun hasActiveFilter(): Boolean {
         return filterBookmarked !is FilterBookmarked.Inactive ||
             filterCompleted !is FilterCompleted.Inactive ||
-            filterDownloaded !is FilterDownloaded.Inactive ||
             filterMangaType !is FilterMangaType.Inactive ||
-            filterMissingChapters !is FilterMissingChapters.Inactive ||
             filterTracked !is FilterTracked.Inactive ||
             filterUnavailable !is FilterUnavailable.Inactive ||
             filterUnread !is FilterUnread.Inactive

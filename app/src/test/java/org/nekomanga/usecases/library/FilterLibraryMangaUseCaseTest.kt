@@ -10,9 +10,7 @@ import org.nekomanga.domain.manga.LibraryMangaItem
 import org.nekomanga.presentation.screens.library.LibraryFilters
 import org.nekomanga.presentation.screens.library.filter.FilterBookmarked
 import org.nekomanga.presentation.screens.library.filter.FilterCompleted
-import org.nekomanga.presentation.screens.library.filter.FilterDownloaded
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-import org.nekomanga.presentation.screens.library.filter.FilterMissingChapters
 import org.nekomanga.presentation.screens.library.filter.FilterTracked
 import org.nekomanga.presentation.screens.library.filter.FilterUnavailable
 import org.nekomanga.presentation.screens.library.filter.FilterUnread
@@ -85,22 +83,6 @@ class FilterLibraryMangaUseCaseTest {
     }
 
     @Test
-    fun `when downloaded filter active and item has downloads, returns true`() {
-        val manga = mockMangaItem(downloadCount = 1)
-        val filters = LibraryFilters(filterDownloaded = FilterDownloaded.Downloaded)
-
-        assertTrue(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when downloaded filter active and item has no downloads, returns false`() {
-        val manga = mockMangaItem(downloadCount = 0)
-        val filters = LibraryFilters(filterDownloaded = FilterDownloaded.Downloaded)
-
-        assertFalse(useCase(manga, filters))
-    }
-
-    @Test
     fun `when tracked filter active and item is tracked, returns true`() {
         val manga = mockMangaItem(isTracked = true)
         val filters = LibraryFilters(filterTracked = FilterTracked.Tracked)
@@ -118,12 +100,12 @@ class FilterLibraryMangaUseCaseTest {
 
     @Test
     fun `when multiple filters active, fails fast on first mismatch`() {
-        val manga = mockMangaItem(unreadCount = 0, downloadCount = 1)
-        // Has downloads but no unread chapters
+        val manga = mockMangaItem(unreadCount = 0, bookmarkCount = 1)
+        // Has bookmarks but no unread chapters
         val filters =
             LibraryFilters(
                 filterUnread = FilterUnread.Unread,
-                filterDownloaded = FilterDownloaded.Downloaded,
+                filterBookmarked = FilterBookmarked.Bookmarked,
             )
 
         // Fails because unread matches() returns false
@@ -262,40 +244,6 @@ class FilterLibraryMangaUseCaseTest {
     fun `when no unavailable filter active and item has unavailable chapters, returns false`() {
         val manga = mockMangaItem(unavailableCount = 1)
         val filters = LibraryFilters(filterUnavailable = FilterUnavailable.NoUnavailable)
-
-        assertFalse(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when missing chapters filter active and item has missing chapters, returns true`() {
-        val manga = mockMangaItem(hasMissingChapters = true)
-        val filters = LibraryFilters(filterMissingChapters = FilterMissingChapters.MissingChapter)
-
-        assertTrue(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when missing chapters filter active and item has no missing chapters, returns false`() {
-        val manga = mockMangaItem(hasMissingChapters = false)
-        val filters = LibraryFilters(filterMissingChapters = FilterMissingChapters.MissingChapter)
-
-        assertFalse(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when no missing chapters filter active and item has no missing chapters, returns true`() {
-        val manga = mockMangaItem(hasMissingChapters = false)
-        val filters =
-            LibraryFilters(filterMissingChapters = FilterMissingChapters.NoMissingChapters)
-
-        assertTrue(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when no missing chapters filter active and item has missing chapters, returns false`() {
-        val manga = mockMangaItem(hasMissingChapters = true)
-        val filters =
-            LibraryFilters(filterMissingChapters = FilterMissingChapters.NoMissingChapters)
 
         assertFalse(useCase(manga, filters))
     }

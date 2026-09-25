@@ -257,13 +257,8 @@
     <!-- Feed -->
     <string name="recents">Recents</string>
     <string name="clear_recent_searches">Clear recent searches</string>
-    <string name="feed">Feed</string>
     <string name="updates">Updates</string>
-    <string name="newly_added">Unstarted library manga</string>
-    <string name="feed_continue_reading">Continue reading</string>
-    <string name="recently_updated_manga">Recently updated manga</string>
     <string name="history">History</string>
-    <string name="summary">Summary</string>
     <string name="entire_series">Entire series</string>
     <string name="search_history">Search history</string>
     <string name="search_updates">Search updates</string>
@@ -611,7 +606,7 @@
     <string name="monochrome">Monochrome</string>
     <string name="neon_nights">Neon Nights</string>
     <string name="tokyo_night">Tokyo Night</string>
-    <string name="last_used_library_recents">Last used (Library or Feed)</string>
+    <string name="last_used_library_recents">Last used (Library, Updates or History)</string>
     <string name="system_default">System default</string>
     <string name="date_format">Date format</string>
     <string name="open_links_in_browser">Open links in browser</string>
@@ -992,11 +987,7 @@
     <string name="cancelled">Cancelled</string>
     <string name="publication_complete">Publication Complete</string>
 
-    <!-- Library Filter -->
-    <string name="no_missing_chp">No missing chapters</string>
-    <string name="has_missing_chp">Missing chapters</string>
-
-    <!-- Library Sort -->
+<!-- Library Sort -->
     <string name="rating">Site rating</string>
 
     <!--Browse -->

@@ -32,7 +32,6 @@ import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.components.MangaCover
 import org.nekomanga.presentation.components.NekoColors
 import org.nekomanga.presentation.screens.feed.history.FeedHistoryPage
-import org.nekomanga.presentation.screens.feed.summary.FeedSummaryPage
 import org.nekomanga.presentation.screens.feed.updates.FeedUpdatesPage
 import org.nekomanga.presentation.theme.Shapes
 import org.nekomanga.presentation.theme.Size
@@ -41,7 +40,6 @@ import org.nekomanga.presentation.theme.Size
 fun FeedPage(
     modifier: Modifier,
     feedMangaList: List<FeedManga>,
-    summaryScreenPagingState: SummaryScreenPagingState,
     outlineCovers: Boolean,
     dynamicCovers: Boolean,
     outlineCards: Boolean,
@@ -57,22 +55,6 @@ fun FeedPage(
     contentPadding: PaddingValues = PaddingValues(),
 ) {
     when (feedScreenType) {
-        FeedScreenType.Summary -> {
-            FeedSummaryPage(
-                modifier = modifier,
-                contentPadding = contentPadding,
-                outlineCovers = outlineCovers,
-                dynamicCovers = dynamicCovers,
-                useVividColorHeaders = useVividColorHeaders,
-                feedScreenActions = feedScreenActions,
-                updatingUpdates = summaryScreenPagingState.updatingUpdates,
-                updatingNewlyAdded = summaryScreenPagingState.updatingNewlyAdded,
-                updatingContinueReading = summaryScreenPagingState.updatingContinueReading,
-                updatesFeedMangaList = summaryScreenPagingState.updatesFeedMangaList,
-                continueReadingFeedMangaList = summaryScreenPagingState.continueReadingList,
-                newlyAddedFeedMangaList = summaryScreenPagingState.newlyAddedFeedMangaList,
-            )
-        }
         FeedScreenType.History -> {
             FeedHistoryPage(
                 modifier = modifier,

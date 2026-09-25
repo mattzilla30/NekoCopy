@@ -12,7 +12,6 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.presentation.screens.feed.FeedHistoryGroup
-import org.nekomanga.presentation.screens.feed.FeedScreenType
 import org.nekomanga.presentation.theme.Themes
 import tachiyomi.core.preference.Preference
 import tachiyomi.core.preference.PreferenceStore
@@ -141,8 +140,6 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
         this.preferenceStore.getStringSet("download_new_categories_exclude")
 
     fun autoDownloadWhileReading() = this.preferenceStore.getInt("auto_download_while_reading", 0)
-
-    fun feedViewType() = this.preferenceStore.getEnum("feed_view_type", FeedScreenType.Updates)
 
     fun swipeRefreshFeedScreen() =
         this.preferenceStore.getBoolean("swipe_refresh_feed_screen_enabled", true)

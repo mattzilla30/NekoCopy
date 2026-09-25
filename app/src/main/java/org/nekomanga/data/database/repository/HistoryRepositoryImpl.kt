@@ -75,13 +75,6 @@ class HistoryRepositoryImpl(private val historyDao: HistoryDao) : HistoryReposit
         }
     }
 
-    override fun getHistoryPerPeriod(
-        startDate: Long,
-        endDate: Long,
-    ): Flow<List<MangaChapterHistory>> {
-        return historyDao.observeHistoryPerPeriod(startDate, endDate)
-    }
-
     override fun observeAllRecentsTypes(
         search: String,
         includeRead: Boolean,

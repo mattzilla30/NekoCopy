@@ -9,13 +9,8 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Downloading
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
@@ -35,8 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -47,10 +40,8 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.nekomanga.R
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.presentation.components.AppBar
-import org.nekomanga.presentation.components.ButtonGroup
 import org.nekomanga.presentation.components.scaffold.RootScaffold
 import org.nekomanga.presentation.screens.feed.DownloadScreenActions
 import org.nekomanga.presentation.screens.feed.FeedBottomSheet
@@ -59,17 +50,14 @@ import org.nekomanga.presentation.screens.feed.FeedScreenContent
 import org.nekomanga.presentation.screens.feed.FeedScreenDialogs
 import org.nekomanga.presentation.screens.feed.FeedScreenState
 import org.nekomanga.presentation.screens.feed.FeedScreenTopBar
-import org.nekomanga.presentation.screens.feed.FeedScreenType
 import org.nekomanga.presentation.screens.feed.FeedSettingActions
 import org.nekomanga.presentation.screens.feed.FeedViewModel
 import org.nekomanga.presentation.screens.feed.HistoryScreenPagingState
-import org.nekomanga.presentation.screens.feed.SummaryScreenPagingState
 import org.nekomanga.presentation.screens.feed.UpdatesScreenPagingState
 import org.nekomanga.presentation.theme.Size
 
 /**
- * FeedScreen displays the user's customized feeds, including reading history, recent updates, and
- * summaries of newly added or continue reading items.
+ * FeedScreen shows one feed tab: recent updates or reading history, picked by the view model.
  *
  * This screen-level Composable is responsive to [WindowSizeClass]. On expanded screens
  * (tablets/foldables), the layout limits the maximum width of the feed lists and grids to 800.dp
@@ -114,7 +102,6 @@ fun FeedScreen(
         feedScreenFlow = feedViewModel.feedScreenState,
         updateScreenFlow = feedViewModel.updatesScreenPagingState,
         historyScreenFlow = feedViewModel.historyScreenPagingState,
-        summaryScreenFlow = feedViewModel.summaryScreenPagingState,
         windowSizeClass = windowSizeClass,
         mainDropdown = mainDropdown,
         mainDropdownShowing = mainDropdownShowing,
@@ -138,7 +125,6 @@ fun FeedScreen(
                     context.startActivity(ReaderActivity.newIntent(context, mangaId, chapterId))
                 },
                 chapterSwipe = feedViewModel::toggleChapterRead,
-                switchViewType = feedViewModel::switchViewType,
                 deleteAllHistoryClick = feedViewModel::deleteAllHistory,
                 deleteHistoryClick = feedViewModel::deleteHistory,
                 search = feedViewModel::search,
@@ -183,7 +169,6 @@ private fun FeedWrapper(
     feedScreenFlow: StateFlow<FeedScreenState>,
     updateScreenFlow: StateFlow<UpdatesScreenPagingState>,
     historyScreenFlow: StateFlow<HistoryScreenPagingState>,
-    summaryScreenFlow: StateFlow<SummaryScreenPagingState>,
     windowSizeClass: WindowSizeClass,
     mainDropdown: AppBar.MainDropdown,
     mainDropdownShowing: Boolean,
@@ -195,7 +180,6 @@ private fun FeedWrapper(
     val feedScreenState by feedScreenFlow.collectAsState()
     val updatesPagingScreenState by updateScreenFlow.collectAsState()
     val historyPagingScreenState by historyScreenFlow.collectAsState()
-    val summaryScreenPagingState by summaryScreenFlow.collectAsState()
 
     val scope = rememberCoroutineScope()
     val sheetState =
@@ -308,7 +292,7 @@ private fun FeedWrapper(
                 )
 
             val recyclerPadding =
-                PaddingValues(top = innerPadding.calculateTopPadding(), bottom = Size.huge)
+                PaddingValues(top = innerPadding.calculateTopPadding(), bottom = Size.small)
 
             val isTablet = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
             Box(
@@ -321,84 +305,12 @@ private fun FeedWrapper(
                     downloadScreenVisible = downloadScreenVisible,
                     contentPadding = recyclerPadding,
                     feedScreenState = feedScreenState,
-                    summaryScreenPagingState = summaryScreenPagingState,
                     historyPagingScreenState = historyPagingScreenState,
                     updatesPagingScreenState = updatesPagingScreenState,
                     downloadScreenActions = downloadScreenActions,
                     feedScreenActions = feedScreenActions,
                     loadNextPage = loadNextPage,
                 )
-
-                if (!feedScreenState.firstLoad) {
-                    val buttonItems = remember {
-                        listOf(
-                            FeedScreenType.Summary,
-                            FeedScreenType.History,
-                            FeedScreenType.Updates,
-                        )
-                    }
-
-                    val downloadButton = "downloads"
-                    val items: List<Any> =
-                        if (feedScreenState.downloads.isNotEmpty()) {
-                            buttonItems + downloadButton
-                        } else {
-                            buttonItems
-                        }
-
-                    val selectedItem: Any =
-                        when (feedScreenState.showingDownloads) {
-                            true -> downloadButton
-                            false -> feedScreenType
-                        }
-
-                    ButtonGroup(
-                        modifier =
-                            Modifier.align(Alignment.BottomCenter).padding(horizontal = Size.tiny),
-                        items = items,
-                        selectedItem = selectedItem,
-                        onItemClick = { item ->
-                            scope.launch { sheetState.hide() }
-                            if (item is FeedScreenType) {
-                                if (feedScreenState.showingDownloads) {
-                                    feedScreenActions.toggleShowingDownloads()
-                                }
-                                if (feedScreenType != item) {
-                                    feedScreenActions.switchViewType(item)
-                                }
-                            } else {
-                                feedScreenActions.toggleShowingDownloads()
-                            }
-                        },
-                    ) { item ->
-                        when (item) {
-                            is FeedScreenType -> {
-                                val name =
-                                    when (item) {
-                                        FeedScreenType.History -> stringResource(R.string.history)
-
-                                        FeedScreenType.Updates -> stringResource(R.string.updates)
-
-                                        FeedScreenType.Summary -> stringResource(R.string.summary)
-                                    }
-                                Text(
-                                    text = name,
-                                    style =
-                                        MaterialTheme.typography.labelLarge.copy(
-                                            fontWeight = FontWeight.Medium
-                                        ),
-                                )
-                            }
-
-                            else -> {
-                                Icon(
-                                    imageVector = Icons.Default.Downloading,
-                                    contentDescription = stringResource(id = R.string.downloads),
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
 

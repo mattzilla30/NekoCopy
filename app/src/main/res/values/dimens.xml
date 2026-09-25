@@ -1,17 +1,9 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="rounded_radius">12dp</dimen>
 
     <!--Nav header-->
 
     <!-- stuff from material dimens lib -->
-    <dimen name="material_layout_keylines_screen_edge_margin">16dp</dimen>
-    <dimen name="material_component_lists_icon_left_padding">16dp</dimen>
-    <dimen name="material_component_dialogs_padding_around_content_area">24dp</dimen>
-    <dimen name="material_component_text_fields_floating_label_padding_between_label_and_input_text">
-        8dp
-    </dimen>
-    <dimen name="material_component_lists_single_line_with_avatar_height">56dp</dimen>
 
     <!-- Stats -->
 </resources>

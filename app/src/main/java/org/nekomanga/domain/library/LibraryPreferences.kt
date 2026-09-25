@@ -4,9 +4,7 @@ import org.nekomanga.presentation.screens.library.LibraryDisplayMode
 import org.nekomanga.presentation.screens.library.LibraryGroup
 import org.nekomanga.presentation.screens.library.filter.FilterBookmarked
 import org.nekomanga.presentation.screens.library.filter.FilterCompleted
-import org.nekomanga.presentation.screens.library.filter.FilterDownloaded
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-import org.nekomanga.presentation.screens.library.filter.FilterMissingChapters
 import org.nekomanga.presentation.screens.library.filter.FilterTracked
 import org.nekomanga.presentation.screens.library.filter.FilterUnavailable
 import org.nekomanga.presentation.screens.library.filter.FilterUnread
@@ -101,14 +99,6 @@ class LibraryPreferences(private val preferenceStore: PreferenceStore) {
 
     fun showDownloadBadge() = this.preferenceStore.getBoolean("display_download_badge")
 
-    fun filterDownloaded() =
-        this.preferenceStore.getObjectFromInt(
-            key = "pref_filter_downloaded_key",
-            defaultValue = FilterDownloaded.Inactive,
-            serializer = FilterDownloaded::toInt,
-            deserializer = FilterDownloaded::fromInt,
-        )
-
     fun filterUnread() =
         this.preferenceStore.getObjectFromInt(
             key = "pref_filter_unread_key",
@@ -155,14 +145,6 @@ class LibraryPreferences(private val preferenceStore: PreferenceStore) {
             defaultValue = FilterMangaType.Inactive,
             serializer = FilterMangaType::toInt,
             deserializer = FilterMangaType::fromInt,
-        )
-
-    fun filterMissingChapters() =
-        this.preferenceStore.getObjectFromInt(
-            "pref_filter_missing_chapters_key",
-            defaultValue = FilterMissingChapters.Inactive,
-            serializer = FilterMissingChapters::toInt,
-            deserializer = FilterMissingChapters::fromInt,
         )
 
     fun removeArticles() = this.preferenceStore.getBoolean("remove_articles")

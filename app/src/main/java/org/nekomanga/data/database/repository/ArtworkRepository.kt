@@ -10,9 +10,6 @@ interface ArtworkRepository {
      */
     fun observeArtworkByMangaId(mangaId: Long): Flow<List<ArtworkImpl>>
 
-    /** One-shot fetch of artwork for a given manga ID. */
-    suspend fun getArtworkByMangaId(mangaId: Long): List<ArtworkImpl>
-
     /** Inserts a list of artwork entries. Replaces existing entries on conflict. */
     suspend fun insertArtworks(artworks: List<ArtworkImpl>)
 

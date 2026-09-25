@@ -12,7 +12,9 @@ object Screens {
 
     @Serializable data class Library(val initialSearch: String = "") : Screen
 
-    @Serializable data object Feed : Screen
+    @Serializable data object Updates : Screen
+
+    @Serializable data object History : Screen
 
     @Serializable data class Loading(val showLoadingIndicator: Boolean) : Screen
 

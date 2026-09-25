@@ -50,7 +50,4 @@ interface CategoryDao {
     // Join table operations
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMangaCategory(join: MangaCategoryEntity)
-
-    @Query("DELETE FROM manga_categories WHERE manga_id = :mangaId")
-    suspend fun deleteMangaFromAllCategories(mangaId: Long)
 }

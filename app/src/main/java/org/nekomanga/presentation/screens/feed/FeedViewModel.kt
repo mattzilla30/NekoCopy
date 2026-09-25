@@ -37,7 +37,10 @@ import org.nekomanga.util.paging.DefaultPaginator
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class FeedViewModel() : ViewModel() {
+/**
+ * Drives one feed tab: [feedScreenType] picks Updates or History for the life of the view model.
+ */
+class FeedViewModel(private val feedScreenType: FeedScreenType) : ViewModel() {
     val preferences: PreferencesHelper = Injekt.get()
     val libraryPreferences: LibraryPreferences = Injekt.get()
     val securityPreferences: SecurityPreferences = Injekt.get()
@@ -47,7 +50,7 @@ class FeedViewModel() : ViewModel() {
     private val _feedScreenState =
         MutableStateFlow(
             FeedScreenState(
-                feedScreenType = preferences.feedViewType().get(),
+                feedScreenType = feedScreenType,
                 outlineCovers = libraryPreferences.outlineOnCovers().get(),
                 dynamicCovers = mangaDetailsPreferences.dynamicCovers().get(),
                 outlineCards = preferences.feedViewOutlineCards().get(),
@@ -65,8 +68,6 @@ class FeedViewModel() : ViewModel() {
 
     private val _updatesScreenPagingState = MutableStateFlow(UpdatesScreenPagingState())
 
-    private val _summaryScreenPagingState = MutableStateFlow(SummaryScreenPagingState())
-
     val feedScreenState: StateFlow<FeedScreenState> = _feedScreenState.asStateFlow()
 
     val updatesScreenPagingState: StateFlow<UpdatesScreenPagingState> =
@@ -74,9 +75,6 @@ class FeedViewModel() : ViewModel() {
 
     val historyScreenPagingState: StateFlow<HistoryScreenPagingState> =
         _historyScreenPagingState.asStateFlow()
-
-    val summaryScreenPagingState: StateFlow<SummaryScreenPagingState> =
-        _summaryScreenPagingState.asStateFlow()
 
     private var searchJob: Job? = null
 
@@ -158,9 +156,6 @@ class FeedViewModel() : ViewModel() {
     fun saveItems() {
         lastUpdatesFeedMangaList = _updatesScreenPagingState.value.updatesFeedMangaList
         lastHistoryFeedMangaList = _historyScreenPagingState.value.historyFeedMangaList
-        lastSummaryUpdatesFeedMangaList = _summaryScreenPagingState.value.updatesFeedMangaList
-        lastContinueReadingList = _summaryScreenPagingState.value.continueReadingList
-        lastSummaryNewlyAddedFeedMangaList = _summaryScreenPagingState.value.newlyAddedFeedMangaList
     }
 
     init {
@@ -229,36 +224,6 @@ class FeedViewModel() : ViewModel() {
             loadNextPage()
         }
 
-        preferences.feedViewType().changes().observeAndUpdate(viewModelScope) { type ->
-            when (type) {
-                FeedScreenType.Summary -> Unit
-                FeedScreenType.History -> {
-                    _historyScreenPagingState.update { state ->
-                        state.copy(
-                            offset = 0,
-                            searchHistoryFeedMangaList = listOf(),
-                            searchQuery = "",
-                        )
-                    }
-                    historyPaginator.reset()
-                }
-                FeedScreenType.Updates -> {
-                    _updatesScreenPagingState.update { state ->
-                        state.copy(
-                            offset = 0,
-                            searchUpdatesFeedMangaList = listOf(),
-                            searchQuery = "",
-                        )
-                    }
-                    updatesPaginator.reset()
-                    loadNextPage()
-                }
-            }
-
-            _feedScreenState.update { state -> state.copy(feedScreenType = type) }
-            loadNextPage()
-        }
-
         preferences.swipeRefreshFeedScreen().changes().observeAndUpdate(viewModelScope) {
             _feedScreenState.update { state -> state.copy(swipeRefreshEnabled = it) }
         }
@@ -280,16 +245,11 @@ class FeedViewModel() : ViewModel() {
 
     fun loadNextPage() {
         viewModelScope.launchIO {
-            when (_feedScreenState.value.feedScreenType) {
-                FeedScreenType.Summary -> loadSummaryPage()
+            when (feedScreenType) {
                 FeedScreenType.History -> historyPaginator.loadNextItems()
                 FeedScreenType.Updates -> updatesPaginator.loadNextItems()
             }
         }
-    }
-
-    fun switchViewType(feedScreenType: FeedScreenType) {
-        viewModelScope.launchIO { preferences.feedViewType().set(feedScreenType) }
     }
 
     fun toggleSwipeRefresh() {
@@ -363,7 +323,6 @@ class FeedViewModel() : ViewModel() {
             feedRepository.deleteAllHistory()
             historyPaginator.reset()
             historyPaginator.loadNextItems()
-            loadSummaryPage()
         }
     }
 
@@ -378,7 +337,6 @@ class FeedViewModel() : ViewModel() {
                             .toList()
                 )
             }
-            loadSummaryPage()
         }
     }
 
@@ -393,15 +351,6 @@ class FeedViewModel() : ViewModel() {
                 }
             val mutableFeedManga =
                 _historyScreenPagingState.value.historyFeedMangaList.toMutableList()
-
-            _summaryScreenPagingState.update { state ->
-                state.copy(
-                    continueReadingList =
-                        state.continueReadingList
-                            .filter { fm -> fm.mangaId != feedManga.mangaId }
-                            .toList()
-                )
-            }
 
             if (index >= 0) {
                 if (feedManga.chapters.size == 1) {
@@ -426,43 +375,6 @@ class FeedViewModel() : ViewModel() {
                     it.copy(historyFeedMangaList = mutableFeedManga.toList())
                 }
             }
-
-            loadSummaryPage()
-        }
-    }
-
-    fun loadSummaryPage() {
-        viewModelScope.launchIO {
-            feedRepository.getSummaryUpdatesList().onOk { list ->
-                _summaryScreenPagingState.update { state ->
-                    state.copy(
-                        updatesFeedMangaList = list.toList(),
-                        updatingUpdates = false,
-                    )
-                }
-            }
-        }
-
-        viewModelScope.launchIO {
-            feedRepository.getSummaryContinueReadingList().onOk { list ->
-                _summaryScreenPagingState.update { state ->
-                    state.copy(
-                        continueReadingList = list.toList(),
-                        updatingContinueReading = false,
-                    )
-                }
-            }
-        }
-
-        viewModelScope.launchIO {
-            feedRepository.getSummaryNewlyAddedList().onOk { list ->
-                _summaryScreenPagingState.update { state ->
-                    state.copy(
-                        newlyAddedFeedMangaList = list.toList(),
-                        updatingNewlyAdded = false,
-                    )
-                }
-            }
         }
     }
 
@@ -470,8 +382,7 @@ class FeedViewModel() : ViewModel() {
         searchJob?.cancel()
         searchJob = viewModelScope.launchIO {
             if (searchQuery.isNullOrBlank()) {
-                when (_feedScreenState.value.feedScreenType) {
-                    FeedScreenType.Summary -> Unit
+                when (feedScreenType) {
                     FeedScreenType.History ->
                         _historyScreenPagingState.update {
                             it.copy(
@@ -488,8 +399,7 @@ class FeedViewModel() : ViewModel() {
                         }
                 }
             } else {
-                when (_feedScreenState.value.feedScreenType) {
-                    FeedScreenType.Summary -> Unit
+                when (feedScreenType) {
                     FeedScreenType.History -> {
                         feedRepository
                             .getHistoryPage(
@@ -768,8 +678,7 @@ class FeedViewModel() : ViewModel() {
                         }
                     }
                 }
-                when (feedScreenState.value.feedScreenType) {
-                    FeedScreenType.Summary -> loadSummaryPage()
+                when (feedScreenType) {
                     FeedScreenType.History -> refreshHistoryFeed()
                     FeedScreenType.Updates -> refreshUpdatesFeed()
                 }
@@ -850,43 +759,6 @@ class FeedViewModel() : ViewModel() {
                 }
             }
         }
-        viewModelScope.launchIO {
-            val (updatesFeedUpdated, updatesFeedMangaList) =
-                updateChapterReadStatus(
-                    chapterItem,
-                    _summaryScreenPagingState.value.updatesFeedMangaList,
-                )
-            if (updatesFeedUpdated) {
-                _summaryScreenPagingState.update {
-                    it.copy(updatesFeedMangaList = updatesFeedMangaList.toList())
-                }
-            }
-            val (newlyAddedFeedUpdated, newlyAddedFeedMangaList) =
-                updateChapterReadStatus(
-                    chapterItem,
-                    _summaryScreenPagingState.value.newlyAddedFeedMangaList,
-                )
-            if (newlyAddedFeedUpdated) {
-                _summaryScreenPagingState.update {
-                    it.copy(newlyAddedFeedMangaList = newlyAddedFeedMangaList.toList())
-                }
-            }
-
-            val (continueReadingFeedUpdated, continueReadingList) =
-                updateChapterReadStatus(
-                    chapterItem,
-                    _summaryScreenPagingState.value.continueReadingList,
-                )
-            if (continueReadingFeedUpdated) {
-                _summaryScreenPagingState.update {
-                    it.copy(continueReadingList = continueReadingList.toList())
-                }
-            }
-
-            if (updatesFeedUpdated || newlyAddedFeedUpdated || continueReadingFeedUpdated) {
-                loadSummaryPage()
-            }
-        }
     }
 
     private fun updateDownloadOnFeed(chapterId: Long, mangaId: Long, download: Download?) {
@@ -946,36 +818,6 @@ class FeedViewModel() : ViewModel() {
             if (updatesFeedUpdated) {
                 _updatesScreenPagingState.update {
                     it.copy(updatesFeedMangaList = updatesFeedMangaList.toList())
-                }
-            }
-        }
-
-        viewModelScope.launchIO {
-            val (summaryUpdatesFeedUpdated, summaryUpdatesFeedMangaList) =
-                updateChapterDownloadForManga(
-                    chapterId,
-                    mangaId,
-                    download,
-                    _summaryScreenPagingState.value.updatesFeedMangaList,
-                )
-            if (summaryUpdatesFeedUpdated) {
-                _summaryScreenPagingState.update {
-                    it.copy(updatesFeedMangaList = summaryUpdatesFeedMangaList.toList())
-                }
-            }
-        }
-
-        viewModelScope.launchIO {
-            val (newlyAddedFeedUpdated, newlyAddedFeedMangaList) =
-                updateChapterDownloadForManga(
-                    chapterId,
-                    mangaId,
-                    download,
-                    _summaryScreenPagingState.value.newlyAddedFeedMangaList,
-                )
-            if (newlyAddedFeedUpdated) {
-                _summaryScreenPagingState.update {
-                    it.copy(newlyAddedFeedMangaList = newlyAddedFeedMangaList.toList())
                 }
             }
         }
@@ -1073,22 +915,9 @@ class FeedViewModel() : ViewModel() {
             _historyScreenPagingState.update {
                 it.copy(historyFeedMangaList = lastHistoryFeedMangaList ?: it.historyFeedMangaList)
             }
-            _summaryScreenPagingState.update {
-                it.copy(
-                    updatesFeedMangaList =
-                        lastSummaryUpdatesFeedMangaList ?: it.updatesFeedMangaList,
-                    continueReadingList = lastContinueReadingList ?: it.continueReadingList,
-                    newlyAddedFeedMangaList =
-                        lastSummaryNewlyAddedFeedMangaList ?: it.newlyAddedFeedMangaList,
-                )
-            }
             lastUpdatesFeedMangaList = null
             lastHistoryFeedMangaList = null
-            lastSummaryUpdatesFeedMangaList = null
-            lastContinueReadingList = null
-            lastSummaryNewlyAddedFeedMangaList = null
         }
-        viewModelScope.launchIO { loadSummaryPage() }
         viewModelScope.launchIO { refreshUpdatesFeed() }
         viewModelScope.launchIO { refreshHistoryFeed() }
     }
@@ -1097,16 +926,10 @@ class FeedViewModel() : ViewModel() {
 
         private var lastUpdatesFeedMangaList: List<FeedManga>? = null
         private var lastHistoryFeedMangaList: List<FeedManga>? = null
-        private var lastSummaryUpdatesFeedMangaList: List<FeedManga>? = null
-        private var lastContinueReadingList: List<FeedManga>? = null
-        private var lastSummaryNewlyAddedFeedMangaList: List<FeedManga>? = null
 
         fun onLowMemory() {
             lastUpdatesFeedMangaList = null
             lastHistoryFeedMangaList = null
-            lastSummaryUpdatesFeedMangaList = null
-            lastContinueReadingList = null
-            lastSummaryNewlyAddedFeedMangaList = null
         }
 
         const val HISTORY_ENDLESS_LIMIT = 15

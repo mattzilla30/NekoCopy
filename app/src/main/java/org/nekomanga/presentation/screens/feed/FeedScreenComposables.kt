@@ -54,7 +54,6 @@ fun FeedScreenContent(
     downloadScreenVisible: Boolean,
     contentPadding: PaddingValues,
     feedScreenState: FeedScreenState,
-    summaryScreenPagingState: SummaryScreenPagingState,
     historyPagingScreenState: HistoryScreenPagingState,
     updatesPagingScreenState: UpdatesScreenPagingState,
     downloadScreenActions: DownloadScreenActions,
@@ -82,14 +81,6 @@ fun FeedScreenContent(
                 updatesPagingScreenState.updatesFeedMangaList,
             ) {
                 when (feedScreenState.feedScreenType) {
-                    FeedScreenType.Summary -> {
-                        if (historyPagingScreenState.searchHistoryFeedMangaList.isNotEmpty()) {
-                            historyPagingScreenState.searchHistoryFeedMangaList to false
-                        } else {
-                            historyPagingScreenState.historyFeedMangaList to
-                                historyPagingScreenState.hasMoreResults
-                        }
-                    }
                     FeedScreenType.History -> {
                         if (historyPagingScreenState.searchHistoryFeedMangaList.isNotEmpty()) {
                             historyPagingScreenState.searchHistoryFeedMangaList to false
@@ -125,7 +116,6 @@ fun FeedScreenContent(
                 FeedPage(
                     contentPadding = contentPadding,
                     modifier = Modifier.fillMaxSize(),
-                    summaryScreenPagingState = summaryScreenPagingState,
                     feedMangaList = feedManga,
                     hasMoreResults = hasMoreResults,
                     loadingResults =
