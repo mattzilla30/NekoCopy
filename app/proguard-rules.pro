@@ -10,6 +10,17 @@
 -keep,allowoptimization class * extends uy.kohesive.injekt.api.FullTypeReference
 -keep,allowoptimization class * extends uy.kohesive.injekt.api.TypeReference
 
+##---------------Retrofit ----------
+# Retrofit reads a @QueryMap's key and value types from the class's generic superclass. R8 full
+# mode strips generic signatures from classes no rule keeps, which leaves HashMap<K, V>.
+-keep,allowobfuscation,allowshrinking class org.nekomanga.core.network.ProxyRetrofitQueryMap
+
+# Keep generic signatures on all app classes, as R8's compatibility mode would, so other reflection
+# on generic types keeps working. Unused classes are still removed and the rest still optimized.
+-keep,allowobfuscation,allowshrinking,allowoptimization class org.nekomanga.**
+-keep,allowobfuscation,allowshrinking,allowoptimization class eu.kanade.**
+-keep,allowobfuscation,allowshrinking,allowoptimization class tachiyomi.**
+
 ##---------------androidx.window ----------
 -dontwarn androidx.window.extensions.**
 -dontwarn androidx.window.sidecar.**
