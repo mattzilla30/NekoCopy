@@ -40,22 +40,17 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
-import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
-import eu.kanade.tachiyomi.data.updater.AppUpdateResult
-import eu.kanade.tachiyomi.data.updater.LATEST_COMMIT_URL
-import eu.kanade.tachiyomi.data.updater.RELEASE_URL
-import eu.kanade.tachiyomi.data.updater.REPO_URL
-import eu.kanade.tachiyomi.data.updater.Release
 import eu.kanade.tachiyomi.ui.main.ObserveAsEvents
 import eu.kanade.tachiyomi.util.CrashLogUtil
-import eu.kanade.tachiyomi.util.system.isOnline
+import eu.kanade.tachiyomi.util.LATEST_COMMIT_URL
+import eu.kanade.tachiyomi.util.RELEASE_URL
+import eu.kanade.tachiyomi.util.REPO_URL
 import kotlinx.coroutines.launch
 import org.nekomanga.BuildConfig
 import org.nekomanga.R
 import org.nekomanga.constants.Constants.DISCORD_URL
 import org.nekomanga.constants.Constants.PRIVACY_POLICY_URL
 import org.nekomanga.presentation.components.ToolTipButton
-import org.nekomanga.presentation.components.dialog.AppUpdateDialog
 import org.nekomanga.presentation.components.icons.DiscordIcon
 import org.nekomanga.presentation.components.icons.GithubIcon
 import org.nekomanga.presentation.components.listcard.ExpressiveListCard
@@ -100,8 +95,6 @@ fun AboutScreen(
 
     AboutWrapper(
         aboutScreenState = screenState,
-        notOnlineSnackbar = aboutViewModel::notOnlineSnackbar,
-        checkForUpdate = aboutViewModel::checkForUpdate,
         windowSizeClass = windowSizeClass,
         onVersionClicked = { aboutViewModel.onVersionClicked() },
         onVersionLongClicked = { context ->
@@ -111,18 +104,8 @@ fun AboutScreen(
             val appInfo = context.getString(R.string.app_info)
             clipboard.setPrimaryClip(ClipData.newPlainText(appInfo, deviceInfo))
         },
-        onDownloadClicked = { release ->
-            aboutViewModel.hideUpdateDialog()
-            AppDownloadInstallJob.start(
-                context,
-                release.downloadLink,
-                true,
-                version = release.version,
-            )
-        },
         onClickLicenses = { onNavigateTo(Screens.License) },
         onBackPressed = onBackPressed,
-        dismissDialog = aboutViewModel::hideUpdateDialog,
         snackbarHost = { NekoSnackbarHost(snackbarHostState = snackbarHostState) },
     )
 }
@@ -131,14 +114,10 @@ fun AboutScreen(
 private fun AboutWrapper(
     aboutScreenState: AboutScreenState,
     windowSizeClass: WindowSizeClass,
-    notOnlineSnackbar: () -> Unit,
-    checkForUpdate: () -> Unit,
     onVersionClicked: () -> Unit,
     onVersionLongClicked: (Context) -> Unit,
-    onDownloadClicked: (Release) -> Unit,
     onClickLicenses: () -> Unit,
     onBackPressed: () -> Unit,
-    dismissDialog: () -> Unit,
     snackbarHost: @Composable () -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -157,17 +136,6 @@ private fun AboutWrapper(
             )
         },
     ) { contentPadding ->
-        if (
-            aboutScreenState.shouldShowUpdateDialog &&
-                aboutScreenState.updateResult is AppUpdateResult.NewUpdate
-        ) {
-            AppUpdateDialog(
-                release = aboutScreenState.updateResult.release,
-                onDismissRequest = dismissDialog,
-                onConfirm = onDownloadClicked,
-            )
-        }
-
         val isTablet = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
 
         if (isTablet) {
@@ -243,21 +211,6 @@ private fun AboutWrapper(
                             )
                         }
                     }
-
-                    item {
-                        ExpressiveListCard(listCardType = ListCardType.Center) {
-                            TextPreferenceWidget(
-                                title = stringResource(R.string.check_for_updates),
-                                onPreferenceClick = {
-                                    if (!context.isOnline()) {
-                                        notOnlineSnackbar()
-                                    } else {
-                                        checkForUpdate()
-                                    }
-                                },
-                            )
-                        }
-                    }
                     item {
                         ExpressiveListCard(listCardType = ListCardType.Center) {
                             TextPreferenceWidget(
@@ -318,21 +271,6 @@ private fun AboutWrapper(
                                 },
                             onPreferenceClick = { onVersionClicked() },
                             onPreferenceLongClick = { onVersionLongClicked(context) },
-                        )
-                    }
-                }
-
-                item {
-                    ExpressiveListCard(listCardType = ListCardType.Center) {
-                        TextPreferenceWidget(
-                            title = stringResource(R.string.check_for_updates),
-                            onPreferenceClick = {
-                                if (!context.isOnline()) {
-                                    notOnlineSnackbar()
-                                } else {
-                                    checkForUpdate()
-                                }
-                            },
                         )
                     }
                 }

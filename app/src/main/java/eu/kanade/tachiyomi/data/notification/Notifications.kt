@@ -29,10 +29,8 @@ object Notifications {
         }
 
         const val Authentication = "authentication_channel"
-        const val Installing = "installing_channel"
         const val Status = "status_channel"
         const val Tracking = "tracking_channel"
-        const val Updated = "updated_channel"
     }
 
     object Id {
@@ -62,20 +60,11 @@ object Notifications {
             const val Complete = -2002
             const val Error = -2003
         }
-
-        object Updated {
-            const val Installed = -6
-        }
     }
 
     /** Common notification channel and ids used anywhere. */
     const val CHANNEL_COMMON = "common_channel"
-    const val ID_UPDATER = 1
     const val ID_DOWNLOAD_IMAGE = 2
-    const val ID_INSTALL = 3
-    const val CHANNEL_UPDATED = "updated_channel"
-    const val ID_INSTALLED = -6
-    private const val GROUP_APP_UPDATES = "org.nekomanga.APP_UPDATES"
 
     /** Notification channel and ids used by the library updater. */
     const val CHANNEL_NEW_CHAPTERS = "new_chapters_channel"
@@ -101,7 +90,8 @@ object Notifications {
     const val CHANNEL_INCOGNITO_MODE = "incognito_mode_channel"
     const val ID_INCOGNITO_MODE = -701
 
-    private val deprecatedChannels = listOf("library_channel")
+    private val deprecatedChannels =
+        listOf("library_channel", "installing_channel", "updated_channel")
 
     /**
      * Creates the notification channels introduced in Android Oreo.
@@ -122,10 +112,6 @@ object Notifications {
                 NotificationChannelGroup(
                     Group.Download,
                     context.getString(R.string.group_downloader),
-                ),
-                NotificationChannelGroup(
-                    GROUP_APP_UPDATES,
-                    context.getString(R.string.app_updates),
                 ),
             )
             .forEach(context.notificationManager::createNotificationChannelGroup)
@@ -208,12 +194,6 @@ object Notifications {
                         setSound(null, null)
                     },
                 NotificationChannel(
-                        Channel.Updated,
-                        context.getString(R.string.update_completed),
-                        NotificationManager.IMPORTANCE_DEFAULT,
-                    )
-                    .apply { setShowBadge(false) },
-                NotificationChannel(
                         CHANNEL_BACKUP_RESTORE_ERROR,
                         context.getString(R.string.restore_error),
                         NotificationManager.IMPORTANCE_HIGH,
@@ -253,17 +233,6 @@ object Notifications {
                     )
                     .apply { setShowBadge(false) },
                 NotificationChannel(
-                        Channel.Installing,
-                        context.getString(R.string.install),
-                        NotificationManager.IMPORTANCE_HIGH,
-                    )
-                    .apply {
-                        setShowBadge(false)
-                        setSound(null, null)
-                        enableVibration(false)
-                        group = GROUP_APP_UPDATES
-                    },
-                NotificationChannel(
                     CHANNEL_CRASH_LOGS,
                     context.getString(R.string.channel_crash_logs),
                     NotificationManager.IMPORTANCE_HIGH,
@@ -275,6 +244,9 @@ object Notifications {
                 ),
             )
         context.notificationManager.createNotificationChannels(channels)
+
+        deprecatedChannels.forEach(context.notificationManager::deleteNotificationChannel)
+        context.notificationManager.deleteNotificationChannelGroup("org.nekomanga.APP_UPDATES")
     }
 
     fun isNotificationChannelEnabled(context: Context, channelId: String?): Boolean {

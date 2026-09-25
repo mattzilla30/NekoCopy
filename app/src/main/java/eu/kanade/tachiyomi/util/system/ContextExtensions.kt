@@ -325,14 +325,6 @@ fun Context.isOnline(): Boolean {
     )
 }
 
-fun Context.launchRequestPackageInstallsPermission() {
-    val intent =
-        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-            data = Uri.parse("package:$packageName")
-        }
-    startActivity(intent)
-}
-
 fun Context.createFileInCacheDir(name: String): File {
     val file = File(externalCacheDir, name)
     if (file.exists()) {

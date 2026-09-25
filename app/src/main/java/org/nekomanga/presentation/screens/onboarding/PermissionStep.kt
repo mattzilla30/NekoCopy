@@ -35,13 +35,10 @@ import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import eu.kanade.tachiyomi.util.system.launchRequestPackageInstallsPermission
 import org.nekomanga.R
 import org.nekomanga.presentation.theme.Size
 
 internal class PermissionStep : OnboardingStep {
-
-    private var installGranted by mutableStateOf(false)
 
     override val isComplete: Boolean = true
 
@@ -49,8 +46,6 @@ internal class PermissionStep : OnboardingStep {
     override fun Content() {
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
-
-        var installGranted by mutableStateOf(false)
 
         var notificationGranted by remember {
             mutableStateOf(
@@ -74,7 +69,6 @@ internal class PermissionStep : OnboardingStep {
         DisposableEffect(lifecycleOwner.lifecycle) {
             val observer = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_RESUME) {
-                    installGranted = context.packageManager.canRequestPackageInstalls()
                     batteryGranted =
                         context
                             .getSystemService<PowerManager>()!!
@@ -87,13 +81,6 @@ internal class PermissionStep : OnboardingStep {
         }
 
         Column(modifier = Modifier.padding(vertical = Size.medium)) {
-            PermissionItem(
-                title = stringResource(R.string.onboarding_permission_install_apps),
-                subtitle = stringResource(R.string.onboarding_permission_install_apps_description),
-                granted = installGranted,
-                onButtonClick = { context.launchRequestPackageInstallsPermission() },
-            )
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 val permissionRequester =
                     rememberLauncherForActivityResult(

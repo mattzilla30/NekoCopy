@@ -40,12 +40,11 @@ import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
-import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
-import eu.kanade.tachiyomi.data.updater.RELEASE_URL
 import eu.kanade.tachiyomi.ui.base.activity.BaseMainActivity
 import eu.kanade.tachiyomi.ui.main.states.SideNavMode
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
+import eu.kanade.tachiyomi.util.RELEASE_URL
 import eu.kanade.tachiyomi.util.chapter.ChapterItemSort
 import eu.kanade.tachiyomi.util.chapter.isAvailable
 import eu.kanade.tachiyomi.util.system.launchIO
@@ -60,7 +59,6 @@ import org.nekomanga.data.database.repository.MangaRepository
 import org.nekomanga.domain.chapter.toSimpleChapter
 import org.nekomanga.domain.storage.StoragePreferences
 import org.nekomanga.logging.TimberKt
-import org.nekomanga.presentation.components.dialog.AppUpdateDialog
 import org.nekomanga.presentation.components.dialog.WhatsNewDialog
 import org.nekomanga.presentation.screens.MainScreen
 import org.nekomanga.presentation.screens.Screens
@@ -272,21 +270,6 @@ class MainActivity : BaseMainActivity() {
                 navigationRail = navigationRail,
                 bottomBar = bottomBar,
             )
-
-            if (mainScreenState.appUpdateResult != null) {
-                AppUpdateDialog(
-                    release = mainScreenState.appUpdateResult!!.release,
-                    onDismissRequest = { viewModel.consumeAppUpdateResult() },
-                    onConfirm = { release ->
-                        AppDownloadInstallJob.start(
-                            context,
-                            release.downloadLink,
-                            true,
-                            version = release.version,
-                        )
-                    },
-                )
-            }
         }
     }
 
@@ -313,14 +296,6 @@ class MainActivity : BaseMainActivity() {
             )
         }
         when (intent.action) {
-            DeepLinks.Actions.UpdateNotes -> {
-                val extras = intent.extras ?: return
-                val downloadUrl = extras.getString(DeepLinks.Extras.AppUpdateUrl) ?: return
-                val notes = extras.getString(DeepLinks.Extras.AppUpdateNotes) ?: return
-                val releaseUrl = extras.getString(DeepLinks.Extras.AppUpdateReleaseUrl) ?: return
-                val version = extras.getString(DeepLinks.Extras.AppUpdateVersion) ?: ""
-                viewModel.addAppUpdateResult(downloadUrl, notes, releaseUrl, version)
-            }
             Intent.ACTION_SEARCH,
             Intent.ACTION_SEND,
             "com.google.android.gms.actions.SEARCH_ACTION" -> {

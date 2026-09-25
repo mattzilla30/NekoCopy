@@ -56,7 +56,6 @@ internal class GeneralSettingsScreen(
                 onClick = manageNotificationsClicked,
             ),
             appShortcutsGroup(),
-            autoUpdatesGroup(),
         )
     }
 
@@ -80,26 +79,6 @@ internal class GeneralSettingsScreen(
         )
     }
 
-    @Composable
-    fun autoUpdatesGroup(): Preference.PreferenceGroup {
-        return Preference.PreferenceGroup(
-            title = stringResource(R.string.auto_updates),
-            preferenceItems =
-                listOf(
-                    Preference.PreferenceItem.ListPreference(
-                        pref = preferencesHelper.appShouldAutoUpdate(),
-                        title = stringResource(R.string.auto_update_app),
-                        entries =
-                            mapOf(
-                                0 to stringResource(R.string.over_any_network),
-                                1 to stringResource(R.string.over_wifi_only),
-                                2 to stringResource(R.string.dont_auto_update),
-                            ),
-                    )
-                ),
-        )
-    }
-
     companion object : SearchTermProvider {
         @Composable
         override fun getSearchTerms(): List<SearchTerm> {
@@ -117,10 +96,6 @@ internal class GeneralSettingsScreen(
                     title = stringResource(R.string.series_opens_new_chapters),
                     subtitle = stringResource(R.string.no_new_chapters_open_details),
                     group = stringResource(R.string.app_shortcuts),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.auto_update_app),
-                    group = stringResource(R.string.auto_updates),
                 ),
             )
         }

@@ -21,7 +21,6 @@ import eu.kanade.tachiyomi.data.download.DownloadJob
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
 import eu.kanade.tachiyomi.jobs.follows.StatusSyncJob
 import eu.kanade.tachiyomi.jobs.tracking.TrackingSyncJob
 import eu.kanade.tachiyomi.source.model.isMergedChapter
@@ -96,15 +95,7 @@ class NotificationReceiver : BroadcastReceiver() {
             ACTION_CANCEL_LIBRARY_UPDATE -> cancelLibraryUpdate(context)
             ACTION_CANCEL_TRACKING_SYNC -> cancelTrackingSync(context)
             ACTION_CANCEL_FOLLOW_SYNC -> cancelFollowSync(context)
-            ACTION_CANCEL_UPDATE_DOWNLOAD -> cancelDownloadUpdate(context)
             ACTION_CANCEL_RESTORE -> cancelRestoreUpdate(context)
-            ACTION_START_APP_UPDATE -> {
-                val url = intent.getStringExtra(AppDownloadInstallJob.EXTRA_DOWNLOAD_URL) ?: return
-                val version = intent.getStringExtra(AppDownloadInstallJob.EXTRA_VERSION) ?: return
-                val notifyOnInstall =
-                    intent.getBooleanExtra(AppDownloadInstallJob.EXTRA_NOTIFY_ON_INSTALL, false)
-                AppDownloadInstallJob.start(context, url, notifyOnInstall, version = version)
-            }
             // Share backup file
             ACTION_SHARE_BACKUP -> {
                 val uri = intent.getParcelableExtraCompat<Uri>(EXTRA_URI)
@@ -356,11 +347,6 @@ class NotificationReceiver : BroadcastReceiver() {
         BackupRestoreJob.stop(context)
     }
 
-    private fun cancelDownloadUpdate(context: Context) {
-        AppDownloadInstallJob.stop(context)
-        dismissNotification(context, Notifications.ID_UPDATER)
-    }
-
     /**
      * Method called when user wants to download chapters
      *
@@ -399,10 +385,6 @@ class NotificationReceiver : BroadcastReceiver() {
 
         // Called to cancel follow sync update.
         private const val ACTION_CANCEL_FOLLOW_SYNC = "$ID.$NAME.CANCEL_FOLLOW_SYNC"
-
-        private const val ACTION_CANCEL_UPDATE_DOWNLOAD = "$ID.$NAME.CANCEL_UPDATE_DOWNLOAD"
-
-        private const val ACTION_START_APP_UPDATE = "$ID.$NAME.START_APP_UPDATE"
 
         // Called to mark as read
         private const val ACTION_MARK_AS_READ = "$ID.$NAME.MARK_AS_READ"
@@ -651,37 +633,6 @@ class NotificationReceiver : BroadcastReceiver() {
         }
 
         /**
-         * Returns [PendingIntent] that opens release notes for the next update.
-         *
-         * @param context context of application
-         * @param notes notes of the release
-         * @param downloadLink download link to the apk
-         */
-        internal fun openUpdatePendingActivity(
-            context: Context,
-            notes: String,
-            downloadLink: String,
-            releaseLink: String,
-            version: String = "",
-        ): PendingIntent {
-            val newIntent =
-                Intent(context, MainActivity::class.java)
-                    .setAction(DeepLinks.Actions.UpdateNotes)
-                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                    .putExtra(DeepLinks.Extras.AppUpdateNotes, notes)
-                    .putExtra(DeepLinks.Extras.AppUpdateUrl, downloadLink)
-                    .putExtra(DeepLinks.Extras.AppUpdateReleaseUrl, releaseLink)
-                    .putExtra(DeepLinks.Extras.AppUpdateVersion, version)
-
-            return PendingIntent.getActivity(
-                context,
-                downloadLink.hashCode(),
-                newIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-        }
-
-        /**
          * Returns [PendingIntent] that opens the manga details controller.
          *
          * @param context context of application
@@ -855,27 +806,6 @@ class NotificationReceiver : BroadcastReceiver() {
             )
         }
 
-        internal fun startAppUpdatePendingJob(
-            context: Context,
-            url: String,
-            version: String,
-            notifyOnInstall: Boolean = false,
-        ): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    action = ACTION_START_APP_UPDATE
-                    putExtra(AppDownloadInstallJob.EXTRA_DOWNLOAD_URL, url)
-                    putExtra(AppDownloadInstallJob.EXTRA_NOTIFY_ON_INSTALL, notifyOnInstall)
-                    putExtra(AppDownloadInstallJob.EXTRA_VERSION, version)
-                }
-            return PendingIntent.getBroadcast(
-                context,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-        }
-
         /**
          * Returns [PendingIntent] that starts a share activity for a backup file.
          *
@@ -894,25 +824,6 @@ class NotificationReceiver : BroadcastReceiver() {
                     action = ACTION_SHARE_BACKUP
                     putExtra(EXTRA_URI, uri)
                     putExtra(EXTRA_NOTIFICATION_ID, notificationId)
-                }
-            return PendingIntent.getBroadcast(
-                context,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-        }
-
-        /**
-         * Returns [PendingIntent] that cancels the download for a Tachiyomi update
-         *
-         * @param context context of application
-         * @return [PendingIntent]
-         */
-        internal fun cancelUpdateDownloadPendingBroadcast(context: Context): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    action = ACTION_CANCEL_UPDATE_DOWNLOAD
                 }
             return PendingIntent.getBroadcast(
                 context,

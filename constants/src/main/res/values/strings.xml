@@ -145,16 +145,10 @@
     <string name="jump_to_category">Jump to category</string>
 
     <!-- Updates -->
-    <string name="update">Update</string>
     <string name="what_should_update">What should update?</string>
     <string name="updating_">Updating %1$s</string>
     <string name="update_available">Update available</string>
-    <string name="new_version_available">New version available!</string>
-    <string name="no_new_updates_available">No new updates available</string>
     <string name="searching_for_updates">Searching for updates…</string>
-    <string name="release_page">Release page</string>
-    <string name="could_not_install_update">Could not install update</string>
-    <string name="update_completed">Update completed</string>
 
     <!-- Main Screens -->
 
@@ -178,8 +172,6 @@
     <string name="onboarding_guides_restore_backup">After onboarding, restore your backup in</string>
     <string name="onboarding_guides_restore_backup_setting_location">Settings -> Storage and Data</string>
 
-    <string name="onboarding_permission_install_apps">Install apps permission</string>
-    <string name="onboarding_permission_install_apps_description">To install the app on updates.</string>
     <string name="onboarding_permission_notifications">Notification permission</string>
     <string name="onboarding_permission_notifications_description">Get notified for library updates and more.</string>
     <string name="onboarding_permission_ignore_battery_opts">Background battery usage</string>
@@ -884,8 +876,6 @@
     <string name="open_links_in_browser">Open links in browser</string>
     <string name="open_links_in_browser_summary">Use the device browser instead of the in-app WebView</string>
     <string name="manage_notifications">Manage notifications</string>
-    <string name="check_for_updates">Check for updates</string>
-    <string name="app_updates">App updates</string>
     <string name="updated_to_">Updated to v%1$s</string>
     <string name="secure_screen">Secure screen</string>
     <string name="secure_screen_summary">Secure screen hides app contents when switching apps and block screenshots</string>
@@ -912,11 +902,6 @@
     <string name="back_to_start">Back to start</string>
     <string name="pref_manage_notifications">Manage notifications</string>
     <string name="pressing_back_to_start">Pressing back to starting screen</string>
-    <string name="auto_updates">Auto-updates</string>
-    <string name="auto_update_app">Auto-update app</string>
-    <string name="over_wifi_only">Over Wi-Fi only</string>
-    <string name="over_any_network">Over any network</string>
-    <string name="dont_auto_update">Don\'t auto-update</string>
 
     <string name="app_shortcuts">App shortcuts</string>
     <string name="show_recent_sources">Show recently used sources</string>
@@ -1057,7 +1042,6 @@
     <string name="developer_mode_disabled">Developer mode disabled</string>
     <string name="version">Version</string>
     <string name="build_time">Build time</string>
-    <string name="checking_for_updates">Checking for updates</string>
     <string name="build_information">Build information</string>
     <string name="whats_new">What\'s new</string>
     <string name="whats_new_this_release">What\'s new in this release</string>
@@ -1108,7 +1092,6 @@
     <string name="download_title">Downloads</string>
     <string name="download_completed">All Downloads complete</string>
     <string name="nothing_is_downloading">Nothing is currently downloading</string>
-    <string name="download_complete">Download complete</string>
     <string name="download_error">Download error</string>
     <string name="manage_whats_downloading">Manage what\'s downloading</string>
     <string name="visit_recents_for_download_queue">Visit the recents tab to access the download
@@ -1286,10 +1269,7 @@
     <string name="forward">Forward</string>
     <string name="free">Free</string>
     <string name="hide">Hide</string>
-    <string name="ignore">Ignore</string>
     <string name="include_">Include: %s</string>
-    <string name="install">Install</string>
-    <string name="installing">Installing</string>
     <string name="keep">Keep</string>
     <string name="keep_in_">Keep in %1$s</string>
     <string name="left">Left</string>
@@ -1335,7 +1315,6 @@
     <string name="no_animation">No animation</string>
     <string name="normal">Normal</string>
     <string name="oldest">Oldest</string>
-    <string name="open">Open</string>
     <string name="open_in_app">Open in app</string>
     <string name="open_in_browser">Open in browser</string>
 

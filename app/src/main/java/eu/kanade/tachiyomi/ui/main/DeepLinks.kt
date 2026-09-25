@@ -5,14 +5,6 @@ object DeepLinks {
         const val MangaId = "mangaId"
         const val NotificationId = "notificationId"
         const val GroupId = "groupId"
-
-        const val AppUpdateNotes = "notes"
-
-        const val AppUpdateUrl = "DownloadUrl"
-
-        const val AppUpdateReleaseUrl = "releaseUrl"
-
-        const val AppUpdateVersion = "version"
     }
 
     object Intents {
@@ -29,7 +21,6 @@ object DeepLinks {
         const val Downloads = "eu.kanade.tachiyomi.SHOW_DOWNLOADS"
         const val Manga = "eu.kanade.tachiyomi.SHOW_MANGA"
         const val MangaBack = "eu.kanade.tachiyomi.SHOW_MANGA_BACK"
-        const val UpdateNotes = "eu.kanade.tachiyomi.SHOW_UPDATE_NOTES"
         const val Source = "eu.kanade.tachiyomi.SHOW_SOURCE"
         const val ReaderSettings = "eu.kanade.tachiyomi.READER_SETTINGS"
         const val MangaDexSettings = "eu.kanade.tachiyomi.MANGADEX_SETTINGS"

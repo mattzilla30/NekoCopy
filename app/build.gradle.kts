@@ -32,7 +32,6 @@ android {
             if (providers.environmentVariable("CI").orNull == "true") "\"${getBuildTime()}\""
             else "\"1970-01-01T00:00:00\"",
         )
-        buildConfigField("Boolean", "INCLUDE_UPDATER", "false")
 
         ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
@@ -51,7 +50,6 @@ android {
     buildTypes {
         getByName("debug") {
             applicationIdSuffix = ".debug"
-            buildConfigField("Boolean", "INCLUDE_UPDATER", "false")
             manifestPlaceholders["mangadexAuthRedirectUri"] = "mangadex-auth-debug"
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
@@ -74,7 +72,7 @@ android {
 
     flavorDimensions.add("default")
 
-    productFlavors { create("standard") { buildConfigField("Boolean", "INCLUDE_UPDATER", "true") } }
+    productFlavors { create("standard") }
 }
 
 base { archivesName.set("Neko") }
@@ -162,7 +160,6 @@ dependencies {
     implementation(compose.swipe)
 
     implementation(libs.pastelplaceholders)
-    implementation(libs.versioncompare)
     implementation(libs.tokenbucket)
     implementation(libs.bundles.sandwich)
     implementation(libs.aboutLibraries.compose)
