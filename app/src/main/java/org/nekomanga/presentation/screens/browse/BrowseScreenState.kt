@@ -16,7 +16,6 @@ data class BrowseScreenState(
     val initialLoading: Boolean = true,
     val useVividColorHeaders: Boolean = true,
     val title: UiText = UiText.StringResource(R.string.browse),
-    val hideFooterButton: Boolean = false,
     val pageLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
     val incognitoMode: Boolean = false,

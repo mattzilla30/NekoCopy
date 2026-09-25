@@ -953,6 +953,8 @@
     <string name="save">Save</string>
     <string name="set">Set</string>
     <string name="search">Search</string>
+    <string name="search_mangadex">Search MangaDex</string>
+    <string name="search_results">Search results</string>
     <string name="cancel_search">Cancel search</string>
     <string name="share">Share</string>
     <string name="sort">Sort</string>

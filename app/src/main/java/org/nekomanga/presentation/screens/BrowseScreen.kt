@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
@@ -32,8 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -47,7 +43,6 @@ import org.nekomanga.R
 import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.AppBar
-import org.nekomanga.presentation.components.ButtonGroup
 import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.scaffold.RootScaffold
@@ -181,6 +176,11 @@ private fun BrowseWrapper(
         }
     }
 
+    // Back from search results or follows returns to the home page.
+    BackHandler(enabled = browseScreenType != BrowseScreenType.Homepage) {
+        changeScreenType(BrowseScreenType.Homepage)
+    }
+
     /** Close the bottom sheet on back if its open */
     BackHandler(enabled = sheetState.isVisible) { scope.launch { sheetState.hide() } }
 
@@ -233,6 +233,17 @@ private fun BrowseWrapper(
                         )
                     }
                 },
+                searchClick = { openSheet(BrowseBottomSheetScreen.FilterSheet) },
+                homeClick = { changeScreenType(BrowseScreenType.Homepage) },
+                followsClick = {
+                    changeScreenType(
+                        if (browseScreenType == BrowseScreenType.Follows) {
+                            BrowseScreenType.Homepage
+                        } else {
+                            BrowseScreenType.Follows
+                        }
+                    )
+                },
             )
         },
     ) { innerPadding ->
@@ -247,7 +258,7 @@ private fun BrowseWrapper(
             )
 
         val recyclerContentPadding =
-            PaddingValues(top = innerPadding.calculateTopPadding(), bottom = Size.huge)
+            PaddingValues(top = innerPadding.calculateTopPadding(), bottom = Size.small)
 
         val haptic = LocalHapticFeedback.current
         fun mangaLongClick(displayManga: DisplayManga) {
@@ -332,59 +343,6 @@ private fun BrowseWrapper(
 
                         BrowseScreenType.None -> Unit
                     }
-                }
-            }
-
-            // hide these on initial load
-            if (!browseScreenState.hideFooterButton) {
-                val items =
-                    remember(browseScreenState.isLoggedIn) {
-                        listOf(BrowseScreenType.Homepage) +
-                            if (browseScreenState.isLoggedIn) {
-                                listOf(BrowseScreenType.Follows)
-                            } else {
-                                emptyList()
-                            } +
-                            listOf(BrowseScreenType.Filter)
-                    }
-
-                val selectedItem =
-                    when (browseScreenType) {
-                        BrowseScreenType.Homepage -> BrowseScreenType.Homepage
-                        BrowseScreenType.Follows -> BrowseScreenType.Follows
-                        else -> BrowseScreenType.Filter
-                    }
-
-                ButtonGroup(
-                    modifier =
-                        Modifier.align(Alignment.BottomCenter).padding(horizontal = Size.tiny),
-                    items = items,
-                    selectedItem = selectedItem,
-                    onItemClick = { item ->
-                        scope.launch { sheetState.hide() }
-                        val sameScreen = browseScreenType == item
-                        val newIsFilterScreen = item == BrowseScreenType.Filter
-
-                        if (sameScreen && !newIsFilterScreen) {
-                            // do nothing
-                        } else if (newIsFilterScreen) {
-                            openSheet(BrowseBottomSheetScreen.FilterSheet)
-                        } else {
-                            changeScreenType(item)
-                        }
-                    },
-                ) { item ->
-                    val name =
-                        when (item) {
-                            BrowseScreenType.Homepage -> stringResource(id = R.string.home_page)
-                            BrowseScreenType.Follows -> stringResource(R.string.follows)
-                            else -> stringResource(R.string.search)
-                        }
-                    Text(
-                        text = name,
-                        fontWeight = FontWeight.Medium,
-                        style = MaterialTheme.typography.labelLarge,
-                    )
                 }
             }
         }

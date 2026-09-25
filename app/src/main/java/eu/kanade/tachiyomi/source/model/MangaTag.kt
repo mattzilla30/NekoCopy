@@ -81,8 +81,5 @@ enum class MangaTag(val uuid: String, val prettyPrint: String) : Parcelable {
     WEB_COMIC("e197df38-d0e7-43b5-9b09-2842d0c326dd", "Web Comic"),
     WUXIA("acc803a4-c95a-4c22-86fc-eb6b582d82a2", "Wuxia");
 
-    companion object {
-
-        fun fromId(id: String): MangaTag = values().first { it.uuid == id }
-    }
+    companion object {}
 }
