@@ -49,10 +49,9 @@ import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.settings.ReaderTheme
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
-import eu.kanade.tachiyomi.ui.reader.viewer.pager.L2RPagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerConfig
-import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewer
-import eu.kanade.tachiyomi.ui.reader.viewer.pager.R2LPagerViewer
+import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerDirection
+import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewerState
 import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.ThemeUtil
 import kotlin.math.hypot
@@ -76,7 +75,7 @@ import uy.kohesive.injekt.api.get
 
 @Composable
 fun PagerPageItem(
-    viewer: PagerViewer,
+    viewer: PagerViewerState,
     page: ReaderPage,
     extraPage: ReaderPage? = null,
     modifier: Modifier = Modifier,
@@ -137,10 +136,10 @@ fun PagerPageItem(
                 when (zoomStart) {
                     // Auto
                     1 ->
-                        when (viewer) {
-                            is L2RPagerViewer -> PagerConfig.ZoomType.Left
-                            is R2LPagerViewer -> PagerConfig.ZoomType.Right
-                            else -> PagerConfig.ZoomType.Center
+                        when (viewer.direction) {
+                            PagerDirection.LeftToRight -> PagerConfig.ZoomType.Left
+                            PagerDirection.RightToLeft -> PagerConfig.ZoomType.Right
+                            PagerDirection.Vertical -> PagerConfig.ZoomType.Center
                         }
                     2 -> PagerConfig.ZoomType.Left
                     3 -> PagerConfig.ZoomType.Right
@@ -251,9 +250,9 @@ fun PagerPageItem(
                     } catch (_: PointerEventTimeoutCancellationException) {
                         if (
                             !isMovementPastSlop &&
-                                (viewer.activity.menuVisible || viewer.config.longTapEnabled)
+                                (viewer.menuVisible || viewer.config.longTapEnabled)
                         ) {
-                            viewer.activity.onPageLongTap(page, extraPage)
+                            viewer.onPageLongTap(page, extraPage)
                             isLongPressTriggered = true
                         }
                         while (currentEvent.changes.any { it.pressed }) {
@@ -299,8 +298,8 @@ fun PagerPageItem(
                                         (viewer.config.doubleTapAnimDuration > 0)
 
                                 if (isDoubleTap) {
-                                    if (viewer.activity.menuVisible) {
-                                        viewer.activity.hideMenu()
+                                    if (viewer.menuVisible) {
+                                        viewer.hideMenu()
                                     }
                                     lastTapTime = 0L
                                     lastTapOffset = Offset.Zero
@@ -311,34 +310,34 @@ fun PagerPageItem(
                                     when (action) {
                                         ViewerNavigation.NavigationRegion.NEXT -> {
                                             up.consume()
-                                            if (viewer.activity.menuVisible) {
-                                                viewer.activity.hideMenu()
+                                            if (viewer.menuVisible) {
+                                                viewer.hideMenu()
                                             }
                                             viewer.moveToNext()
                                         }
                                         ViewerNavigation.NavigationRegion.PREV -> {
                                             up.consume()
-                                            if (viewer.activity.menuVisible) {
-                                                viewer.activity.hideMenu()
+                                            if (viewer.menuVisible) {
+                                                viewer.hideMenu()
                                             }
                                             viewer.moveToPrevious()
                                         }
                                         ViewerNavigation.NavigationRegion.RIGHT -> {
                                             up.consume()
-                                            if (viewer.activity.menuVisible) {
-                                                viewer.activity.hideMenu()
+                                            if (viewer.menuVisible) {
+                                                viewer.hideMenu()
                                             }
                                             viewer.moveRight()
                                         }
                                         ViewerNavigation.NavigationRegion.LEFT -> {
                                             up.consume()
-                                            if (viewer.activity.menuVisible) {
-                                                viewer.activity.hideMenu()
+                                            if (viewer.menuVisible) {
+                                                viewer.hideMenu()
                                             }
                                             viewer.moveLeft()
                                         }
                                         ViewerNavigation.NavigationRegion.MENU -> {
-                                            viewer.activity.toggleMenu()
+                                            viewer.toggleMenu()
                                         }
                                     }
                                 }
@@ -371,10 +370,10 @@ fun PagerPageItem(
                 remember(zoomStart, viewer) {
                     when (zoomStart) {
                         1 ->
-                            when (viewer) {
-                                is L2RPagerViewer -> PagerConfig.ZoomType.Left
-                                is R2LPagerViewer -> PagerConfig.ZoomType.Right
-                                else -> PagerConfig.ZoomType.Center
+                            when (viewer.direction) {
+                                PagerDirection.LeftToRight -> PagerConfig.ZoomType.Left
+                                PagerDirection.RightToLeft -> PagerConfig.ZoomType.Right
+                                PagerDirection.Vertical -> PagerConfig.ZoomType.Center
                             }
                         2 -> PagerConfig.ZoomType.Left
                         3 -> PagerConfig.ZoomType.Right

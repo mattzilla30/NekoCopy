@@ -40,7 +40,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderUiItem
 import eu.kanade.tachiyomi.ui.reader.settings.ReaderTheme
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
-import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewer
+import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewerState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.nekomanga.domain.manga.MangaItem
@@ -52,7 +52,7 @@ import uy.kohesive.injekt.api.get
 
 @Composable
 fun ComposePagerViewer(
-    viewer: PagerViewer,
+    viewer: PagerViewerState,
     items: List<ReaderUiItem>,
     isRtl: Boolean,
     isVertical: Boolean,
@@ -493,7 +493,7 @@ fun ComposePagerViewer(
 
 @Composable
 private fun PagerItemContent(
-    viewer: PagerViewer,
+    viewer: PagerViewerState,
     item: ReaderUiItem,
     manga: MangaItem?,
     downloadManager: DownloadManager,
@@ -515,28 +515,26 @@ private fun PagerItemContent(
         }
         is ReaderUiItem.Transition -> {
             ReaderTransitionPage(
-                transition = item.transition,
-                manga = manga,
-                downloadManager = downloadManager,
-                onRetry = onRetryTransition,
+                uiModel = rememberChapterTransitionUiModel(item.transition, manga, downloadManager),
+                onRetry = { item.transition.to?.let(onRetryTransition) },
                 onTap = { pos ->
                     val navigator = viewer.config.navigator
                     when (navigator.getAction(pos)) {
-                        ViewerNavigation.NavigationRegion.MENU -> viewer.activity.toggleMenu()
+                        ViewerNavigation.NavigationRegion.MENU -> viewer.toggleMenu()
                         ViewerNavigation.NavigationRegion.NEXT -> {
-                            if (viewer.activity.menuVisible) viewer.activity.hideMenu()
+                            if (viewer.menuVisible) viewer.hideMenu()
                             viewer.moveToNext()
                         }
                         ViewerNavigation.NavigationRegion.PREV -> {
-                            if (viewer.activity.menuVisible) viewer.activity.hideMenu()
+                            if (viewer.menuVisible) viewer.hideMenu()
                             viewer.moveToPrevious()
                         }
                         ViewerNavigation.NavigationRegion.RIGHT -> {
-                            if (viewer.activity.menuVisible) viewer.activity.hideMenu()
+                            if (viewer.menuVisible) viewer.hideMenu()
                             viewer.moveRight()
                         }
                         ViewerNavigation.NavigationRegion.LEFT -> {
-                            if (viewer.activity.menuVisible) viewer.activity.hideMenu()
+                            if (viewer.menuVisible) viewer.hideMenu()
                             viewer.moveLeft()
                         }
                     }

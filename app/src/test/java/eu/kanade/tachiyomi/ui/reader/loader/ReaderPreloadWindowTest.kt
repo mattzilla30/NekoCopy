@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
+package eu.kanade.tachiyomi.ui.reader.loader
 
 import android.content.Context
 import eu.kanade.tachiyomi.data.database.models.Chapter
@@ -24,20 +24,20 @@ import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ReaderPreloadEngineTest {
+class ReaderPreloadWindowTest {
 
     private val context = mockk<Context>(relaxed = true)
     private val testDispatcher = StandardTestDispatcher()
     private val testScope = TestScope(testDispatcher)
     private val checkTallPage = mockk<CheckTallPageUseCase>(relaxed = true)
 
-    private lateinit var engine: ReaderPreloadEngine
+    private lateinit var engine: ReaderPreloadControllerImpl
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         engine =
-            ReaderPreloadEngine(
+            ReaderPreloadControllerImpl(
                 context = context,
                 scope = testScope,
                 checkTallPage = checkTallPage,
@@ -141,18 +141,18 @@ class ReaderPreloadEngineTest {
         val diskMinItems = maxOf(4, preloadAmount * 2)
 
         val memoryBudget =
-            minOf(maxOf(2, preloadAmount), ReaderPreloadEngine.MAX_MEMORY_PRELOAD_PAGES)
+            minOf(maxOf(2, preloadAmount), ReaderPreloadControllerImpl.MAX_MEMORY_PRELOAD_PAGES)
         val memoryMinItems =
             minOf(
-                maxOf(ReaderPreloadEngine.MIN_MEMORY_PRELOAD_SLICES, preloadAmount * 2),
-                ReaderPreloadEngine.MAX_MEMORY_PRELOAD_SLICES,
+                maxOf(ReaderPreloadControllerImpl.MIN_MEMORY_PRELOAD_SLICES, preloadAmount * 2),
+                ReaderPreloadControllerImpl.MAX_MEMORY_PRELOAD_SLICES,
             )
 
         assertEquals(20, diskBudget)
         assertEquals(40, diskMinItems)
 
-        assertEquals(ReaderPreloadEngine.MAX_MEMORY_PRELOAD_PAGES, memoryBudget)
-        assertEquals(ReaderPreloadEngine.MAX_MEMORY_PRELOAD_SLICES, memoryMinItems)
+        assertEquals(ReaderPreloadControllerImpl.MAX_MEMORY_PRELOAD_PAGES, memoryBudget)
+        assertEquals(ReaderPreloadControllerImpl.MAX_MEMORY_PRELOAD_SLICES, memoryMinItems)
 
         val diskEnd =
             engine.calculateWindowEnd(
@@ -176,7 +176,7 @@ class ReaderPreloadEngineTest {
         )
         assertTrue(
             "memoryEnd ($memoryEnd) should be bounded by MAX_MEMORY_PRELOAD_SLICES",
-            memoryEnd <= ReaderPreloadEngine.MAX_MEMORY_PRELOAD_SLICES,
+            memoryEnd <= ReaderPreloadControllerImpl.MAX_MEMORY_PRELOAD_SLICES,
         )
     }
 
@@ -207,11 +207,11 @@ class ReaderPreloadEngineTest {
     }
 
     @Test
-    fun `updateActiveIndex handles rapid list shrinking without crashing`() = testScope.runTest {
+    fun `onPositionChanged handles rapid list shrinking without crashing`() = testScope.runTest {
         // Preloading launches jobs on Dispatchers.IO that outlive the test body, so give the
-        // engine the background scope runTest cancels instead of the scope it waits on.
+        // controller the background scope runTest cancels instead of the scope it waits on.
         val engine =
-            ReaderPreloadEngine(
+            ReaderPreloadControllerImpl(
                 context = context,
                 scope = backgroundScope,
                 checkTallPage = checkTallPage,
@@ -222,10 +222,22 @@ class ReaderPreloadEngineTest {
         val smallList = largeList.take(3)
 
         // Start with large list at high index
-        engine.updateActiveIndex(activeIndex = 15, items = largeList, preloadAmount = 4)
+        engine.onPositionChanged(
+            currentIndex = 15,
+            items = largeList,
+            preloadAmount = 4,
+            isRtl = false,
+            isWebtoon = true,
+        )
 
         // Rapid transition shrinks list and active index
-        engine.updateActiveIndex(activeIndex = 1, items = smallList, preloadAmount = 4)
+        engine.onPositionChanged(
+            currentIndex = 1,
+            items = smallList,
+            preloadAmount = 4,
+            isRtl = false,
+            isWebtoon = true,
+        )
 
         advanceTimeBy(100L)
         // Completes without throwing IndexOutOfBoundsException

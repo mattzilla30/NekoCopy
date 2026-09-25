@@ -49,7 +49,6 @@ import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.settings.OrientationType
 import eu.kanade.tachiyomi.ui.reader.settings.ReadingModeType
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
-import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.ReaderPreloadEngine
 import eu.kanade.tachiyomi.util.chapter.ChapterItemFilter
 import eu.kanade.tachiyomi.util.chapter.ChapterItemSort
 import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
@@ -148,17 +147,6 @@ constructor(
             scope = viewModelScope,
             isSplitTallPagesEnabled = { readerPreferences.splitTallImagesReader().get() },
             onRequestPreloadChapter = { chapter -> viewModelScope.launch { preload(chapter) } },
-        )
-    }
-
-    /** Headless preload engine for disk prefetching and memory cache warming in webtoon mode. */
-    @Deprecated("Use preloadController instead")
-    val webtoonPreloadEngine by lazy {
-        ReaderPreloadEngine(
-            context = preferences.context,
-            scope = viewModelScope,
-            isSplitTallPagesEnabled = { readerPreferences.splitTallImagesReader().get() },
-            controller = preloadController as? ReaderPreloadControllerImpl,
         )
     }
 

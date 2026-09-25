@@ -50,7 +50,7 @@ import eu.kanade.tachiyomi.ui.reader.settings.ReaderTheme
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonActiveItemResolver
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonScrollAnchorResolver
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonScrollGatingPolicy
-import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonViewer
+import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonViewerState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -432,13 +432,10 @@ fun ComposeWebtoonViewer(
     }
 }
 
-/**
- * Compatibility overload bridging legacy [WebtoonViewer] to the stateless [ComposeWebtoonViewer].
- */
-@Deprecated("Use ComposeWebtoonViewer with WebtoonViewerConfigUiModel directly")
+/** Renders a [WebtoonViewerState] with the stateless [ComposeWebtoonViewer]. */
 @Composable
 fun ComposeWebtoonViewer(
-    viewer: WebtoonViewer,
+    viewer: WebtoonViewerState,
     items: List<ReaderUiItem>,
     manga: MangaItem?,
     downloadManager: DownloadManager,
@@ -449,7 +446,7 @@ fun ComposeWebtoonViewer(
     onRequestPreloadChapter: ((ReaderChapter) -> Unit)? = null,
     modifier: Modifier = Modifier,
     navCommands: Flow<ReaderNavCommand>? = null,
-    preloadController: ReaderPreloadController? = null,
+    preloadController: ReaderPreloadController,
 ) {
     val currentChapterId =
         (viewer.currentChapter
@@ -501,7 +498,7 @@ fun ComposeWebtoonViewer(
 
     LaunchedEffect(currentChapterId) {
         viewer.nextTransition?.to?.let {
-            onRequestPreloadChapter?.invoke(it) ?: viewer.activity.requestPreloadChapter(it)
+            onRequestPreloadChapter?.invoke(it) ?: viewer.requestPreloadChapter(it)
         }
     }
 
@@ -517,17 +514,14 @@ fun ComposeWebtoonViewer(
             animatedTransitions = animatedTransitions,
             doubleTapAnimDuration = viewer.config.doubleTapAnimDuration,
             longTapEnabled = viewer.config.longTapEnabled,
-            menuVisible = viewer.activity.menuVisible,
+            menuVisible = viewer.menuVisible,
             navigator = viewer.config.navigator,
-            onToggleMenu = { viewer.activity.toggleMenu() },
+            onToggleMenu = { viewer.toggleMenu() },
             onRetryTransition = onRetryTransition,
             preloadPageAmount = preloadPageAmount,
             onNavigateToChapter = onNavigateToChapter,
             onRequestPreloadChapter =
-                onRequestPreloadChapter
-                    ?: { chapter ->
-                        viewer.activity.requestPreloadChapter(chapter)
-                    },
+                onRequestPreloadChapter ?: { chapter -> viewer.requestPreloadChapter(chapter) },
         )
 
     val navChannel = remember { Channel<ReaderNavCommand>(Channel.BUFFERED) }
@@ -566,10 +560,8 @@ fun ComposeWebtoonViewer(
             }
         }
 
-    val effectivePreloadController = preloadController
-
-    LaunchedEffect(enrichedItems, preloadPageAmount, effectivePreloadController) {
-        effectivePreloadController?.onPositionChanged(
+    LaunchedEffect(enrichedItems, preloadPageAmount, preloadController) {
+        preloadController.onPositionChanged(
             currentIndex = initialItemIndex,
             items = enrichedItems,
             preloadAmount = preloadPageAmount,
@@ -583,23 +575,19 @@ fun ComposeWebtoonViewer(
         config = config,
         navCommands = effectiveNavCommands,
         onActiveItemChanged = { activeIndex ->
-            if (effectivePreloadController != null) {
-                effectivePreloadController.onPositionChanged(
-                    currentIndex = activeIndex,
-                    items = enrichedItems,
-                    preloadAmount = preloadPageAmount,
-                    isRtl = false,
-                    isWebtoon = true,
-                )
-            } else {
-                viewer.updateActiveIndex(activeIndex)
-            }
+            preloadController.onPositionChanged(
+                currentIndex = activeIndex,
+                items = enrichedItems,
+                preloadAmount = preloadPageAmount,
+                isRtl = false,
+                isWebtoon = true,
+            )
         },
         onPageSelected = onPageSelected,
         onTransitionSelected = onTransitionSelected,
         onPageLongTap = { page ->
-            if (viewer.activity.menuVisible || viewer.config.longTapEnabled) {
-                viewer.activity.onPageLongTap(page)
+            if (viewer.menuVisible || viewer.config.longTapEnabled) {
+                viewer.onPageLongTap(page)
             }
         },
         onNavigateAdjacent = { forward ->

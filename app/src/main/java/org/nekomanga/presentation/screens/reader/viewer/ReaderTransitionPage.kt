@@ -152,53 +152,35 @@ fun ReaderTransitionPage(
 }
 
 /**
- * Compatibility overload for legacy callers still passing [ChapterTransition] and
- * [DownloadManager].
+ * Builds the [ChapterTransitionUiModel] for [transition], including the load state of the chapter
+ * it leads to.
  */
-@Deprecated("Use ReaderTransitionPage with ChapterTransitionUiModel directly")
 @Composable
-fun ReaderTransitionPage(
+fun rememberChapterTransitionUiModel(
     transition: ChapterTransition,
     manga: MangaItem?,
     downloadManager: DownloadManager,
-    onRetry: (ReaderChapter) -> Unit,
-    modifier: Modifier = Modifier,
-    onTap: ((PointF) -> Unit)? = null,
-    onCardClick: (() -> Unit)? = null,
-) {
+): ChapterTransitionUiModel {
     val resolver =
         remember(downloadManager) { ResolveChapterTransitionUiModelUseCase(downloadManager) }
-    val targetChapter = transition.to
-    val targetState = targetChapter?.stateFlow?.collectAsStateWithLifecycle()?.value
+    val targetState = transition.to?.stateFlow?.collectAsStateWithLifecycle()?.value
 
-    val uiModel =
-        remember(transition, manga, downloadManager, targetState) {
-            val baseModel = resolver(transition, manga)
-            val preloadState =
-                when (targetState) {
-                    is ReaderChapter.State.Loading -> ChapterTransitionUiModel.PreloadState.Loading
-                    is ReaderChapter.State.Error ->
-                        ChapterTransitionUiModel.PreloadState.Error(targetState.error.message ?: "")
-                    else -> ChapterTransitionUiModel.PreloadState.Ready
-                }
-            when (baseModel) {
-                is ChapterTransitionUiModel.Prev ->
-                    baseModel.copy(
-                        toChapter = baseModel.toChapter?.copy(preloadState = preloadState)
-                    )
-                is ChapterTransitionUiModel.Next ->
-                    baseModel.copy(
-                        toChapter = baseModel.toChapter?.copy(preloadState = preloadState)
-                    )
+    return remember(transition, manga, resolver, targetState) {
+        val baseModel = resolver(transition, manga)
+        val preloadState =
+            when (targetState) {
+                is ReaderChapter.State.Loading -> ChapterTransitionUiModel.PreloadState.Loading
+                is ReaderChapter.State.Error ->
+                    ChapterTransitionUiModel.PreloadState.Error(targetState.error.message ?: "")
+                else -> ChapterTransitionUiModel.PreloadState.Ready
             }
+        when (baseModel) {
+            is ChapterTransitionUiModel.Prev ->
+                baseModel.copy(toChapter = baseModel.toChapter?.copy(preloadState = preloadState))
+            is ChapterTransitionUiModel.Next ->
+                baseModel.copy(toChapter = baseModel.toChapter?.copy(preloadState = preloadState))
         }
-    ReaderTransitionPage(
-        uiModel = uiModel,
-        onRetry = { transition.to?.let(onRetry) },
-        modifier = modifier,
-        onTap = onTap,
-        onCardClick = onCardClick,
-    )
+    }
 }
 
 @Composable

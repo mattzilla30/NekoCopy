@@ -20,7 +20,7 @@ import uy.kohesive.injekt.api.get
 /** Configuration used by pager viewers. */
 class PagerConfig(
     scope: CoroutineScope,
-    private val viewer: PagerViewer,
+    private val direction: PagerDirection,
     preferences: PreferencesHelper = Injekt.get(),
     readerPreferences: ReaderPreferences = Injekt.get(),
 ) : ViewerConfig(preferences, readerPreferences, scope) {
@@ -171,10 +171,10 @@ class PagerConfig(
             when (value) {
                 // Auto
                 1 ->
-                    when (viewer) {
-                        is L2RPagerViewer -> ZoomType.Left
-                        is R2LPagerViewer -> ZoomType.Right
-                        else -> ZoomType.Center
+                    when (direction) {
+                        PagerDirection.LeftToRight -> ZoomType.Left
+                        PagerDirection.RightToLeft -> ZoomType.Right
+                        PagerDirection.Vertical -> ZoomType.Center
                     }
                 // Left
                 2 -> ZoomType.Left
@@ -191,8 +191,8 @@ class PagerConfig(
         }
 
     override fun defaultNavigation(): ViewerNavigation {
-        return when (viewer) {
-            is VerticalPagerViewer -> LNavigation()
+        return when (direction) {
+            PagerDirection.Vertical -> LNavigation()
             else -> RightAndLeftNavigation()
         }
     }

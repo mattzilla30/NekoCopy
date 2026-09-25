@@ -7,8 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import eu.kanade.tachiyomi.data.database.models.Chapter
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.model.ChapterNavTarget
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
@@ -16,25 +14,31 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderUiItem
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.viewer.BaseViewer
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderHost
 import kotlin.math.min
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import org.nekomanga.logging.TimberKt
-import uy.kohesive.injekt.injectLazy
 
-/** Headless implementation of [BaseViewer] for Pager reading modes (L2R, R2L, Vertical). */
-@Deprecated("Use ComposePagerViewer with ReaderViewModel and ReaderNavCommand instead")
-abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
+/** Reading direction of a paged reader. */
+enum class PagerDirection {
+    LeftToRight,
+    RightToLeft,
+    Vertical,
+}
 
-    val downloadManager: DownloadManager by injectLazy()
-
+/**
+ * Compose state holder for the paged reading modes. [ComposePagerViewer] renders it, and it talks
+ * to the reader screen through [ReaderHost].
+ */
+class PagerViewerState(private val host: ReaderHost, val direction: PagerDirection) : BaseViewer {
     val scope = MainScope()
 
     /** Target page position to synchronize with Compose Pager. */
     var requestedPagePosition by mutableStateOf<Pair<Int, Boolean>?>(null)
 
     /** Configuration used by the pager. */
-    val config = PagerConfig(scope, this)
+    val config = PagerConfig(scope, direction)
 
     /** Pure domain controller for page pairing and transitions. */
     val controller = ReaderPagerController()
@@ -46,8 +50,11 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
     /** Currently active page index in the items list. */
     var currentPagePosition: Int = 0
 
-    open val isRtl: Boolean
-        get() = false
+    val isRtl: Boolean
+        get() = direction == PagerDirection.RightToLeft
+
+    val isVertical: Boolean
+        get() = direction == PagerDirection.Vertical
 
     val prevTransition: ChapterTransition.Prev?
         get() = controller.prevTransition
@@ -60,23 +67,16 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
 
     var hasMoved = false
 
-    /** Holds forward position for reader activity shared transitions / landscape zoom. */
-    var heldForwardZoom: Pair<Int, Boolean>? = null
-
     private var isTransitioning: Boolean = false
 
     init {
-        config.imagePropertyChangedListener = {
-            activity.isScrollingThroughPagesOrChapters = true
-            activity.updatePagedViewerItems()
-            activity.isScrollingThroughPagesOrChapters = false
-        }
-        config.reloadChapterListener = { activity.reloadChapters(it) }
+        config.imagePropertyChangedListener = { host.onPagerImagePropertyChanged() }
+        config.reloadChapterListener = { host.reloadChapters(it) }
         config.navigationModeChangedListener = {
             val showOnStart = config.navigationOverlayForNewUser
-            activity.setNavigation(config.navigator, showOnStart)
+            host.setNavigation(config.navigator, showOnStart)
         }
-        config.navigationModeInvertedListener = { activity.showNavigationAgain() }
+        config.navigationModeInvertedListener = { host.showNavigationAgain() }
     }
 
     override fun destroy() {
@@ -99,7 +99,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
         if (isTransitioning) return
         isTransitioning = true
         try {
-            activity.viewModel.navigateToChapter(chapter, navTarget)
+            host.navigateToChapter(chapter, navTarget)
         } finally {
             isTransitioning = false
         }
@@ -118,7 +118,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
                 shiftDoublePage = config.shiftDoublePage,
                 isRtl = isRtl,
             )
-        activity.updatePagedViewerItems()
+        host.onViewerItemsChanged()
 
         val pages = chapters.currChapter.pages ?: return
         val requestedIndex = min(chapters.currChapter.requestedPage, pages.lastIndex)
@@ -127,19 +127,15 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
         }
     }
 
-    fun setChaptersDoubleShift(chapters: ViewerChapters) {
-        setChapters(chapters)
-    }
+    val menuVisible: Boolean
+        get() = host.menuVisible
 
-    fun splitDoublePages(page: ReaderPage) {
-        activity.viewModel.state.value.viewerChapters?.let { setChapters(it) }
-    }
+    fun hideMenu() = host.hideMenu()
 
-    fun hideMenuIfVisible(item: Any? = null) {
-        if (activity.menuVisible) {
-            activity.hideMenu()
-        }
-    }
+    fun toggleMenu() = host.toggleMenu()
+
+    fun onPageLongTap(page: ReaderPage, extraPage: ReaderPage?) =
+        host.onPageLongTap(page, extraPage)
 
     /** Tells this viewer to move to the given [page]. */
     override fun moveToPage(page: ReaderPage, animated: Boolean) {
@@ -154,68 +150,60 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
     }
 
     override fun moveToNext() {
-        moveRight()
+        if (isRtl) moveLeft() else moveRight()
     }
 
     override fun moveToPrevious() {
-        moveLeft()
+        if (isRtl) moveRight() else moveLeft()
     }
 
     /** Moves to the page at the right. */
-    open fun moveRight() {
-        val current =
-            (requestedPagePosition?.first ?: currentPagePosition).coerceIn(
-                0,
-                (items.size - 1).coerceAtLeast(0),
-            )
-        val item = items.getOrNull(current)
-        if (
-            item is ReaderUiItem.Transition &&
-                item.transition is ChapterTransition.Next &&
-                item.transition.to != null
-        ) {
-            triggerLoadChapter(item.transition.to.chapter, navTarget = ChapterNavTarget.Start)
-            return
-        }
-        if (current < items.size - 1) {
-            hasMoved = true
-            val target = current + 1
-            currentPagePosition = target
-            requestedPagePosition = target to config.usePageTransitions
-        }
+    fun moveRight() {
+        step(forward = true, entersNextChapter = !isRtl)
     }
 
     /** Moves to the page at the left. */
-    open fun moveLeft() {
+    fun moveLeft() {
+        step(forward = false, entersNextChapter = isRtl)
+    }
+
+    /**
+     * Moves one item through the list. When the current item is the chapter transition in the
+     * direction of travel, loads that chapter instead.
+     */
+    private fun step(forward: Boolean, entersNextChapter: Boolean) {
         val current =
             (requestedPagePosition?.first ?: currentPagePosition).coerceIn(
                 0,
                 (items.size - 1).coerceAtLeast(0),
             )
-        val item = items.getOrNull(current)
-        if (
-            item is ReaderUiItem.Transition &&
-                item.transition is ChapterTransition.Prev &&
-                item.transition.to != null
-        ) {
-            triggerLoadChapter(item.transition.to.chapter, navTarget = ChapterNavTarget.End)
-            return
+        val transition = (items.getOrNull(current) as? ReaderUiItem.Transition)?.transition
+        val targetChapter = transition?.to
+        if (targetChapter != null) {
+            if (entersNextChapter && transition is ChapterTransition.Next) {
+                triggerLoadChapter(targetChapter.chapter, navTarget = ChapterNavTarget.Start)
+                return
+            }
+            if (!entersNextChapter && transition is ChapterTransition.Prev) {
+                triggerLoadChapter(targetChapter.chapter, navTarget = ChapterNavTarget.End)
+                return
+            }
         }
-        if (current > 0) {
+        val target = if (forward) current + 1 else current - 1
+        if (target in items.indices) {
             hasMoved = true
-            val target = current - 1
             currentPagePosition = target
             requestedPagePosition = target to config.usePageTransitions
         }
     }
 
     /** Moves to the page at the top (or previous). */
-    protected open fun moveUp() {
+    private fun moveUp() {
         moveToPrevious()
     }
 
     /** Moves to the page at the bottom (or next). */
-    protected open fun moveDown() {
+    private fun moveDown() {
         moveToNext()
     }
 
@@ -229,14 +217,14 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
 
         when (event.keyCode) {
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                if (!config.volumeKeysEnabled || activity.menuVisible) {
+                if (!config.volumeKeysEnabled || host.menuVisible) {
                     return false
                 } else if (isUp) {
                     if (!config.volumeKeysInverted) moveDown() else moveUp()
                 }
             }
             KeyEvent.KEYCODE_VOLUME_UP -> {
-                if (!config.volumeKeysEnabled || activity.menuVisible) {
+                if (!config.volumeKeysEnabled || host.menuVisible) {
                     return false
                 } else if (isUp) {
                     if (!config.volumeKeysInverted) moveUp() else moveDown()
@@ -256,7 +244,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
             KeyEvent.KEYCODE_DPAD_UP -> if (isUp) moveUp()
             KeyEvent.KEYCODE_PAGE_DOWN -> if (isUp) moveDown()
             KeyEvent.KEYCODE_PAGE_UP -> if (isUp) moveUp()
-            KeyEvent.KEYCODE_MENU -> if (isUp) activity.toggleMenu()
+            KeyEvent.KEYCODE_MENU -> if (isUp) host.toggleMenu()
             else -> return false
         }
         return true

@@ -1,13 +1,12 @@
 package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
 
-import android.os.Build
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import eu.kanade.tachiyomi.data.coil.ReaderPageSplitFetcher
-import eu.kanade.tachiyomi.ui.reader.ReaderActivity
+import eu.kanade.tachiyomi.ui.reader.loader.ReaderPreloadController
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
@@ -15,6 +14,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPageSplit
 import eu.kanade.tachiyomi.ui.reader.model.ReaderUiItem
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.viewer.BaseViewer
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderHost
 import kotlin.math.min
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -22,15 +22,14 @@ import kotlinx.coroutines.launch
 import org.nekomanga.logging.TimberKt
 
 /**
- * Legacy implementation of [BaseViewer] for Webtoon continuous vertical reading mode.
- *
- * @deprecated Superceded by headless [ReaderPreloadEngine], [BuildWebtoonItemsUseCase], and
- *   stateless [ComposeWebtoonViewer].
+ * Compose state holder for the continuous vertical (webtoon) reading mode. [ComposeWebtoonViewer]
+ * renders it, and it talks to the reader screen through [ReaderHost].
  */
-@Deprecated(
-    "Use ReaderPreloadEngine and stateless ComposeWebtoonViewer with WebtoonViewerConfigUiModel instead"
-)
-class WebtoonViewer(val activity: ReaderActivity, val noWebtoonTag: Boolean = false) : BaseViewer {
+class WebtoonViewerState(
+    private val host: ReaderHost,
+    private val preloadController: ReaderPreloadController,
+    val noWebtoonTag: Boolean = false,
+) : BaseViewer {
 
     val scope = MainScope()
 
@@ -66,36 +65,51 @@ class WebtoonViewer(val activity: ReaderActivity, val noWebtoonTag: Boolean = fa
         get() = controller.currentChapter
 
     /** Distance to scroll when the user taps on one side of the viewer. */
-    private var scrollDistance = activity.resources.displayMetrics.heightPixels * 3 / 4
+    private val scrollDistance: Int
+        get() = host.screenHeight * 3 / 4
 
     /** Configuration used by this viewer. */
     val config = WebtoonConfig(scope)
 
-    /** Headless preload engine for disk prefetching and memory cache warming. */
-    val preloadEngine: ReaderPreloadEngine
-        get() = activity.viewModel.webtoonPreloadEngine
+    val menuVisible: Boolean
+        get() = host.menuVisible
+
+    fun toggleMenu() = host.toggleMenu()
+
+    fun onPageLongTap(page: ReaderPage) = host.onPageLongTap(page)
+
+    fun requestPreloadChapter(chapter: ReaderChapter) = host.requestPreloadChapter(chapter)
 
     init {
-        activity.viewModel.webtoonPreloadEngine.onPageSplit = { originalPage, insertPages ->
+        preloadController.onPageSplit = { originalPage, insertPages ->
             splitPage(originalPage, insertPages)
         }
-        config.reloadViewerListener = { activity.viewModel.reloadViewer() }
+        config.reloadViewerListener = { host.reloadViewer() }
         config.navigationModeChangedListener = {
             val showOnStart = config.navigationOverlayForNewUser
-            activity.setNavigation(config.navigator, showOnStart)
+            host.setNavigation(config.navigator, showOnStart)
         }
-        config.navigationModeInvertedListener = { activity.showNavigationAgain() }
+        config.navigationModeInvertedListener = { host.showNavigationAgain() }
         config.preloadPageAmountChangedListener = { amount ->
-            lastPreloadAmount = amount
-            preloadEngine.updateActiveIndex(lastActiveIndex, items, amount)
+            updatePreload(lastActiveIndex, items, amount)
         }
+    }
+
+    private fun updatePreload(activeIndex: Int, items: List<ReaderUiItem>, preloadAmount: Int) {
+        preloadController.onPositionChanged(
+            currentIndex = activeIndex,
+            items = items,
+            preloadAmount = preloadAmount,
+            isRtl = false,
+            isWebtoon = true,
+        )
     }
 
     /** Destroys this viewer. Called when leaving the reader or swapping viewers. */
     override fun destroy() {
         super.destroy()
-        activity.viewModel.webtoonPreloadEngine.onPageSplit = null
-        preloadEngine.clear()
+        preloadController.onPageSplit = null
+        preloadController.release()
         scope.cancel()
         pendingPageMove = null
         ReaderPageSplitFetcher.clearCache()
@@ -105,18 +119,12 @@ class WebtoonViewer(val activity: ReaderActivity, val noWebtoonTag: Boolean = fa
     private var isInitialLoad = true
     private var pendingPageMove: Pair<ReaderPage, Boolean>? = null
     private var lastActiveIndex = 0
-    private var lastPreloadAmount = 0
 
     /** Tells this viewer to set the given [chapters] as active. */
     override fun setChapters(chapters: ViewerChapters) {
         TimberKt.d { "setChapters" }
         val forceTransition = config.alwaysShowChapterTransition
-        val screenHeight =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                activity.windowManager.currentWindowMetrics.bounds.height()
-            } else {
-                @Suppress("DEPRECATION") activity.resources.displayMetrics.heightPixels
-            }
+        val screenHeight = host.screenHeight
         val newItems =
             controller.buildItems(
                 chapters = chapters,
@@ -128,7 +136,7 @@ class WebtoonViewer(val activity: ReaderActivity, val noWebtoonTag: Boolean = fa
         activeChapterId = chapters.currChapter.chapter.id
 
         items = newItems
-        activity.updateWebtoonViewerItems()
+        host.onViewerItemsChanged()
 
         val pages = chapters.currChapter.pages
         val requestedIndex = pages?.let { min(chapters.currChapter.requestedPage, it.lastIndex) }
@@ -142,7 +150,7 @@ class WebtoonViewer(val activity: ReaderActivity, val noWebtoonTag: Boolean = fa
                 targetPage?.let { controller.findPageIndex(newItems, it) }?.takeIf { it != -1 } ?: 0
             }
         lastActiveIndex = initialActiveIndex
-        preloadEngine.updateActiveIndex(initialActiveIndex, newItems, config.preloadPageAmount)
+        updatePreload(initialActiveIndex, newItems, config.preloadPageAmount)
 
         val pending = pendingPageMove
         pendingPageMove = null
@@ -156,19 +164,6 @@ class WebtoonViewer(val activity: ReaderActivity, val noWebtoonTag: Boolean = fa
                 moveToPage(pages[requestedIndex], false)
             }
         }
-    }
-
-    fun updateActiveIndex(activeIndex: Int) {
-        if (
-            lastActiveIndex == activeIndex &&
-                preloadEngine.isJobActive() &&
-                lastPreloadAmount == config.preloadPageAmount
-        ) {
-            return
-        }
-        lastActiveIndex = activeIndex
-        lastPreloadAmount = config.preloadPageAmount
-        preloadEngine.updateActiveIndex(activeIndex, items, config.preloadPageAmount)
     }
 
     /** Tells this viewer to move to the given [page]. */
@@ -196,8 +191,8 @@ class WebtoonViewer(val activity: ReaderActivity, val noWebtoonTag: Boolean = fa
         scope.launch {
             val newItems = controller.splitPage(items, originalPage, insertPages)
             items = newItems
-            activity.updateWebtoonViewerItems()
-            preloadEngine.updateActiveIndex(lastActiveIndex, newItems, config.preloadPageAmount)
+            host.onViewerItemsChanged()
+            updatePreload(lastActiveIndex, newItems, config.preloadPageAmount)
         }
     }
 
@@ -220,20 +215,20 @@ class WebtoonViewer(val activity: ReaderActivity, val noWebtoonTag: Boolean = fa
 
         when (event.keyCode) {
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                if (!config.volumeKeysEnabled || activity.menuVisible) {
+                if (!config.volumeKeysEnabled || host.menuVisible) {
                     return false
                 } else if (isUp) {
                     if (!config.volumeKeysInverted) moveToNext() else moveToPrevious()
                 }
             }
             KeyEvent.KEYCODE_VOLUME_UP -> {
-                if (!config.volumeKeysEnabled || activity.menuVisible) {
+                if (!config.volumeKeysEnabled || host.menuVisible) {
                     return false
                 } else if (isUp) {
                     if (!config.volumeKeysInverted) moveToPrevious() else moveToNext()
                 }
             }
-            KeyEvent.KEYCODE_MENU -> if (isUp) activity.toggleMenu()
+            KeyEvent.KEYCODE_MENU -> if (isUp) host.toggleMenu()
             KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_DPAD_UP,
             KeyEvent.KEYCODE_PAGE_UP -> if (isUp) moveToPrevious()
