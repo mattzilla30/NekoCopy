@@ -1,11 +1,9 @@
 package org.nekomanga.presentation.screens.settings.screens
 
 import android.annotation.SuppressLint
-import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
-import com.google.firebase.analytics.FirebaseAnalytics
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.SharedFlow
 import org.nekomanga.R
@@ -33,13 +31,6 @@ internal class DebugSettingsScreen(
         LaunchedEffect(Unit) { toastEvent.collect { event -> context.toast(event) } }
 
         return listOf(
-            Preference.PreferenceItem.TextPreference(
-                title = "Send a test firebase event",
-                onClick = {
-                    FirebaseAnalytics.getInstance(context)
-                        .logEvent("test_event", Bundle().apply { this.putString("test", "test") })
-                },
-            ),
             Preference.PreferenceItem.TextPreference(
                 title = "Unfollow all library manga",
                 onClick = unfollowAllLibraryManga,

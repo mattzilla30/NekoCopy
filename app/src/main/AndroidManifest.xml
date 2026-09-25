@@ -28,11 +28,6 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
 
-    <!-- Remove permission from Firebase dependency -->
-    <uses-permission
-        android:name="com.google.android.gms.permission.AD_ID"
-        tools:node="remove" />
-
     <application
         android:name="org.nekomanga.App"
         android:allowBackup="true"
@@ -297,11 +292,6 @@
         <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
-
-        <!-- Disable advertising ID collection for Firebase -->
-        <meta-data
-            android:name="google_analytics_adid_collection_enabled"
-            android:value="false" />
 
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"

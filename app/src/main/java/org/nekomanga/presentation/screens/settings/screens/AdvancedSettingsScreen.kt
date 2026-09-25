@@ -19,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.system.getActivity
@@ -77,15 +76,6 @@ internal class AdvancedSettingsScreen(
         LaunchedEffect(Unit) { toastEvent.collect { event -> context.toast(event) } }
 
         return listOf(
-            Preference.PreferenceItem.SwitchPreference(
-                pref = preferences.sendCrashReports(),
-                title = stringResource(R.string.send_crash_report),
-                subtitle = stringResource(R.string.helps_fix_bugs),
-                onValueChanged = { enabled ->
-                    FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = enabled
-                    true
-                },
-            ),
             Preference.PreferenceItem.TextPreference(
                 title = stringResource(R.string.dump_crash_logs),
                 subtitle = stringResource(R.string.saves_error_logs),
@@ -329,10 +319,6 @@ internal class AdvancedSettingsScreen(
         @Composable
         override fun getSearchTerms(): List<SearchTerm> {
             return listOf(
-                SearchTerm(
-                    title = stringResource(R.string.send_crash_report),
-                    subtitle = stringResource(R.string.helps_fix_bugs),
-                ),
                 SearchTerm(
                     title = stringResource(R.string.dump_crash_logs),
                     subtitle = stringResource(R.string.saves_error_logs),

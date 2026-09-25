@@ -7,14 +7,7 @@ plugins {
     alias(libs.plugins.about.libraries)
     alias(kotlinx.plugins.serialization)
     alias(kotlinx.plugins.compose.compiler)
-    alias(libs.plugins.google.services) apply false
-    alias(libs.plugins.firebase) apply false
     alias(libs.plugins.ksp)
-}
-
-if (gradle.startParameter.taskRequests.toString().contains("Standard")) {
-    apply(mapOf("plugin" to "com.google.gms.google-services"))
-    apply(mapOf("plugin" to "com.google.firebase.crashlytics"))
 }
 
 val supportedAbis = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -75,7 +68,6 @@ android {
         compose = true
         // Disable some unused things
         aidl = false
-        renderScript = false
         shaders = false
         buildConfig = true
     }
@@ -125,8 +117,6 @@ dependencies {
     implementation(androidx.bundles.androidx)
     implementation(androidx.profileinstaller)
     implementation(libs.bundles.google)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
 
     // TLS 1.3 support for Android < 10
     implementation(libs.conscrypt)
@@ -219,7 +209,6 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs.addAll(
             listOf(
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
-                "-opt-in=androidx.compose.material.ExperimentalMaterialApi",
                 "-opt-in=androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi",
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
                 "-opt-in=androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi",

@@ -21,8 +21,6 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.jsoup)
     implementation(libs.tachi.unifile)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
 }
 
 tasks.withType<KotlinCompile> {

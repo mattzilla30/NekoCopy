@@ -51,12 +51,6 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
 
-      - name: Write google-services.json
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: app/google-services.json
-          contents: ${{ secrets.GOOGLE_SERVICE_JSON }}
-
       - name: Build App
         run: ./gradlew assembleStandardRelease
 

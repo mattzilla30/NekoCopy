@@ -47,8 +47,8 @@ import org.conscrypt.Conscrypt
 import org.nekomanga.core.network.NetworkPreferences
 import org.nekomanga.core.security.SecurityPreferences
 import org.nekomanga.domain.site.MangaDexPreferences
-import org.nekomanga.logging.CrashReportingTree
 import org.nekomanga.logging.DebugReportingTree
+import org.nekomanga.logging.ReleaseLogTree
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.screens.feed.FeedViewModel
 import org.nekomanga.presentation.screens.library.LibraryViewModel
@@ -101,7 +101,7 @@ open class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.F
         Injekt.importModule(AppModule(this))
 
         if (!BuildConfig.DEBUG) {
-            TimberKt.plant(CrashReportingTree())
+            TimberKt.plant(ReleaseLogTree())
         }
         // also plant a debug tree in prod if enabled
         if (BuildConfig.DEBUG || networkPreferences.verboseLogging().get()) {

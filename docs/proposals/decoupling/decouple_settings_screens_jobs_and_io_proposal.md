@@ -30,7 +30,7 @@
 >   - Lines 90–120: Executes synchronous storage disk scans and storage space formatting via `DiskUtil.getExternalStorages(context)` and `DiskUtil.getAvailableStorageSpace(file)` on the main UI thread.
 >   - Lines 187 & 218: Dispatches `BackupCreatorJob.startNow` and `BackupRestoreJob.start` directly from UI result launchers.
 > - In **[`AdvancedSettingsScreen.kt`](file:///run/media/nonproto/WD4T/programming/workspace-android/Neko/app/src/main/java/org/nekomanga/presentation/screens/settings/screens/AdvancedSettingsScreen.kt)**:
->   - Invokes `CrashLogUtil(context).dumpLogs()` and Firebase Crashlytics platform singletons directly in UI preference listeners.
+>   - Invokes `CrashLogUtil(context).dumpLogs()` directly in UI preference listeners.
 >
 > **What This Proposal Solves:**
 > Strips `viewModelScope`, `Injekt.get()`, and `DiskUtil` synchronous I/O from Settings composables. All background scheduling, disk calculations, and backup job dispatches are moved to their respective ViewModels.

@@ -1057,8 +1057,6 @@
     <string name="developer_mode_disabled">Developer mode disabled</string>
     <string name="version">Version</string>
     <string name="build_time">Build time</string>
-    <string name="send_crash_report">Send crash reports</string>
-    <string name="helps_fix_bugs">Helps fix any bugs. No sensitive data will be sent</string>
     <string name="checking_for_updates">Checking for updates</string>
     <string name="build_information">Build information</string>
     <string name="whats_new">What\'s new</string>

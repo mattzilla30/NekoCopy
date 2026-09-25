@@ -118,8 +118,6 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
 
     fun suwayomiLoginMode() = this.preferenceStore.getEnum("suwayomi_login_mode", LoginMode.None)
 
-    fun sendCrashReports() = this.preferenceStore.getBoolean("acra.enabled", true)
-
     fun trackUsername(sync: TrackService) =
         this.preferenceStore.getString(Keys.trackUsername(sync.id))
 

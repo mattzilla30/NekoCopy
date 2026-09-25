@@ -11,13 +11,11 @@ plugins {
   id(androidx.plugins.application.get().pluginId) apply false
   id(androidx.plugins.library.get().pluginId) apply false
   id(androidx.plugins.baselineprofile.get().pluginId) apply false
-  alias(libs.plugins.google.services) apply false
   alias(kotlinx.plugins.compose.compiler) apply false
   id(kotlinx.plugins.jvm.get().pluginId) apply false
   id(kotlinx.plugins.parcelize.get().pluginId) apply false
   alias(libs.plugins.about.libraries) apply false
   alias(kotlinx.plugins.serialization) apply false
-  alias(libs.plugins.firebase) apply false
   alias(libs.plugins.ktfmt)
   alias(libs.plugins.detekt)
 }
@@ -32,7 +30,6 @@ subprojects {
         jvmTarget.set(JvmTarget.JVM_17)
         freeCompilerArgs.addAll(
             listOf(
-                "-Xcontext-parameters",
                 "-opt-in=kotlin.RequiresOptIn",
                 "-opt-in=kotlin.time.ExperimentalTime",
                 "-opt-in=kotlinx.coroutines.DelicateCoroutinesApi",

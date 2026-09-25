@@ -14,10 +14,6 @@
 -keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
 -keep class androidx.window.** { *; }
 -dontwarn androidx.window.**
--keep class com.crashlytics.** { *; }
--dontwarn com.crashlytics.**
--keep class com.google.firebase.installations.** {*; }
--keep interface com.google.firebase.installations.** {*; }
 # Design library
 -dontwarn com.google.android.material.**
 -keep class com.google.android.material.** { *; }
