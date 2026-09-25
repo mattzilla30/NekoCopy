@@ -74,13 +74,7 @@ fun MangaList(
         verticalArrangement = Arrangement.spacedBy(Size.tiny),
     ) {
         itemsIndexed(mangaList, key = { _, display -> display.mangaId }) { index, displayManga ->
-            val listCardType =
-                when {
-                    index == 0 && mangaList.size > 1 -> ListCardType.Top
-                    index == mangaList.size - 1 && mangaList.size > 1 -> ListCardType.Bottom
-                    mangaList.size == 1 -> ListCardType.Single
-                    else -> ListCardType.Center
-                }
+            val listCardType = ListCardType.forPosition(index, mangaList.size)
             MangaListItem(
                 displayManga = displayManga,
                 listCardType = listCardType,
@@ -133,13 +127,7 @@ fun MangaListWithHeader(
                     mangaList,
                     key = { _, displayManga -> "${stringRes}-item-${displayManga.mangaId}" },
                 ) { index, displayManga ->
-                    val listCardType =
-                        when {
-                            index == 0 && mangaList.size > 1 -> ListCardType.Top
-                            index == mangaList.size - 1 && mangaList.size > 1 -> ListCardType.Bottom
-                            mangaList.size == 1 -> ListCardType.Single
-                            else -> ListCardType.Center
-                        }
+                    val listCardType = ListCardType.forPosition(index, mangaList.size)
                     MangaListItem(
                         modifier = Modifier.animateItem(),
                         displayManga = displayManga,

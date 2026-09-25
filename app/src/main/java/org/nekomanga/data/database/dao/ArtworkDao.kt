@@ -9,7 +9,6 @@ import org.nekomanga.data.database.entity.ArtworkEntity
 
 @Dao
 interface ArtworkDao {
-
     @Query("SELECT * FROM artwork WHERE manga_id = :mangaId")
     fun observeArtworkForManga(mangaId: Long): Flow<List<ArtworkEntity>>
 

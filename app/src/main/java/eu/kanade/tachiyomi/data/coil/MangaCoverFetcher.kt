@@ -32,49 +32,48 @@ import org.nekomanga.logging.TimberKt
 import tachiyomi.core.network.await
 import uy.kohesive.injekt.injectLazy
 
+/**
+ * Loads a manga cover or an alternative artwork through the cover cache, Coil's disk cache and the
+ * network, in that order.
+ *
+ * An [artwork] with a blank `cover` is the manga's main cover: it uses the dynamic cover when that
+ * option is on, prefers a custom cover the user set, and caches in the library cover folder for
+ * library manga. Any other [artwork] is a specific alternative cover at `cover`.
+ */
 class MangaCoverFetcher(
-    private val altUrl: String,
-    private val inLibrary: Boolean,
-    private val mangaId: Long,
-    private val originalThumbnailUrl: String,
+    private val artwork: Artwork,
     private val sourceLazy: Lazy<MangaDex>,
     private val options: Options,
     private val coverCache: CoverCache,
     private val diskCacheLazy: Lazy<DiskCache>,
 ) : Fetcher {
 
-    // Prevent the UninitializedPropertyAccessException by passing "" for the cover
-    private val diskCacheKey: String? by lazy {
-        ArtworkKeyer()
-            .key(
-                Artwork(
-                    cover = "", // Leave blank so Keyer knows this is a main cover
-                    dynamicCover = altUrl,
-                    originalCover = originalThumbnailUrl,
-                    mangaId = mangaId,
-                    inLibrary = inLibrary,
-                ),
-                options,
-            )
+    private val isMainCover = artwork.cover.isBlank()
+    private val mangaId = artwork.mangaId
+    private val inLibrary = isMainCover && artwork.inLibrary
+
+    private val diskCacheKey: String? by lazy { ArtworkKeyer().key(artwork, options) }
+
+    private val url: String by lazy {
+        when {
+            !isMainCover -> artwork.cover
+            options.getExtra(DynamicCoverKey) && artwork.dynamicCover.isNotBlank() ->
+                artwork.dynamicCover
+            else -> artwork.originalCover
+        }
     }
 
-    lateinit var url: String
-
     override suspend fun fetch(): FetchResult {
-        val useDynamic = options.getExtra(DynamicCoverKey)
-
-        // Priority 3 & 1: Dynamic vs Default
-        // (Priority 2, the custom user cover, remains safely inside httpLoader)
-        url =
-            if (useDynamic && altUrl.isNotBlank()) {
-                altUrl
-            } else {
-                originalThumbnailUrl
-            }
-
         return when (getResourceType(url)) {
             Type.URL -> httpLoader()
-            Type.File -> fileLoader(File(url.substringAfter("file://")))
+            Type.File -> {
+                val fileName = url.substringAfter("file://")
+                // A cover picked from a chapter page is stored as the manga's custom cover.
+                val file =
+                    if (fileName.startsWith("chapterPage-")) coverCache.getCustomCoverFile(mangaId)
+                    else File(fileName)
+                fileLoader(file)
+            }
             null -> error("Invalid image")
         }
     }
@@ -84,8 +83,8 @@ class MangaCoverFetcher(
         val networkRead = options.networkCachePolicy.readEnabled
         val onlyCache = !networkRead && diskRead
         val shouldFetchRemotely = networkRead && !diskRead && !onlyCache
-        // Use custom cover if exists
-        if (!shouldFetchRemotely) {
+        // A custom cover the user set replaces the main cover.
+        if (isMainCover && !shouldFetchRemotely) {
             val customCoverFile by lazy { coverCache.getCustomCoverFile(mangaId) }
             if (customCoverFile.exists()) {
                 return fileLoader(customCoverFile)
@@ -291,25 +290,6 @@ class MangaCoverFetcher(
         }
     }
 
-    class Factory(private val diskCacheLazy: Lazy<DiskCache>) : Fetcher.Factory<Manga> {
-
-        private val coverCache: CoverCache by injectLazy()
-        private val sourceManager: SourceManager by injectLazy()
-
-        override fun create(data: Manga, options: Options, imageLoader: ImageLoader): Fetcher {
-            return MangaCoverFetcher(
-                altUrl = "",
-                inLibrary = data.favorite,
-                mangaId = data.id!!,
-                originalThumbnailUrl = data.thumbnail_url ?: """error("No cover specified")""",
-                sourceLazy = lazy { sourceManager.mangaDex },
-                options = options,
-                coverCache = coverCache,
-                diskCacheLazy = diskCacheLazy,
-            )
-        }
-    }
-
     private enum class Type {
         File,
         URL,
@@ -319,4 +299,39 @@ class MangaCoverFetcher(
         private val CACHE_CONTROL_NO_NETWORK_NO_CACHE =
             CacheControl.Builder().noCache().onlyIfCached().build()
     }
+}
+
+/** Loads covers and alternative artwork for [Artwork] requests. */
+class ArtworkFactory(private val diskCacheLazy: Lazy<DiskCache>) : Fetcher.Factory<Artwork> {
+    private val coverCache: CoverCache by injectLazy()
+    private val sourceManager: SourceManager by injectLazy()
+
+    override fun create(data: Artwork, options: Options, imageLoader: ImageLoader): Fetcher =
+        MangaCoverFetcher(
+            artwork = data,
+            sourceLazy = lazy { sourceManager.mangaDex },
+            options = options,
+            coverCache = coverCache,
+            diskCacheLazy = diskCacheLazy,
+        )
+}
+
+/** Loads the main cover for a database [Manga]. */
+class MangaCoverFactory(private val diskCacheLazy: Lazy<DiskCache>) : Fetcher.Factory<Manga> {
+    private val coverCache: CoverCache by injectLazy()
+    private val sourceManager: SourceManager by injectLazy()
+
+    override fun create(data: Manga, options: Options, imageLoader: ImageLoader): Fetcher =
+        MangaCoverFetcher(
+            artwork =
+                Artwork(
+                    originalCover = data.thumbnail_url.orEmpty(),
+                    mangaId = data.id!!,
+                    inLibrary = data.favorite,
+                ),
+            sourceLazy = lazy { sourceManager.mangaDex },
+            options = options,
+            coverCache = coverCache,
+            diskCacheLazy = diskCacheLazy,
+        )
 }

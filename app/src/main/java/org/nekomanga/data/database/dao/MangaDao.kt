@@ -11,6 +11,16 @@ import org.nekomanga.data.database.entity.MangaEntity
 
 @Dao
 interface MangaDao {
+    companion object {
+        private const val READ_NOT_IN_LIBRARY_MANGA_QUERY =
+            """
+        SELECT * FROM manga
+        WHERE favorite = 0 AND id IN (
+            SELECT manga_id FROM chapters WHERE read = 1 OR last_page_read != 0
+        )
+    """
+    }
+
     @Query("SELECT * FROM manga") fun observeMangaList(): Flow<List<MangaEntity>>
 
     @Query("SELECT * FROM manga") suspend fun getMangaList(): List<MangaEntity>
@@ -65,24 +75,10 @@ interface MangaDao {
 
     @Query("DELETE FROM manga") suspend fun deleteAllManga()
 
-    @Query(
-        """
-        SELECT * FROM manga
-        WHERE favorite = 0 AND id IN (
-            SELECT manga_id FROM chapters WHERE read = 1 OR last_page_read != 0
-        )
-    """
-    )
+    @Query(READ_NOT_IN_LIBRARY_MANGA_QUERY)
     fun observeReadNotInLibraryManga(): Flow<List<MangaEntity>>
 
-    @Query(
-        """
-        SELECT * FROM manga
-        WHERE favorite = 0 AND id IN (
-            SELECT manga_id FROM chapters WHERE read = 1 OR last_page_read != 0
-        )
-    """
-    )
+    @Query(READ_NOT_IN_LIBRARY_MANGA_QUERY)
     suspend fun getReadNotInLibraryManga(): List<MangaEntity>
 
     @Query(

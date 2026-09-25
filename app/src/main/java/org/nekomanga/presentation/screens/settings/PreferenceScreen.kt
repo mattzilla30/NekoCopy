@@ -69,12 +69,7 @@ fun PreferenceScreen(
                         key = { _, item -> "${preference.title}-${item.title}" },
                     ) { index, item ->
                         val cardType =
-                            when {
-                                preference.preferenceItems.size == 1 -> ListCardType.Single
-                                index == 0 -> ListCardType.Top
-                                index == preference.preferenceItems.lastIndex -> ListCardType.Bottom
-                                else -> ListCardType.Center
-                            }
+                            ListCardType.forPosition(index, preference.preferenceItems.size)
                         ExpressiveListCard(
                             listCardType = cardType,
                             modifier = Modifier.padding(horizontal = Size.medium),

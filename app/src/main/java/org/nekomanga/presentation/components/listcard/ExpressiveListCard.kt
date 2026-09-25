@@ -18,7 +18,18 @@ enum class ListCardType {
     Top,
     Center,
     Bottom,
-    Single,
+    Single;
+
+    companion object {
+        /** The card shape for the item at [index] in a group of [count] items. */
+        fun forPosition(index: Int, count: Int): ListCardType =
+            when {
+                count == 1 -> Single
+                index == 0 -> Top
+                index == count - 1 -> Bottom
+                else -> Center
+            }
+    }
 }
 
 @Composable

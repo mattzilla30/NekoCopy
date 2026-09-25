@@ -27,13 +27,7 @@ fun MangaChapterListItem(
     swipeRightAction: MangaConstants.ChapterSwipeAction,
     swipeLeftAction: MangaConstants.ChapterSwipeAction,
 ) {
-    val listCardType =
-        when {
-            index == 0 && count > 1 -> ListCardType.Top
-            index == count - 1 && count > 1 -> ListCardType.Bottom
-            count == 1 -> ListCardType.Single
-            else -> ListCardType.Center
-        }
+    val listCardType = ListCardType.forPosition(index, count)
 
     ExpressiveListCard(
         modifier = Modifier.padding(horizontal = Size.small),

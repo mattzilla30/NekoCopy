@@ -11,7 +11,6 @@ import coil3.memory.MemoryCache
 import coil3.request.allowRgb565
 import coil3.request.crossfade
 import coil3.util.DebugLogger
-import eu.kanade.tachiyomi.data.image.coil.ArtworkFactory
 import org.nekomanga.core.network.NetworkPreferences
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

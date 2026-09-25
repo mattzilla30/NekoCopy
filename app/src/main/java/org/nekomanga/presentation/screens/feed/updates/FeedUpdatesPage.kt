@@ -191,14 +191,7 @@ private fun Grouped(
             seriesListForDate.forEachIndexed { groupIndex, feedManga ->
                 val latestChapter = feedManga.chapters.first()
 
-                val listCardType =
-                    when {
-                        groupIndex == 0 && seriesListForDate.size > 1 -> ListCardType.Top
-                        groupIndex == seriesListForDate.size - 1 && seriesListForDate.size > 1 ->
-                            ListCardType.Bottom
-                        seriesListForDate.size == 1 -> ListCardType.Single
-                        else -> ListCardType.Center
-                    }
+                val listCardType = ListCardType.forPosition(groupIndex, seriesListForDate.size)
 
                 // 6. Pagination Logic (needs the global index)
                 val globalIndex = groupedBySeries.indexOf(feedManga)
@@ -309,14 +302,7 @@ private fun Ungrouped(
             }
 
             chaptersForDate.forEachIndexed { chapterIndex, (feedManga, chapterItem) ->
-                val listCardType =
-                    when {
-                        chapterIndex == 0 && chaptersForDate.size > 1 -> ListCardType.Top
-                        chapterIndex == chaptersForDate.size - 1 && chaptersForDate.size > 1 ->
-                            ListCardType.Bottom
-                        chaptersForDate.size == 1 -> ListCardType.Single
-                        else -> ListCardType.Center
-                    }
+                val listCardType = ListCardType.forPosition(chapterIndex, chaptersForDate.size)
 
                 val globalIndex =
                     feedUpdatesMangaList.indexOf(feedManga) // Used for pagination only

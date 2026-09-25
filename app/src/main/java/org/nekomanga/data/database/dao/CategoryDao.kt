@@ -12,6 +12,15 @@ import org.nekomanga.data.database.entity.MangaCategoryEntity
 
 @Dao
 interface CategoryDao {
+    companion object {
+        private const val CATEGORIES_FOR_MANGA_QUERY =
+            """
+        SELECT categories.* FROM categories
+        JOIN manga_categories ON categories.id = manga_categories.category_id
+        WHERE manga_categories.manga_id = :mangaId
+    """
+    }
+
     @Query("SELECT * FROM categories ORDER BY sort ASC")
     fun observeAllCategories(): Flow<List<CategoryEntity>>
 
@@ -21,22 +30,10 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE id = :id")
     suspend fun getCategoryById(id: Int): CategoryEntity?
 
-    @Query(
-        """
-        SELECT categories.* FROM categories
-        JOIN manga_categories ON categories.id = manga_categories.category_id
-        WHERE manga_categories.manga_id = :mangaId
-    """
-    )
+    @Query(CATEGORIES_FOR_MANGA_QUERY)
     fun observeCategoriesForManga(mangaId: Long): Flow<List<CategoryEntity>>
 
-    @Query(
-        """
-        SELECT categories.* FROM categories
-        JOIN manga_categories ON categories.id = manga_categories.category_id
-        WHERE manga_categories.manga_id = :mangaId
-    """
-    )
+    @Query(CATEGORIES_FOR_MANGA_QUERY)
     suspend fun getCategoriesForManga(mangaId: Long): List<CategoryEntity>
 
     @Upsert suspend fun insertCategory(category: CategoryEntity): Long

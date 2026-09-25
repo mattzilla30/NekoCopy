@@ -3,7 +3,6 @@ package org.nekomanga.presentation.screens.library
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,11 +38,7 @@ import com.cheonjaeung.compose.grid.VerticalGrid
 import jp.wasabeef.gap.Gap
 import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.manga.LibraryMangaItem
-import org.nekomanga.presentation.components.MangaGridItem
-import org.nekomanga.presentation.components.MangaRow
 import org.nekomanga.presentation.components.NekoColors
-import org.nekomanga.presentation.components.listcard.ExpressiveListCard
-import org.nekomanga.presentation.components.listcard.ListCardType
 import org.nekomanga.presentation.functions.numberOfColumns
 import org.nekomanga.presentation.theme.Size
 import org.nekomanga.presentation.theme.ThemeConfig
@@ -186,7 +181,7 @@ fun VerticalCategoriesPage(
                                 "list-${item.categoryItem.name}-${libraryItem.displayManga.mangaId}"
                             },
                         ) { index, libraryItem ->
-                            ListItem(
+                            LibraryListItem(
                                 index = index,
                                 totalSize = item.libraryItems.size,
                                 selectedIds = selectedIds,
@@ -219,82 +214,14 @@ private fun RowGrid(
         horizontalArrangement = Arrangement.spacedBy(Size.small),
     ) {
         rowItems.forEach { libraryItem ->
-            MangaGridItem(
-                displayManga = libraryItem.displayManga,
-                showUnreadBadge = displayOptions.showUnreadBadges,
-                unreadCount = libraryItem.unreadCount,
-                showDownloadBadge = displayOptions.showDownloadBadges,
-                downloadCount = libraryItem.downloadCount,
-                shouldOutlineCover = displayOptions.outlineCovers,
-                dynamicCover = displayOptions.dynamicCovers,
+            LibraryGridItem(
+                libraryItem = libraryItem,
+                displayOptions = displayOptions,
+                libraryScreenActions = libraryScreenActions,
+                selectedIds = selectedIds,
                 isComfortable = isComfortableGrid,
-                isSelected = selectedIds.contains(libraryItem.displayManga.mangaId),
-                showStartReadingButton =
-                    displayOptions.showStartReadingButton && libraryItem.unreadCount > 0,
-                onStartReadingClick = {
-                    libraryScreenActions.mangaStartReadingClick(libraryItem.displayManga.mangaId)
-                },
-                onClick = { _ ->
-                    if (selectedIds.isNotEmpty()) {
-                        libraryScreenActions.mangaLongClick(libraryItem)
-                    } else {
-                        libraryScreenActions.mangaClick(libraryItem.displayManga.mangaId)
-                    }
-                },
-                onLongClick = { _ -> libraryScreenActions.mangaLongClick(libraryItem) },
             )
         }
-    }
-}
-
-@Composable
-private fun ListItem(
-    modifier: Modifier = Modifier,
-    index: Int,
-    totalSize: Int,
-    selectedIds: List<Long>,
-    displayOptions: LibraryItemDisplayOptions,
-    libraryItem: LibraryMangaItem,
-    libraryScreenActions: LibraryScreenActions,
-) {
-    val listCardType =
-        when {
-            index == 0 && totalSize > 1 -> ListCardType.Top
-            index == totalSize - 1 && totalSize > 1 -> ListCardType.Bottom
-            totalSize == 1 -> ListCardType.Single
-            else -> ListCardType.Center
-        }
-    ExpressiveListCard(
-        modifier = modifier.padding(horizontal = Size.small),
-        listCardType = listCardType,
-    ) {
-        MangaRow(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .combinedClickable(
-                        onClick = {
-                            if (selectedIds.isNotEmpty()) {
-                                libraryScreenActions.mangaLongClick(libraryItem)
-                            } else {
-                                libraryScreenActions.mangaClick(libraryItem.displayManga.mangaId)
-                            }
-                        },
-                        onLongClick = { libraryScreenActions.mangaLongClick(libraryItem) },
-                    ),
-            displayManga = libraryItem.displayManga,
-            isSelected = selectedIds.contains(libraryItem.displayManga.mangaId),
-            showUnreadBadge = displayOptions.showUnreadBadges,
-            unreadCount = libraryItem.unreadCount,
-            showDownloadBadge = displayOptions.showDownloadBadges,
-            downloadCount = libraryItem.downloadCount,
-            showStartReadingButton =
-                displayOptions.showStartReadingButton && libraryItem.unreadCount > 0,
-            onStartReadingClick = {
-                libraryScreenActions.mangaStartReadingClick(libraryItem.displayManga.mangaId)
-            },
-            shouldOutlineCover = displayOptions.outlineCovers,
-            dynamicCover = displayOptions.dynamicCovers,
-        )
     }
 }
 

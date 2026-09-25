@@ -230,13 +230,7 @@ private fun mainContent(
         verticalArrangement = Arrangement.spacedBy(Size.tiny),
     ) {
         menuItems.forEachIndexed { index, item ->
-            val cardType =
-                when {
-                    menuItems.size == 1 -> ListCardType.Single
-                    index == 0 -> ListCardType.Top
-                    index == menuItems.lastIndex -> ListCardType.Bottom
-                    else -> ListCardType.Center
-                }
+            val cardType = ListCardType.forPosition(index, menuItems.size)
             key(item.labelText) {
                 ExpressiveListCard(
                     listCardType = cardType,

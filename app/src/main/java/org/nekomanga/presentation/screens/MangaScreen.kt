@@ -539,44 +539,51 @@ private fun MangaScreenWrapper(
             )
         },
     ) { contentPadding ->
+        val header: @Composable () -> Unit = {
+            MangaDetailsHeader(
+                mangaDetailScreenState = screenState,
+                isInitialized = isInitialized,
+                windowSizeClass = windowSizeClass,
+                isLoggedIntoTrackers = screenState.track.loggedInTrackService.isNotEmpty(),
+                themeColorState = themeColorState,
+                generatePalette = generatePalette,
+                toggleFavorite = onToggleFavoriteAction,
+                onCategoriesClick = {
+                    openSheet(
+                        DetailsBottomSheetScreen.CategoriesSheet(
+                            setCategories = categoryActions.set
+                        )
+                    )
+                },
+                onTrackingClick = { openSheet(DetailsBottomSheetScreen.TrackingSheet) },
+                onArtworkClick = { openSheet(DetailsBottomSheetScreen.ArtworkSheet) },
+                onSimilarClick = onSimilarClick,
+                onLinksClick = { openSheet(DetailsBottomSheetScreen.ExternalLinksSheet) },
+                onShareClick = onShareClick,
+                descriptionActions = descriptionActions,
+                informationActions = informationActions,
+                onQuickReadClick = { chapterActions.openNext() },
+            )
+        }
+        val chapters: LazyListScope.() -> Unit = {
+            if (isInitialized) {
+                chapterList(
+                    chapters =
+                        if (screenState.general.isSearching) screenState.general.searchChapters
+                        else screenState.chapters.activeChapters,
+                    screenState = screenState,
+                    themeColorState = themeColorState,
+                    chapterActions = chapterActions,
+                    onBookmark = onBookmark,
+                    onRead = onRead,
+                    onOpenSheet = ::openSheet,
+                )
+            }
+        }
         if (isTablet) {
-            SideBySideLayout(
-                incomingContentPadding = contentPadding,
-                isInitialized = isInitialized,
-                screenState = screenState,
-                windowSizeClass = windowSizeClass,
-                themeColorState = themeColorState,
-                chapterActions = chapterActions,
-                informationActions = informationActions,
-                descriptionActions = descriptionActions,
-                onSimilarClick = onSimilarClick,
-                onShareClick = onShareClick,
-                onToggleFavorite = onToggleFavoriteAction,
-                generatePalette = generatePalette,
-                onOpenSheet = ::openSheet,
-                categoryActions = categoryActions,
-                onBookmark = onBookmark,
-                onRead = onRead,
-            )
+            SideBySideLayout(contentPadding, themeColorState, header, chapters)
         } else {
-            VerticalLayout(
-                incomingContentPadding = contentPadding,
-                isInitialized = isInitialized,
-                screenState = screenState,
-                windowSizeClass = windowSizeClass,
-                themeColorState = themeColorState,
-                chapterActions = chapterActions,
-                informationActions = informationActions,
-                descriptionActions = descriptionActions,
-                onSimilarClick = onSimilarClick,
-                onShareClick = onShareClick,
-                onToggleFavorite = onToggleFavoriteAction,
-                generatePalette = generatePalette,
-                onOpenSheet = ::openSheet,
-                categoryActions = categoryActions,
-                onBookmark = onBookmark,
-                onRead = onRead,
-            )
+            VerticalLayout(contentPadding, themeColorState, header, chapters)
         }
 
         if (screenState.general.removedChapters.isNotEmpty()) {
@@ -629,26 +636,14 @@ private fun LazyListScope.chapterList(
     }
 }
 
+/** The details header above the chapter list, in one scrolling column. */
 @Composable
 private fun VerticalLayout(
     incomingContentPadding: PaddingValues,
-    isInitialized: Boolean,
-    screenState: MangaConstants.MangaDetailScreenState,
-    windowSizeClass: WindowSizeClass,
     themeColorState: ThemeColorState,
-    categoryActions: CategoryActions,
-    chapterActions: ChapterActions,
-    informationActions: InformationActions,
-    descriptionActions: DescriptionActions,
-    onSimilarClick: () -> Unit,
-    onShareClick: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    generatePalette: (Drawable) -> Unit,
-    onOpenSheet: (DetailsBottomSheetScreen) -> Unit,
-    onBookmark: (ChapterItem) -> Unit,
-    onRead: (ChapterItem) -> Unit,
+    header: @Composable () -> Unit,
+    chapters: LazyListScope.() -> Unit,
 ) {
-    val contentPadding = PaddingValues(bottom = incomingContentPadding.calculateBottomPadding())
     val listState = rememberLazyListState()
 
     VerticalFastScroller(
@@ -661,111 +656,30 @@ private fun VerticalLayout(
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = contentPadding,
+            contentPadding =
+                PaddingValues(bottom = incomingContentPadding.calculateBottomPadding()),
         ) {
-            item(key = "header") {
-                MangaDetailsHeader(
-                    mangaDetailScreenState = screenState,
-                    isInitialized = isInitialized,
-                    windowSizeClass = windowSizeClass,
-                    isLoggedIntoTrackers = screenState.track.loggedInTrackService.isNotEmpty(),
-                    themeColorState = themeColorState,
-                    generatePalette = generatePalette,
-                    toggleFavorite = onToggleFavorite,
-                    onCategoriesClick = {
-                        onOpenSheet(
-                            DetailsBottomSheetScreen.CategoriesSheet(
-                                setCategories = categoryActions.set
-                            )
-                        )
-                    },
-                    onTrackingClick = { onOpenSheet(DetailsBottomSheetScreen.TrackingSheet) },
-                    onArtworkClick = { onOpenSheet(DetailsBottomSheetScreen.ArtworkSheet) },
-                    onSimilarClick = onSimilarClick,
-                    onLinksClick = { onOpenSheet(DetailsBottomSheetScreen.ExternalLinksSheet) },
-                    onShareClick = onShareClick,
-                    descriptionActions = descriptionActions,
-                    informationActions = informationActions,
-                    onQuickReadClick = { chapterActions.openNext() },
-                )
-            }
-            if (isInitialized) {
-                chapterList(
-                    chapters =
-                        if (screenState.general.isSearching) screenState.general.searchChapters
-                        else screenState.chapters.activeChapters,
-                    screenState = screenState,
-                    themeColorState = themeColorState,
-                    chapterActions = chapterActions,
-                    onBookmark = onBookmark,
-                    onRead = onRead,
-                    onOpenSheet = onOpenSheet,
-                )
-            }
+            item(key = "header") { header() }
+            chapters()
         }
     }
 }
 
+/** The details header and the chapter list side by side, for wide screens. */
 @Composable
 private fun SideBySideLayout(
     incomingContentPadding: PaddingValues,
-    isInitialized: Boolean,
-    screenState: MangaConstants.MangaDetailScreenState,
-    windowSizeClass: WindowSizeClass,
     themeColorState: ThemeColorState,
-    categoryActions: CategoryActions,
-    chapterActions: ChapterActions,
-    informationActions: InformationActions,
-    descriptionActions: DescriptionActions,
-    onSimilarClick: () -> Unit,
-    onShareClick: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    generatePalette: (Drawable) -> Unit,
-    onOpenSheet: (DetailsBottomSheetScreen) -> Unit,
-    onBookmark: (ChapterItem) -> Unit,
-    onRead: (ChapterItem) -> Unit,
+    header: @Composable () -> Unit,
+    chapters: LazyListScope.() -> Unit,
 ) {
-
-    val detailsContentPadding =
-        PaddingValues(bottom = incomingContentPadding.calculateBottomPadding())
-
-    val chapterContentPadding =
-        PaddingValues(
-            bottom = incomingContentPadding.calculateBottomPadding(),
-            top = incomingContentPadding.calculateTopPadding(),
-        )
-
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxWidth(.5f).fillMaxHeight(),
-            contentPadding = detailsContentPadding,
+            contentPadding =
+                PaddingValues(bottom = incomingContentPadding.calculateBottomPadding()),
         ) {
-            item(key = "header") {
-                MangaDetailsHeader(
-                    mangaDetailScreenState = screenState,
-                    isInitialized = isInitialized,
-                    windowSizeClass = windowSizeClass,
-                    isLoggedIntoTrackers = screenState.track.loggedInTrackService.isNotEmpty(),
-                    themeColorState = themeColorState,
-                    generatePalette = generatePalette,
-                    toggleFavorite = onToggleFavorite,
-                    onCategoriesClick = {
-                        onOpenSheet(
-                            DetailsBottomSheetScreen.CategoriesSheet(
-                                setCategories = categoryActions.set
-                            )
-                        )
-                    },
-                    onTrackingClick = { onOpenSheet(DetailsBottomSheetScreen.TrackingSheet) },
-                    onArtworkClick = { onOpenSheet(DetailsBottomSheetScreen.ArtworkSheet) },
-                    onSimilarClick = onSimilarClick,
-                    onLinksClick = { onOpenSheet(DetailsBottomSheetScreen.ExternalLinksSheet) },
-                    onShareClick = onShareClick,
-                    descriptionActions = descriptionActions,
-                    informationActions = informationActions,
-                    onQuickReadClick = { chapterActions.openNext() },
-                )
-            }
+            item(key = "header") { header() }
         }
 
         VerticalDivider(Modifier.align(Alignment.TopCenter))
@@ -780,21 +694,15 @@ private fun SideBySideLayout(
             topContentPadding = incomingContentPadding.calculateTopPadding(),
             bottomContentPadding = incomingContentPadding.calculateBottomPadding(),
         ) {
-            LazyColumn(state = listState, contentPadding = chapterContentPadding) {
-                if (isInitialized) {
-                    chapterList(
-                        chapters =
-                            if (screenState.general.isSearching) screenState.general.searchChapters
-                            else screenState.chapters.activeChapters,
-                        screenState = screenState,
-                        themeColorState = themeColorState,
-                        chapterActions = chapterActions,
-                        onBookmark = onBookmark,
-                        onRead = onRead,
-                        onOpenSheet = onOpenSheet,
-                    )
-                }
-            }
+            LazyColumn(
+                state = listState,
+                contentPadding =
+                    PaddingValues(
+                        bottom = incomingContentPadding.calculateBottomPadding(),
+                        top = incomingContentPadding.calculateTopPadding(),
+                    ),
+                content = chapters,
+            )
         }
     }
 }
