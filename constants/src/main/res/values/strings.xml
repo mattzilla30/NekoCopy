@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Neko</string>
+    <string name="app_name" translatable="false">Kitty</string>
 
 
     <!-- Generic -->
@@ -154,7 +154,7 @@
 
     <!-- Onboarding -->
 
-    <string name="onboarding_heading">Welcome to Neko</string>
+    <string name="onboarding_heading">Welcome to Kitty</string>
     <string name="onboarding_description">Let\'s pick some defaults. You can always change these things later in the settings.</string>
 
     <string name="onboarding_action_next">Next</string>
@@ -167,7 +167,7 @@
     <string name="invalid_location">Invalid location: %s</string>
     <string name="onboarding_storage_help_info">Updating from an older version and not sure what to select? Refer to the Tachiyomi upgrade section on the Mihon storage guide for more information.</string>
     <string name="onboarding_storage_help_action">Storage guide</string>
-    <string name="onboarding_guides_returning_user">Already used Neko before?</string>
+    <string name="onboarding_guides_returning_user">Already used Kitty before?</string>
     <string name="onboarding_guides_new_version">This version of the app is a completely new install. So make a backup from a previous version if you have one installed. Put that backup in a safe location, and uninstall the old version. Once done come back here.</string>
     <string name="onboarding_guides_restore_backup">After onboarding, restore your backup in</string>
     <string name="onboarding_guides_restore_backup_setting_location">Settings -> Storage and Data</string>
@@ -847,7 +847,7 @@
     <string name="light_theme">Light theme</string>
     <string name="dark_theme">Dark theme</string>
     <string name="amoled_black">AMOLED Black</string>
-    <string name="dark">Neko Green</string>
+    <string name="dark">Kitty Green</string>
     <string name="miami_vice">Miami Vice</string>
     <string name="light_blue">Light Blue</string>
     <string name="dark_blue">Dark Blue</string>
@@ -915,7 +915,7 @@
     <string name="storage_location">Storage location</string>
     <string name="storage_location_info">Used for automatic backups, saved images and chapter downloads.</string>
     <string name="storage_usage">Storage usage</string>
-    <string name="storage_usage_info">This shows the overall space status of your device\'s storage drives. It is not the amount of space Neko itself is using.</string>
+    <string name="storage_usage_info">This shows the overall space status of your device\'s storage drives. It is not the amount of space Kitty itself is using.</string>
     <string name="storage_used_of">%1$s used of %2$s</string>
     <string name="storage_free">%1$s free</string>
     <string name="available_disk_space_info">%1$s free of %2$s (total drive space)</string>
@@ -924,7 +924,7 @@
     <string name="create_backup">Create backup</string>
     <string name="can_be_used_to_restore">Can be used to restore current library</string>
     <string name="restore_backup">Restore backup</string>
-    <string name="restore_neko">Data from the backup file will be restored.</string>
+    <string name="restore_kitty">Data from the backup file will be restored.</string>
     <string name="restore_from_backup_file">Restore library from backup file</string>
     <string name="restore_in_progress">Restore already in progress</string>
     <string name="backup_in_progress">Backup already in progress</string>
@@ -1047,7 +1047,6 @@
     <string name="whats_new_this_release">What\'s new in this release</string>
     <string name="website">Website</string>
     <string name="open_source_licenses">Open source licenses</string>
-    <string name="privacy_policy">Privacy policy</string>
 
     <!-- Signin/Signout dialog -->
     <string name="sign_in_to_">Sign in to %1$s</string>
@@ -1223,7 +1222,7 @@
     <string name="information_cloudflare_bypass_failure">Failed to bypass Cloudflare</string>
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
     <!-- Do not translate "WebView" -->
-    <string name="information_webview_required">WebView is required for Neko</string>
+    <string name="information_webview_required">WebView is required for Kitty</string>
 
     <!-- Miscellaneous -->
     <string name="add">Add</string>
@@ -1373,7 +1372,7 @@
     <string name="wifi">Wi-Fi</string>
 
 
-    <!--NEKO -->
+    <!-- Themes -->
     <string name="system_default_dark">System Default (White + Dark)</string>
 
     <!-- Backup -->
@@ -1544,7 +1543,7 @@
 
 
     <string name="pull_follows_to_library">Pull MangaDex follows</string>
-    <string name="pull_follows_to_library_summary">Pulls Manga from your MangaDex Follows List into your Neko library if they are not already added.</string>
+    <string name="pull_follows_to_library_summary">Pulls Manga from your MangaDex Follows List into your Kitty library if they are not already added.</string>
     <string name="pull_follows_to_library_toast">Pulled %d new manga from MangaDex</string>
     <string name="push_favorites_to_mangadex">Push library to MangaDex Follows</string>
     <string name="push_favorites_to_mangadex_summary">Pushes your entire library to your MangaDex Follows List with a Reading Status</string>

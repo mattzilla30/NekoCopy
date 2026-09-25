@@ -12,10 +12,10 @@ class HeadersInterceptor(private val referer: String) : Interceptor {
                 .request()
                 .newBuilder()
                 .removeHeader(HttpHeaders.USER_AGENT)
-                .header(HttpHeaders.USER_AGENT, "Neko " + System.getProperty("http.agent"))
+                .header(HttpHeaders.USER_AGENT, "Kitty " + System.getProperty("http.agent"))
                 .header(HttpHeaders.REFERER, referer)
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
-                .header("x-request-id", "Neko-" + UUID.randomUUID())
+                .header("x-request-id", "Kitty-" + UUID.randomUUID())
                 .build()
 
         return chain.proceed(request)

@@ -44,7 +44,7 @@ import eu.kanade.tachiyomi.ui.base.activity.BaseMainActivity
 import eu.kanade.tachiyomi.ui.main.states.SideNavMode
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
-import eu.kanade.tachiyomi.util.RELEASE_URL
+import eu.kanade.tachiyomi.util.LATEST_COMMIT_URL
 import eu.kanade.tachiyomi.util.chapter.ChapterItemSort
 import eu.kanade.tachiyomi.util.chapter.isAvailable
 import eu.kanade.tachiyomi.util.system.launchIO
@@ -192,7 +192,7 @@ class MainActivity : BaseMainActivity() {
                 WhatsNewDialog(
                     onDismissRequest = { viewModel.setWhatsNewDialog(false) },
                     onSeeWhatsNewClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, RELEASE_URL.toUri())
+                        val intent = Intent(Intent.ACTION_VIEW, LATEST_COMMIT_URL.toUri())
                         startActivity(intent)
                     },
                 )

@@ -188,7 +188,7 @@ open class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.F
                             setContentTitle(getString(R.string.mangadex_session_expired_title))
                             setContentText(body)
                             setStyle(NotificationCompat.BigTextStyle().bigText(body))
-                            setSmallIcon(R.drawable.ic_neko_notification)
+                            setSmallIcon(R.drawable.ic_kitty_notification)
                             setContentIntent(pendingIntent)
                             setAutoCancel(true)
                             priority = NotificationCompat.PRIORITY_HIGH

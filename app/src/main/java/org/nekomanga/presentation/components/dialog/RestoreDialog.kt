@@ -29,7 +29,7 @@ fun RestoreDialog(uri: Uri, onDismiss: () -> Unit, onConfirm: () -> Unit) {
         title = { Text(text = stringResource(id = R.string.restore_backup)) },
         text = {
             Column {
-                Text(text = stringResource(id = R.string.restore_neko))
+                Text(text = stringResource(id = R.string.restore_kitty))
                 if (results.missingMangaDexEntries) {
                     Gap(Size.small)
                     Text(text = stringResource(id = R.string.restore_missing_mangadex))

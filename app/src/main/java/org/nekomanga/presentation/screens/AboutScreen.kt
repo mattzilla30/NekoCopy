@@ -43,15 +43,11 @@ import androidx.navigation3.runtime.NavKey
 import eu.kanade.tachiyomi.ui.main.ObserveAsEvents
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.LATEST_COMMIT_URL
-import eu.kanade.tachiyomi.util.RELEASE_URL
 import eu.kanade.tachiyomi.util.REPO_URL
 import kotlinx.coroutines.launch
 import org.nekomanga.BuildConfig
 import org.nekomanga.R
-import org.nekomanga.constants.Constants.DISCORD_URL
-import org.nekomanga.constants.Constants.PRIVACY_POLICY_URL
 import org.nekomanga.presentation.components.ToolTipButton
-import org.nekomanga.presentation.components.icons.DiscordIcon
 import org.nekomanga.presentation.components.icons.GithubIcon
 import org.nekomanga.presentation.components.listcard.ExpressiveListCard
 import org.nekomanga.presentation.components.listcard.ListCardType
@@ -150,7 +146,7 @@ private fun AboutWrapper(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_neko_yokai),
+                        painter = painterResource(id = R.drawable.ic_kitty),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(Size.extraExtraHuge * 3),
                         contentDescription = null,
@@ -171,12 +167,6 @@ private fun AboutWrapper(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         val iconModifier = Modifier.size(Size.extraLarge)
-                        LinkIcon(
-                            label = "Discord",
-                            modifier = iconModifier,
-                            icon = DiscordIcon,
-                            url = DISCORD_URL,
-                        )
                         LinkIcon(
                             modifier = iconModifier,
                             label = "GitHub",
@@ -215,24 +205,7 @@ private fun AboutWrapper(
                         ExpressiveListCard(listCardType = ListCardType.Center) {
                             TextPreferenceWidget(
                                 title = stringResource(R.string.whats_new),
-                                onPreferenceClick = {
-                                    val url =
-                                        if (BuildConfig.DEBUG) {
-                                            LATEST_COMMIT_URL
-                                        } else {
-                                            RELEASE_URL
-                                        }
-                                    uriHandler.openUri(url)
-                                },
-                            )
-                        }
-                    }
-
-                    item {
-                        ExpressiveListCard(listCardType = ListCardType.Center) {
-                            TextPreferenceWidget(
-                                title = stringResource(R.string.open_source_licenses),
-                                onPreferenceClick = onClickLicenses,
+                                onPreferenceClick = { uriHandler.openUri(LATEST_COMMIT_URL) },
                             )
                         }
                     }
@@ -240,8 +213,8 @@ private fun AboutWrapper(
                     item {
                         ExpressiveListCard(listCardType = ListCardType.Bottom) {
                             TextPreferenceWidget(
-                                title = stringResource(R.string.privacy_policy),
-                                onPreferenceClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
+                                title = stringResource(R.string.open_source_licenses),
+                                onPreferenceClick = onClickLicenses,
                             )
                         }
                     }
@@ -278,24 +251,7 @@ private fun AboutWrapper(
                     ExpressiveListCard(listCardType = ListCardType.Center) {
                         TextPreferenceWidget(
                             title = stringResource(R.string.whats_new),
-                            onPreferenceClick = {
-                                val url =
-                                    if (BuildConfig.DEBUG) {
-                                        LATEST_COMMIT_URL
-                                    } else {
-                                        RELEASE_URL
-                                    }
-                                uriHandler.openUri(url)
-                            },
-                        )
-                    }
-                }
-
-                item {
-                    ExpressiveListCard(listCardType = ListCardType.Center) {
-                        TextPreferenceWidget(
-                            title = stringResource(R.string.open_source_licenses),
-                            onPreferenceClick = onClickLicenses,
+                            onPreferenceClick = { uriHandler.openUri(LATEST_COMMIT_URL) },
                         )
                     }
                 }
@@ -303,8 +259,8 @@ private fun AboutWrapper(
                 item {
                     ExpressiveListCard(listCardType = ListCardType.Bottom) {
                         TextPreferenceWidget(
-                            title = stringResource(R.string.privacy_policy),
-                            onPreferenceClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
+                            title = stringResource(R.string.open_source_licenses),
+                            onPreferenceClick = onClickLicenses,
                         )
                     }
                 }
@@ -315,12 +271,6 @@ private fun AboutWrapper(
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         val modifier = Modifier.size(Size.extraLarge)
-                        LinkIcon(
-                            label = "Discord",
-                            modifier = modifier,
-                            icon = DiscordIcon,
-                            url = DISCORD_URL,
-                        )
                         LinkIcon(
                             modifier = modifier,
                             label = "GitHub",
@@ -341,7 +291,7 @@ private fun LogoHeader() {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_neko_yokai),
+            painter = painterResource(id = R.drawable.ic_kitty),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(Size.extraExtraHuge * 2),
             contentDescription = null,

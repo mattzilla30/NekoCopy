@@ -1,5 +1,5 @@
 name: 🌟 Feature request
-description: Suggest a feature to improve Neko
+description: Suggest a feature to improve Kitty
 labels: [ feature ]
 body:
 
@@ -7,7 +7,7 @@ body:
     id: feature-description
     attributes:
       label: Describe your suggested feature
-      description: How can Neko be improved?
+      description: How can Kitty be improved?
       placeholder: |
         Example:
           "It should work like this..."
@@ -31,7 +31,7 @@ body:
           required: true
         - label: I have written a short but informative title.
           required: true
-        - label: I have updated the app to the newest version **[Latest](https://github.com/nekomangaorg/Neko/releases/latest)**.
+        - label: I have updated the app to the newest version **[Latest](https://github.com/mattzilla30/NekoCopy/commits/main)**.
           required: true
         - label: I have checked through the app settings for my feature.
           required: true

@@ -175,7 +175,7 @@ class MangaCoverFetcher(
                 .headers(
                     sourceLazy.value.headers
                         .newBuilder()
-                        .add("x-request-id", "Neko-" + UUID.randomUUID())
+                        .add("x-request-id", "Kitty-" + UUID.randomUUID())
                         .build()
                 )
 

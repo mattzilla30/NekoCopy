@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Neko.Monet">
+    <style name="Theme.Kitty.Monet">
         <!-- Color palettes -->
         <item name="colorPrimary">@color/m3_sys_color_dynamic_dark_primary</item>
         <item name="colorOnPrimary">@color/m3_sys_color_dynamic_dark_on_primary</item>

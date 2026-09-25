@@ -1,43 +1,27 @@
 <div align="center">
-<a href="https://github.com/nekomangaorg/Neko"><img src="./.github/assets/logo.png" alt="Neko" width="200"></a>
+<img src="./.github/assets/logo.png" alt="Kitty" width="200">
 
-# Neko
+# Kitty
 
-A Free, Open source unofficial manga reader for MangaDex
+A free, open source, unofficial manga reader for MangaDex.
 
-If you got any questions, [join our Discord server](https://discord.gg/4vmK42QuKG).
-
-![](https://img.shields.io/github/downloads/nekomangaorg/neko/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)
-![](https://img.shields.io/github/actions/workflow/status/nekomangaorg/neko/ci-draft-release.yml?labelColor=27303D&style=flat)
-![](https://img.shields.io/github/stars/nekomangaorg/Neko.svg?label=stars&labelColor=27303D&color=0D1117&logo=github&style=flat)
-
-## Download
-
-[![](https://img.shields.io/github/v/release/nekomangaorg/neko.svg?maxAge=3600&label=Stable&labelColor=000000&color=ff124a&style=for-the-badge)](https://github.com/nekomangaorg/Neko/releases/latest)
+Kitty is a fork of [Neko](https://github.com/nekomangaorg/Neko).
 
 ## Features include
 
 <div align="left">
 
-- [MangaDex](https://mangadex.org/) manga reader for Android 8+
+- [MangaDex](https://mangadex.org/) manga reader for Android 12+
 - Supports native login to MangaDex
 - Offline reading
 - MDList support
 - Tracker support: <a target="_blank" href="https://myanimelist.net/">MyAnimeList</a>, <a target="_blank" href="https://anilist.co/">AniList</a>, <a target="_blank" href="https://kitsu.app/">
   Kitsu</a>, <a target="_blank" href="https://mangaupdates.com">MangaUpdates</a> and <a target="_blank" href="https://mangabaka.org/">MangaBaka</a>
 - Custom computer generated similar manga recommendations, as well as user recommendations from MyAnimeList, MangaUpdates, AniList
-- Syncing manga, and read statuses to and from MangaDex and Neko
-- Ability to merge missing chapters from MangaDex with other sources including <a target="_blank" href="https://atsu.moe/">Atsumaru</a>, <a target="_blank" href="https://toonily.com/">Toonily</a>, 
-  <a target="_blank" href="https://weebcentral.com/">Weeb Central</a>, <a target="_blank" href="https://projectsuki.com">Project Suki</a>, <a target="_blank" href="https://comix.to/">Comix</a>, <a target="_blank" href="https://github.com/Suwayomi/Suwayomi-Server">Suwayomi</a> and <a target="_blank" href="https://komga.org/">Komga</a>
+- Syncing manga, and read statuses to and from MangaDex and Kitty
 - Plus much more...
 
 </div>
-
-## A big thanks to all who have contributed
-
-<a href="https://github.com/nekomangaorg/neko/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nekomangaorg/neko"  width="600" />
-</a>
 
 ## Disclaimer
 

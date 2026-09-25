@@ -33,21 +33,21 @@ enum class Themes {
     @StyleRes
     fun styleRes(): Int {
         return when {
-            this == Monet -> R.style.Theme_Neko_Monet
-            this == Retro -> R.style.Theme_Neko_Retro
-            this == Pink -> R.style.Theme_Neko_Pink
-            this == Orange -> R.style.Theme_Neko_Orange
-            this == Teal -> R.style.Theme_Neko_Teal
-            this == Purple -> R.style.Theme_Neko_Purple
-            this == Brown -> R.style.Theme_Neko_Brown
-            this == Tako -> R.style.Theme_Neko_Tako
-            this == TokyoNight -> R.style.Theme_Neko_TokyoNight
-            this == Nord -> R.style.Theme_Neko_Nord
-            this == Green -> R.style.Theme_Neko_Green
-            this == Blue -> R.style.Theme_Neko_Blue
-            this == Monochrome -> R.style.Theme_Neko_Monochrome
-            this == Neon -> R.style.Theme_Neko_Neon
-            else -> R.style.Theme_Neko // DEFAULT
+            this == Monet -> R.style.Theme_Kitty_Monet
+            this == Retro -> R.style.Theme_Kitty_Retro
+            this == Pink -> R.style.Theme_Kitty_Pink
+            this == Orange -> R.style.Theme_Kitty_Orange
+            this == Teal -> R.style.Theme_Kitty_Teal
+            this == Purple -> R.style.Theme_Kitty_Purple
+            this == Brown -> R.style.Theme_Kitty_Brown
+            this == Tako -> R.style.Theme_Kitty_Tako
+            this == TokyoNight -> R.style.Theme_Kitty_TokyoNight
+            this == Nord -> R.style.Theme_Kitty_Nord
+            this == Green -> R.style.Theme_Kitty_Green
+            this == Blue -> R.style.Theme_Kitty_Blue
+            this == Monochrome -> R.style.Theme_Kitty_Monochrome
+            this == Neon -> R.style.Theme_Kitty_Neon
+            else -> R.style.Theme_Kitty // DEFAULT
         }
     }
 

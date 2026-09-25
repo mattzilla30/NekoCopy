@@ -13,11 +13,11 @@ data class Backup(
 ) {
     companion object {
         val filenameRegex =
-            """(neko|tachiyomi)?_\d+-\d+-\d+_\d+-\d+\.(tachibk|proto\.gz)""".toRegex()
+            """(kitty|neko|tachiyomi)?_\d+-\d+-\d+_\d+-\d+\.(tachibk|proto\.gz)""".toRegex()
 
         fun getBackupFilename(): String {
             val date = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
-            return "neko_$date.tachibk"
+            return "kitty_$date.tachibk"
         }
     }
 }

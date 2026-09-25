@@ -1,8 +1,8 @@
 package eu.kanade.tachiyomi.data.backup
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
@@ -23,8 +23,8 @@ class BackupNotifier(private val context: Context) {
 
     private val progressNotificationBuilder =
         context.notificationBuilder(Notifications.CHANNEL_BACKUP_RESTORE_PROGRESS) {
-            setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
-            setSmallIcon(R.drawable.ic_neko_notification)
+            setLargeIcon(context.getDrawable(R.mipmap.ic_launcher)?.toBitmap())
+            setSmallIcon(R.drawable.ic_kitty_notification)
             setAutoCancel(false)
             color = context.contextCompatColor(R.color.iconOutline)
             setOngoing(true)
@@ -32,8 +32,8 @@ class BackupNotifier(private val context: Context) {
 
     private val completeNotificationBuilder =
         context.notificationBuilder(Notifications.CHANNEL_BACKUP_RESTORE_COMPLETE) {
-            setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
-            setSmallIcon(R.drawable.ic_neko_notification)
+            setLargeIcon(context.getDrawable(R.mipmap.ic_launcher)?.toBitmap())
+            setSmallIcon(R.drawable.ic_kitty_notification)
             color = context.contextCompatColor(R.color.iconOutline)
             setAutoCancel(false)
         }

@@ -6,12 +6,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -45,9 +45,7 @@ class LibraryUpdateNotifier(private val context: Context) {
     }
 
     /** Bitmap of the app for notifications. */
-    private val notificationBitmap by lazy {
-        BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
-    }
+    private val notificationBitmap by lazy { context.getDrawable(R.mipmap.ic_launcher)?.toBitmap() }
 
     /** Cached progress notification to avoid creating a lot. */
     val progressNotificationBuilder by lazy {
@@ -120,7 +118,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                             .bigText(errors.joinToString("\n") { it.chop(TITLE_MAX_LEN) })
                     )
                     setContentIntent(pendingIntent)
-                    setSmallIcon(R.drawable.ic_neko_notification)
+                    setSmallIcon(R.drawable.ic_kitty_notification)
                     if (uri != null) {
                         addAction(
                             R.drawable.ic_help_24dp,
@@ -164,7 +162,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                             .bigText(skips.joinToString("\n") { it.chop(TITLE_MAX_LEN) })
                     )
                     setContentIntent(pendingIntent)
-                    setSmallIcon(R.drawable.ic_neko_notification)
+                    setSmallIcon(R.drawable.ic_kitty_notification)
                     if (uri != null) {
                         addAction(
                             R.drawable.ic_help_24dp,
@@ -195,7 +193,7 @@ class LibraryUpdateNotifier(private val context: Context) {
                 notifications.add(
                     Pair(
                         context.notification(Notifications.CHANNEL_NEW_CHAPTERS) {
-                            setSmallIcon(R.drawable.ic_neko_notification)
+                            setSmallIcon(R.drawable.ic_kitty_notification)
                             try {
                                 val artwork = manga.toDisplayManga().currentArtwork
                                 val request =
@@ -289,7 +287,7 @@ class LibraryUpdateNotifier(private val context: Context) {
             notify(
                 Notifications.ID_NEW_CHAPTERS,
                 context.notification(Notifications.CHANNEL_NEW_CHAPTERS) {
-                    setSmallIcon(R.drawable.ic_neko_notification)
+                    setSmallIcon(R.drawable.ic_kitty_notification)
                     setLargeIcon(notificationBitmap)
                     setContentTitle(context.getString(R.string.new_chapters_found))
                     color = ContextCompat.getColor(context, R.color.iconOutline)

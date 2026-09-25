@@ -15,6 +15,6 @@ class ReleaseLogTree : Timber.Tree() {
         if (priority < Log.INFO || Timber.forest().any { it is Timber.DebugTree }) return
 
         val logMessage = if (t != null) "$message\n${Log.getStackTraceString(t)}" else message
-        Log.println(priority, tag ?: "Neko", logMessage)
+        Log.println(priority, tag ?: "Kitty", logMessage)
     }
 }

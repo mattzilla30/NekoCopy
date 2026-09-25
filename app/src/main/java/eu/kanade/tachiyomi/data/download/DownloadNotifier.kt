@@ -3,9 +3,9 @@ package eu.kanade.tachiyomi.data.download
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.notification.NotificationHandler
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
@@ -30,7 +30,7 @@ internal class DownloadNotifier(private val context: Context) {
     /** Notification builder. */
     private val notificationBuilder by lazy {
         context.notificationBuilder(Notifications.Channel.Downloader.Progress) {
-            setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
+            setLargeIcon(context.getDrawable(R.mipmap.ic_launcher)?.toBitmap())
             setAutoCancel(false)
         }
     }

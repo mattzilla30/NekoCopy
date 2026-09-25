@@ -32,7 +32,7 @@ class TrackingSyncJob(val context: Context, params: WorkerParameters) :
     private val progressNotification =
         with(applicationContext.notificationBuilder(Notifications.Channel.Tracking)) {
             setContentTitle(context.getString(R.string.refresh_tracking_metadata))
-            setSmallIcon(R.drawable.ic_neko_notification)
+            setSmallIcon(R.drawable.ic_kitty_notification)
             setAutoCancel(true)
             addAction(
                 R.drawable.ic_close_24dp,
@@ -44,7 +44,7 @@ class TrackingSyncJob(val context: Context, params: WorkerParameters) :
     private val completeNotification =
         with(applicationContext.notificationBuilder(Notifications.Channel.Tracking)) {
             setContentTitle(context.getString(R.string.refresh_tracking_complete))
-            setSmallIcon(R.drawable.ic_neko_notification)
+            setSmallIcon(R.drawable.ic_kitty_notification)
         }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {

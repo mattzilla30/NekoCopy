@@ -31,7 +31,7 @@ class CrashLogUtil(private val context: Context) {
 
     private val notificationBuilder =
         context.notificationBuilder(Notifications.CHANNEL_CRASH_LOGS) {
-            setSmallIcon(R.drawable.ic_neko_notification)
+            setSmallIcon(R.drawable.ic_kitty_notification)
         }
 
     suspend fun dumpLogs(exception: Throwable? = null) = withNonCancellableContext {
@@ -42,7 +42,7 @@ class CrashLogUtil(private val context: Context) {
                 storageManager
                     .getCrashLogDirectory()
                     ?.createFile(
-                        "neko_crash_log-${SimpleDateFormat("yyyyMMddHHmm").format(Date())}.txt"
+                        "kitty_crash_log-${SimpleDateFormat("yyyyMMddHHmm").format(Date())}.txt"
                     ) ?: return@withNonCancellableContext
 
             uniFile.openOutputStream().sink().buffer().use { bufferedSink ->

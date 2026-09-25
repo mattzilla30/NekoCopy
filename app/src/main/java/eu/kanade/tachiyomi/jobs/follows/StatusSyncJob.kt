@@ -43,7 +43,7 @@ class StatusSyncJob(val context: Context, params: WorkerParameters) :
     private val progressNotification =
         applicationContext.notificationBuilder(Notifications.Channel.Status).apply {
             setContentTitle(context.getString(R.string.syncing_follows))
-            setSmallIcon(R.drawable.ic_neko_notification)
+            setSmallIcon(R.drawable.ic_kitty_notification)
             setAutoCancel(true)
             addAction(
                 R.drawable.ic_close_24dp,

@@ -88,7 +88,7 @@ class CloudflareInterceptor(
                         latch.countDown()
                     }
                 },
-                "neko",
+                "kitty",
             )
 
             wv.webViewClient =
@@ -117,7 +117,7 @@ class CloudflareInterceptor(
                                     """
                                     addEventListener("message", ({data}) => {
                                         if (data?.source === "cloudflare-challenge" && data?.event === "interactiveBegin") {
-                                            neko.interactiveDetected();
+                                            kitty.interactiveDetected();
                                         }
                                     })
                                     """

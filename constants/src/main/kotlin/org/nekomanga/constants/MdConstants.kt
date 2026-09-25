@@ -8,13 +8,11 @@ import java.util.concurrent.TimeUnit
 object MdConstants {
     const val seasonalApi = "https://antsylich.github.io/mangadex-seasonal/seasonal-list.min.json"
     const val staffPicksId = "805ba886-dd99-4aa4-b460-4bd7c7b71352"
-    const val nekoDevPicksId = "4dd69b87-046e-4a85-9dca-ec88d7d314c7"
     const val name = "MangaDex"
     const val baseUrl = "https://mangadex.org"
     const val cdnUrl = "https://uploads.mangadex.org"
     const val forumUrl = "https://forums.mangadex.org/threads/"
-    const val noCoverUrl =
-        "https://github.com/nekomangaorg/Neko/blob/main/.github/assets/404_logo.png?raw=true"
+    const val noCoverUrl = "https://mangadex.org/img/cover-placeholder.jpg"
     const val chapterSuffix = "/chapter/"
 
     val UnsupportedOfficialGroupList =

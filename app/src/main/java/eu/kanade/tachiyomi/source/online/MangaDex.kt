@@ -216,16 +216,6 @@ open class MangaDex : HttpSource() {
                     }
                 }
 
-                val nekoDevPicks = async {
-                    fetchList(MdConstants.nekoDevPicksId).andThen { listResults ->
-                        Ok(
-                            listResults.copy(
-                                sourceManga = listResults.sourceManga.shuffled().toList()
-                            )
-                        )
-                    }
-                }
-
                 val popularNewTitles = async {
                     searchHandler.popularNewTitles(1).andThen { mangaListPage ->
                         Ok(
@@ -289,7 +279,6 @@ open class MangaDex : HttpSource() {
                     latestChapter.await(),
                     seasonal.await(),
                     staffPick.await(),
-                    nekoDevPicks.await(),
                     recentlyAdded.await(),
                 )
             }

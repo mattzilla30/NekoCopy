@@ -1,5 +1,5 @@
 name: 🐞 Issue report
-description: Report an issue or bug in Neko
+description: Report an issue or bug in Kitty
 labels: [ bug ]
 body:
 
@@ -50,8 +50,8 @@ body:
   - type: input
     id: tachiyomi-version
     attributes:
-      label: Neko version
-      description: You can find your Neko version in **More → About**.
+      label: Kitty version
+      description: You can find your Kitty version in **More → About**.
       placeholder: |
         Example: "2.8.0.2"
     validations:
@@ -93,7 +93,7 @@ body:
         - label: I have searched the existing issues and this is a new ticket, **NOT** a duplicate or related to another open issue.
           required: true
         - label: I have written a short but informative title.
-        - label: I have updated the app to the newest version **[Latest](https://github.com/nekomangaorg/Neko/releases/latest)**.
+        - label: I have updated the app to the newest version **[Latest](https://github.com/mattzilla30/NekoCopy/commits/main)**.
           required: true
         - label: I have filled out all of the requested information in this form.
           required: true

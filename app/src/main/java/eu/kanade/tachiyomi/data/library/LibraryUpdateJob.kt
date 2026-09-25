@@ -666,7 +666,7 @@ class LibraryUpdateJob(private val context: Context, workerParameters: WorkerPar
     private fun writeErrorFile(errors: Map<String, String?>, fileName: String = "errors"): File? {
         try {
             if (errors.isNotEmpty()) {
-                val file = context.createFileInCacheDir("neko_update_$fileName.txt")
+                val file = context.createFileInCacheDir("kitty_update_$fileName.txt")
                 file.bufferedWriter().use { out ->
                     // Error file format:
                     // ! Error

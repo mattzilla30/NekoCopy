@@ -53,9 +53,9 @@ class MangaBakaApi(
                     .header(
                         "User-Agent",
                         buildString {
-                            append("Neko/v${BuildConfig.VERSION_NAME} ")
+                            append("Kitty/v${BuildConfig.VERSION_NAME} ")
                             append("(${BuildConfig.APPLICATION_ID} ${BuildConfig.COMMIT_SHA}) ")
-                            append("(Android) (https://github.com/nekomangaorg/Neko)")
+                            append("(Android) (https://github.com/mattzilla30/NekoCopy)")
                         },
                     )
                     .build()

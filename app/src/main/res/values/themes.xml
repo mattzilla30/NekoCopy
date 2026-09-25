@@ -48,22 +48,22 @@
         <item name="readerBackground">?attr/colorSurface</item>
         <item name="android:listSelector">?attr/colorSecondary</item>
         <item name="colorControlHighlight">?attr/colorPrimary</item>
-        <item name="actionModeStyle">@style/Widget.Neko.ActionMode</item>
+        <item name="actionModeStyle">@style/Widget.Kitty.ActionMode</item>
         <item name="materialSwitchStyle">@style/Widget.Material3.CompoundButton.MaterialSwitch</item>
-        <item name="materialCardViewOutlinedStyle">@style/Widget.Neko.CardView.Outlined</item>
-        <item name="materialCardViewFilledStyle">@style/Widget.Neko.CardView.Filled</item>
-        <item name="materialCardViewElevatedStyle">@style/Widget.Neko.CardView.Elevated</item>
+        <item name="materialCardViewOutlinedStyle">@style/Widget.Kitty.CardView.Outlined</item>
+        <item name="materialCardViewFilledStyle">@style/Widget.Kitty.CardView.Filled</item>
+        <item name="materialCardViewElevatedStyle">@style/Widget.Kitty.CardView.Elevated</item>
         <item name="android:textColorSecondary">@color/text_color_secondary</item>
         <item name="android:textColorHint">@color/text_color_hint</item>
         <item name="textAppearanceButton">@style/TextAppearance.Tachiyomi.Button</item>
         <item name="textAppearanceBodySecondary">@style/TextAppearance.Tachiyomi.BodySecondary
         </item>
-        <item name="switchStyle">@style/Widget.Neko.CompoundButton.Switch</item>
-        <item name="sliderStyle">@style/Widget.Neko.Slider</item>
-        <item name="checkboxStyle">@style/Widget.Neko.CompoundButton.CheckBox</item>
-        <item name="radioButtonStyle">@style/Widget.Neko.CompoundButton.RadioButton</item>
-        <item name="bottomNavigationStyle">@style/Widget.Neko.BottomNavigationView</item>
-        <item name="navigationRailStyle">@style/Widget.Neko.NavigationRail</item>
+        <item name="switchStyle">@style/Widget.Kitty.CompoundButton.Switch</item>
+        <item name="sliderStyle">@style/Widget.Kitty.Slider</item>
+        <item name="checkboxStyle">@style/Widget.Kitty.CompoundButton.CheckBox</item>
+        <item name="radioButtonStyle">@style/Widget.Kitty.CompoundButton.RadioButton</item>
+        <item name="bottomNavigationStyle">@style/Widget.Kitty.BottomNavigationView</item>
+        <item name="navigationRailStyle">@style/Widget.Kitty.NavigationRail</item>
         <item name="elevationOverlayEnabled">false</item>
         <item name="android:fontFamily">@font/mplus_rounded</item>
         <item name="fontFamily">@font/mplus_rounded</item>
@@ -87,8 +87,8 @@
         <item name="android:windowLightNavigationBar">@bool/isLightMode</item>
     </style>
 
-    <style name="Theme.Neko" parent="Theme.Base" />
-    <style name="Theme.Neko.Blue">
+    <style name="Theme.Kitty" parent="Theme.Base" />
+    <style name="Theme.Kitty.Blue">
         <item name="colorPrimary">@color/blue_colorPrimary</item>
         <item name="colorOnPrimary">@color/blue_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/blue_colorPrimaryContainer</item>
@@ -113,7 +113,7 @@
         <item name="colorError">@color/blue_colorError</item>
         <item name="colorOnError">@color/blue_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Brown">
+    <style name="Theme.Kitty.Brown">
         <item name="colorPrimary">@color/brown_colorPrimary</item>
         <item name="colorOnPrimary">@color/brown_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/brown_colorPrimaryContainer</item>
@@ -138,7 +138,7 @@
         <item name="colorError">@color/brown_colorError</item>
         <item name="colorOnError">@color/brown_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Green">
+    <style name="Theme.Kitty.Green">
         <item name="colorPrimary">@color/green_colorPrimary</item>
         <item name="colorOnPrimary">@color/green_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/green_colorPrimaryContainer</item>
@@ -163,7 +163,7 @@
         <item name="colorError">@color/green_colorError</item>
         <item name="colorOnError">@color/green_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Monochrome">
+    <style name="Theme.Kitty.Monochrome">
         <item name="colorPrimary">@color/monochrome_colorPrimary</item>
         <item name="colorOnPrimary">@color/monochrome_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/monochrome_colorPrimaryContainer</item>
@@ -189,7 +189,7 @@
         <item name="colorOnError">@color/monochrome_colorOnError</item>
     </style>
 
-        <style name="Theme.Neko.Neon">
+        <style name="Theme.Kitty.Neon">
             <item name="colorPrimary">@color/neon_colorPrimary</item>
             <item name="colorOnPrimary">@color/neon_colorOnPrimary</item>
             <item name="colorPrimaryContainer">@color/neon_colorPrimaryContainer</item>
@@ -216,7 +216,7 @@
         </style>
 
 
-    <style name="Theme.Neko.Nord">
+    <style name="Theme.Kitty.Nord">
         <item name="colorPrimary">@color/nord_colorPrimary</item>
         <item name="colorOnPrimary">@color/nord_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/nord_colorPrimaryContainer</item>
@@ -241,7 +241,7 @@
         <item name="colorError">@color/nord_colorError</item>
         <item name="colorOnError">@color/nord_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Orange">
+    <style name="Theme.Kitty.Orange">
         <item name="colorPrimary">@color/orange_colorPrimary</item>
         <item name="colorOnPrimary">@color/orange_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/orange_colorPrimaryContainer</item>
@@ -266,7 +266,7 @@
         <item name="colorError">@color/orange_colorError</item>
         <item name="colorOnError">@color/orange_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Pink">
+    <style name="Theme.Kitty.Pink">
         <item name="colorPrimary">@color/pink_colorPrimary</item>
         <item name="colorOnPrimary">@color/pink_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/pink_colorPrimaryContainer</item>
@@ -291,7 +291,7 @@
         <item name="colorError">@color/pink_colorError</item>
         <item name="colorOnError">@color/pink_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Purple">
+    <style name="Theme.Kitty.Purple">
         <item name="colorPrimary">@color/purple_colorPrimary</item>
         <item name="colorOnPrimary">@color/purple_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/purple_colorPrimaryContainer</item>
@@ -316,7 +316,7 @@
         <item name="colorError">@color/purple_colorError</item>
         <item name="colorOnError">@color/purple_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Retro">
+    <style name="Theme.Kitty.Retro">
         <item name="colorPrimary">@color/retro_colorPrimary</item>
         <item name="colorOnPrimary">@color/retro_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/retro_colorPrimaryContainer</item>
@@ -341,7 +341,7 @@
         <item name="colorError">@color/retro_colorError</item>
         <item name="colorOnError">@color/retro_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Tako">
+    <style name="Theme.Kitty.Tako">
         <item name="colorPrimary">@color/tako_colorPrimary</item>
         <item name="colorOnPrimary">@color/tako_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/tako_colorPrimaryContainer</item>
@@ -366,7 +366,7 @@
         <item name="colorError">@color/tako_colorError</item>
         <item name="colorOnError">@color/tako_colorOnError</item>
     </style>
-    <style name="Theme.Neko.TokyoNight">
+    <style name="Theme.Kitty.TokyoNight">
         <item name="colorPrimary">@color/tokyonight_colorPrimary</item>
         <item name="colorOnPrimary">@color/tokyonight_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/tokyonight_colorPrimaryContainer</item>
@@ -391,7 +391,7 @@
         <item name="colorError">@color/tokyonight_colorError</item>
         <item name="colorOnError">@color/tokyonight_colorOnError</item>
     </style>
-    <style name="Theme.Neko.Teal">
+    <style name="Theme.Kitty.Teal">
         <item name="colorPrimary">@color/teal_colorPrimary</item>
         <item name="colorOnPrimary">@color/teal_colorOnPrimary</item>
         <item name="colorPrimaryContainer">@color/teal_colorPrimaryContainer</item>
@@ -422,7 +422,7 @@
     <!--===============-->
     <!-- Launch Screen -->
     <!--===============-->
-    <style name="Theme.Splash" parent="Theme.Neko">
+    <style name="Theme.Splash" parent="Theme.Kitty">
         <item name="android:windowBackground">@drawable/splash_background</item>
         <item name="android:statusBarColor">@color/ic_launcher_background</item>
         <item name="android:navigationBarColor">@color/ic_launcher_background</item>
@@ -430,7 +430,7 @@
         <item name="android:windowLightNavigationBar">false</item>
     </style>
 
-    <style name="Theme.Neko.Monet">
+    <style name="Theme.Kitty.Monet">
         <!-- Color palettes -->
         <item name="colorPrimary">@color/m3_sys_color_dynamic_light_primary</item>
         <item name="colorOnPrimary">@color/m3_sys_color_dynamic_light_on_primary</item>

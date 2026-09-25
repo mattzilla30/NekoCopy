@@ -75,7 +75,7 @@ android {
     productFlavors { create("standard") }
 }
 
-base { archivesName.set("Neko") }
+base { archivesName.set("Kitty") }
 
 composeCompiler {
     val enableMetrics =

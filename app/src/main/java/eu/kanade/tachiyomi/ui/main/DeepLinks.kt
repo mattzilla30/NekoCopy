@@ -8,7 +8,7 @@ object DeepLinks {
     }
 
     object Intents {
-        const val Search = "neko.Search"
+        const val Search = "kitty.Search"
         const val SearchQuery = "query"
         const val SearchFilter = "filter"
     }

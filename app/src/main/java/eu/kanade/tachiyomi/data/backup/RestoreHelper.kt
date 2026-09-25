@@ -55,7 +55,7 @@ class RestoreHelper(val context: Context) {
     val progressNotification by lazy {
         NotificationCompat.Builder(context, Notifications.CHANNEL_BACKUP_RESTORE_PROGRESS)
             .setContentTitle(context.getString(R.string.app_name))
-            .setSmallIcon(R.drawable.ic_neko_notification)
+            .setSmallIcon(R.drawable.ic_kitty_notification)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setAutoCancel(false)
@@ -170,7 +170,7 @@ class RestoreHelper(val context: Context) {
                 .setContentTitle(context.getString(R.string.restore_completed))
                 .setContentText(restoreString)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(restoreString))
-                .setSmallIcon(R.drawable.ic_neko_notification)
+                .setSmallIcon(R.drawable.ic_kitty_notification)
                 .setColor(ContextCompat.getColor(context, R.color.iconOutline))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
         if (!path.isNullOrEmpty() && !file.isNullOrEmpty()) {
@@ -194,7 +194,7 @@ class RestoreHelper(val context: Context) {
     ): File? {
         try {
             if (errors.isNotEmpty() || skippedTitles.isNotEmpty()) {
-                val destFile = File(context.externalCacheDir, "neko_restore.log")
+                val destFile = File(context.externalCacheDir, "kitty_restore.log")
 
                 destFile.bufferedWriter().use { out ->
                     if (skippedAmount > 0) {

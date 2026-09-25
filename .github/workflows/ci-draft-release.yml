@@ -72,11 +72,11 @@ jobs:
           ls -l "$RELEASE_DIR"
           echo "------------------------------------"
           # Move and rename the files using the correct path.
-          mv "$RELEASE_DIR"/*universal-release-unsigned-signed.apk neko-universal.apk
-          mv "$RELEASE_DIR"/*arm64-v8a-release-unsigned-signed.apk neko-arm64-v8a.apk
-          mv "$RELEASE_DIR"/*armeabi-v7a-release-unsigned-signed.apk neko-armeabi-v7a.apk
-          mv "$RELEASE_DIR"/*x86-release-unsigned-signed.apk neko-x86.apk
-          mv "$RELEASE_DIR"/*x86_64-release-unsigned-signed.apk neko-x86_64.apk
+          mv "$RELEASE_DIR"/*universal-release-unsigned-signed.apk kitty-universal.apk
+          mv "$RELEASE_DIR"/*arm64-v8a-release-unsigned-signed.apk kitty-arm64-v8a.apk
+          mv "$RELEASE_DIR"/*armeabi-v7a-release-unsigned-signed.apk kitty-armeabi-v7a.apk
+          mv "$RELEASE_DIR"/*x86-release-unsigned-signed.apk kitty-x86.apk
+          mv "$RELEASE_DIR"/*x86_64-release-unsigned-signed.apk kitty-x86_64.apk
           {
             echo 'sha_table<<EOF'
             echo ""
@@ -84,7 +84,7 @@ jobs:
             echo "| Variant     | SHA-256 Checksum |"
             echo "|:------------|:-----------------|"
             for apk in *.apk; do
-            variant=$(echo "$apk" | sed -e 's/neko-//' -e 's/.apk//')
+            variant=$(echo "$apk" | sed -e 's/kitty-//' -e 's/.apk//')
             checksum=$(sha256sum "$apk" | awk '{ print $1 }')
             echo "| \`$variant\` | \`$checksum\` |"
             done
@@ -111,7 +111,7 @@ jobs:
           prev_release_sha=$(git rev-list -n 1 ${{ steps.last_release.outputs.release }})
           echo "The previous release SHA is: -->$prev_release_sha<--"
           echo "The current SHA is: -->current_sha<--"
-          echo "Url to compare: https://api.github.com/repos/nekomangaorg/neko/compare/$prev_release_sha...$current_sha"
+          echo "Url to compare: https://api.github.com/repos/mattzilla30/NekoCopy/compare/$prev_release_sha...$current_sha"
 
           # Call the script with the correct start and end SHAs
           CHANGELOG_CONTENT=$(./.github/scripts/generate_changelog.sh $prev_release_sha $current_sha)
