@@ -149,7 +149,7 @@ class ProjectSuki : ReducedHttpSource() {
     )
 
     private fun parseBookSearchResponse(response: Response): Map<String, String> {
-        val responseBody = response.body?.string() ?: return emptyMap()
+        val responseBody = response.body.string()
         val jsonObj = json.decodeFromString<JsonObject>(responseBody)
         val data = jsonObj["data"]?.jsonObject ?: return emptyMap()
 
@@ -186,7 +186,7 @@ class ProjectSuki : ReducedHttpSource() {
     }
 
     private fun parseChapterPagesResponse(response: Response): List<Page> {
-        val responseBody = response.body?.string() ?: throw Exception("Empty response body")
+        val responseBody = response.body.string()
         val jsonObj = json.decodeFromString<JsonObject>(responseBody)
         val rawSrc =
             jsonObj["src"]?.jsonPrimitive?.contentOrNull

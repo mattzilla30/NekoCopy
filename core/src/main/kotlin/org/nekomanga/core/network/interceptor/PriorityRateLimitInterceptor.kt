@@ -34,7 +34,8 @@ class PriorityRateLimitInterceptor(
     private val prioritySelector: (HttpUrl) -> Int,
 ) : Interceptor {
 
-    private val lock = Object()
+    // wait() and notifyAll() live on java.lang.Object, so the monitor must be a plain Object.
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") private val lock = Object()
     private val queue = PriorityQueue<Ticket>()
 
     private var tokens = permits.toDouble()

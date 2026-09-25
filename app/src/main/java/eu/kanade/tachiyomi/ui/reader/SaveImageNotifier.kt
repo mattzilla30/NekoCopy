@@ -39,16 +39,7 @@ class SaveImageNotifier(private val context: Context) {
                 .diskCachePolicy(CachePolicy.DISABLED)
                 .data(file.uri)
                 .size(720, 1280)
-                .target(
-                    onSuccess = {
-                        val bitmap = it.toBitmap()
-                        if (bitmap != null) {
-                            showCompleteNotification(file, bitmap)
-                        } else {
-                            onError(null)
-                        }
-                    }
-                )
+                .target(onSuccess = { showCompleteNotification(file, it.toBitmap()) })
                 .build()
         context.imageLoader.enqueue(request)
     }

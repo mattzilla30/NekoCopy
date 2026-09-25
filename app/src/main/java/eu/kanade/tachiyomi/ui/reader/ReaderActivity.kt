@@ -26,6 +26,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -40,7 +41,8 @@ import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,11 +53,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsCompat.Type.statusBars
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.WindowInsetsControllerCompat
@@ -101,11 +101,7 @@ import eu.kanade.tachiyomi.util.lang.orUnknownError
 import eu.kanade.tachiyomi.util.storage.getUriWithAuthority
 import eu.kanade.tachiyomi.util.system.contextCompatDrawable
 import eu.kanade.tachiyomi.util.system.dpToPx
-import eu.kanade.tachiyomi.util.system.getResourceColor
-import eu.kanade.tachiyomi.util.system.hasSideNavBar
 import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
-import eu.kanade.tachiyomi.util.system.isBottomTappable
-import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.system.isTablet
 import eu.kanade.tachiyomi.util.system.launchIO
@@ -285,8 +281,6 @@ class ReaderActivity : BaseMainActivity() {
     /** Configuration at reader level, like background color or forced orientation. */
     private var config: ReaderConfig? = null
 
-    var sheetManageNavColor = false
-
     private val wic by lazy { WindowInsetsControllerCompat(window, window.decorView) }
     var lastVis = false
 
@@ -352,6 +346,7 @@ class ReaderActivity : BaseMainActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         setThemeByPref(preferences)
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         setContent {
@@ -643,7 +638,10 @@ class ReaderActivity : BaseMainActivity() {
                                 reEnableBackPressedCallBack()
                             },
                             sheetState =
-                                rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                                rememberBottomSheetState(
+                                    initialValue = SheetValue.Hidden,
+                                    enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+                                ),
                         ) {
                             val hasCutout =
                                 window.decorView.rootWindowInsets?.let { insets ->
@@ -684,7 +682,10 @@ class ReaderActivity : BaseMainActivity() {
                                 reEnableBackPressedCallBack()
                             },
                             sheetState =
-                                rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                                rememberBottomSheetState(
+                                    initialValue = SheetValue.Hidden,
+                                    enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+                                ),
                         ) {
                             // Load chapters when visible
                             LaunchedEffect(state.chaptersSheetVisible) {
@@ -769,7 +770,11 @@ class ReaderActivity : BaseMainActivity() {
                                     reEnableBackPressedCallBack()
                                 },
                                 sheetState =
-                                    rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                                    rememberBottomSheetState(
+                                        initialValue = SheetValue.Hidden,
+                                        enabledValues =
+                                            setOf(SheetValue.Hidden, SheetValue.Expanded),
+                                    ),
                             ) {
                                 ReaderPageActionsSheet(
                                     hasExtraPage = extraPage != null,
@@ -1142,14 +1147,12 @@ class ReaderActivity : BaseMainActivity() {
     /** Initializes the reader menu. It sets up click listeners and the initial visibility. */
     @SuppressLint("ClickableViewAccessibility")
     private fun initializeMenu() {
-        window.statusBarColor = Color.TRANSPARENT
         // Set initial visibility
         setMenuVisibility(menuVisible, false)
         val peek = 50.dpToPx
         lastVis = window.decorView.rootWindowInsetsCompat?.isVisible(statusBars()) ?: false
         var firstPass = true
         window.decorView.doOnApplyWindowInsetsCompat { _, insets, _ ->
-            setNavColor(insets)
             val systemInsets = insets.ignoredSystemInsets
             val vis = insets.isVisible(statusBars())
             val fullscreen = readerPreferences.fullscreen().get() && !isSplitScreen
@@ -1162,9 +1165,6 @@ class ReaderActivity : BaseMainActivity() {
             }
             wic.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            if (!fullscreen && sheetManageNavColor) {
-                window.navigationBarColor = getResourceColor(R.attr.colorSurface)
-            }
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
@@ -1174,45 +1174,6 @@ class ReaderActivity : BaseMainActivity() {
                 }
             }
         }
-    }
-
-    fun setNavColor(insets: WindowInsetsCompat) {
-        sheetManageNavColor =
-            when {
-                isSplitScreen -> {
-                    window.statusBarColor = getResourceColor(R.attr.colorPrimaryVariant)
-                    window.navigationBarColor = getResourceColor(R.attr.colorPrimaryVariant)
-                    false
-                }
-                Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1 -> {
-                    // basically if in landscape on a phone
-                    // For lollipop, draw opaque nav bar
-                    window.navigationBarColor =
-                        when {
-                            insets.hasSideNavBar() -> Color.BLACK
-                            isInNightMode() -> {
-                                ColorUtils.setAlphaComponent(
-                                    getResourceColor(R.attr.colorPrimaryVariant),
-                                    179,
-                                )
-                            }
-                            else -> Color.argb(179, 0, 0, 0)
-                        }
-                    !insets.hasSideNavBar()
-                }
-                insets.isBottomTappable() -> {
-                    window.navigationBarColor = Color.TRANSPARENT
-                    false
-                }
-                insets.hasSideNavBar() -> {
-                    window.navigationBarColor = getResourceColor(R.attr.colorSurface)
-                    false
-                }
-                // if in portrait with 2/3 button mode, translucent nav bar
-                else -> {
-                    true
-                }
-            }
     }
 
     private fun showPageLayoutMenu() {
@@ -1268,10 +1229,6 @@ class ReaderActivity : BaseMainActivity() {
         if (visible) {
             snackbar?.dismiss()
             wic.show(systemBars())
-
-            if (sheetManageNavColor) {
-                window.navigationBarColor = Color.TRANSPARENT
-            }
         } else {
             if (readerPreferences.fullscreen().get()) {
                 wic.hide(systemBars())
@@ -1460,7 +1417,7 @@ class ReaderActivity : BaseMainActivity() {
             } else {
                 viewerChapters.currChapter.chapter.name
             }
-        chapterTitle = subtitleText ?: ""
+        chapterTitle = subtitleText
     }
 
     /**
@@ -1569,10 +1526,7 @@ class ReaderActivity : BaseMainActivity() {
      * actions to perform is shown.
      */
     fun onPageLongTap(page: ReaderPage, extraPage: ReaderPage? = null) {
-        window.decorView.performHapticFeedback(
-            HapticFeedbackConstants.LONG_PRESS,
-            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING,
-        )
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         pageActionsPage = page to extraPage
         reEnableBackPressedCallBack()
     }
@@ -1840,21 +1794,6 @@ class ReaderActivity : BaseMainActivity() {
                 viewModel.setMenuStickyVisibility(false)
                 setMenuVisibility(false)
             }
-            if (sheetManageNavColor) {
-                window.navigationBarColor =
-                    ColorUtils.setAlphaComponent(
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 || isInNightMode()) {
-                            getResourceColor(R.attr.colorSurface)
-                        } else {
-                            Color.BLACK
-                        },
-                        if (window.decorView.rootWindowInsetsCompat?.hasSideNavBar() == true) {
-                            255
-                        } else {
-                            179
-                        },
-                    )
-            }
         } else if (!visible && (menuStickyVisible || menuVisible)) {
             if (menuStickyVisible && !menuVisible) {
                 menuStickyVisible = false
@@ -2025,7 +1964,6 @@ class ReaderActivity : BaseMainActivity() {
             WindowCompat.setDecorFitsSystemWindows(window, !enabled || isSplitScreen)
             wic.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            window.decorView.rootWindowInsetsCompat?.let { setNavColor(it) }
         }
 
         /** Sets the keep screen on mode according to [enabled]. */

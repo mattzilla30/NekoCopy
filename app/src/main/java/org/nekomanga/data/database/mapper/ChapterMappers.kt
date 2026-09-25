@@ -37,9 +37,9 @@ fun Chapter.toEntity(): ChapterEntity {
         mangaId = this.manga_id ?: 0L, // Safely falls back if detached
         url = this.url,
         name = this.name,
-        chapterTxt = this.chapter_txt ?: "",
-        chapterTitle = this.chapter_title ?: "",
-        vol = this.vol ?: "",
+        chapterTxt = this.chapter_txt,
+        chapterTitle = this.chapter_title,
+        vol = this.vol,
         scanlator = this.scanlator,
         uploader = this.uploader,
         isUnavailable = this.isUnavailable, // Pulled from SChapter interface

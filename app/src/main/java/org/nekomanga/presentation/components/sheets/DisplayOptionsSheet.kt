@@ -11,7 +11,6 @@ import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
@@ -34,6 +33,7 @@ import jp.wasabeef.gap.Gap
 import kotlin.math.roundToInt
 import org.nekomanga.R
 import org.nekomanga.constants.Constants
+import org.nekomanga.presentation.components.ExpressiveSlider
 import org.nekomanga.presentation.components.ExpressiveSwitch
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.components.theme.defaultThemeColorState
@@ -129,7 +129,7 @@ fun DisplayOptionsSheet(
                         )
                         Gap(Size.tiny)
                         Row(modifier = Modifier.fillMaxWidth()) {
-                            Slider(
+                            ExpressiveSlider(
                                 modifier = Modifier.weight(1f),
                                 value = sliderPosition,
                                 onValueChange = { sliderPosition = it },

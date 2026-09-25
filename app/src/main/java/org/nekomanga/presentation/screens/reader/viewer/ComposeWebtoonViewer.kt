@@ -521,8 +521,6 @@ fun ComposeWebtoonViewer(
             navigator = viewer.config.navigator,
             onToggleMenu = { viewer.activity.toggleMenu() },
             onRetryTransition = onRetryTransition,
-            manga = manga,
-            downloadManager = downloadManager,
             preloadPageAmount = preloadPageAmount,
             onNavigateToChapter = onNavigateToChapter,
             onRequestPreloadChapter =

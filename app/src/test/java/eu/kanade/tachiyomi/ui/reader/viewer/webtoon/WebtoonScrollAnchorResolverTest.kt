@@ -69,7 +69,7 @@ class WebtoonScrollAnchorResolverTest {
         assertEquals(3, target!!.index)
         assertEquals(lastFirstVisibleOffset, target.offset)
         assertEquals(2L, (target.item as ReaderUiItem.Page).page.chapter.chapter.id)
-        assertEquals(0, (target.item as ReaderUiItem.Page).page.index)
+        assertEquals(0, target.item.page.index)
     }
 
     @Test
@@ -185,7 +185,7 @@ class WebtoonScrollAnchorResolverTest {
         assertEquals(5, target!!.index)
         assertEquals(0, target.offset)
         assertEquals(2L, (target.item as ReaderUiItem.Page).page.chapter.chapter.id)
-        assertEquals(0, (target.item as ReaderUiItem.Page).page.index)
+        assertEquals(0, target.item.page.index)
     }
 
     @Test
@@ -258,7 +258,7 @@ class WebtoonScrollAnchorResolverTest {
         assertEquals(1, target!!.index)
         assertEquals(lastOffset, target.offset)
         assertEquals(1L, (target.item as ReaderUiItem.Page).page.chapter.chapter.id)
-        assertEquals(170, (target.item as ReaderUiItem.Page).page.index)
+        assertEquals(170, target.item.page.index)
     }
 
     @Test
@@ -291,7 +291,7 @@ class WebtoonScrollAnchorResolverTest {
         assertEquals(3, target!!.index)
         assertEquals(0, target.offset)
         assertEquals(2L, (target.item as ReaderUiItem.Page).page.chapter.chapter.id)
-        assertEquals(0, (target.item as ReaderUiItem.Page).page.index)
+        assertEquals(0, target.item.page.index)
     }
 
     @Test
@@ -381,7 +381,7 @@ class WebtoonScrollAnchorResolverTest {
         // Must preserve the exact live scroll offset
         assertEquals(liveOffset, target.offset)
         assertEquals(1L, (target.item as ReaderUiItem.Page).page.chapter.chapter.id)
-        assertEquals(170, (target.item as ReaderUiItem.Page).page.index)
+        assertEquals(170, target.item.page.index)
     }
 
     @Test
@@ -488,7 +488,7 @@ class WebtoonScrollAnchorResolverTest {
         assertEquals(3, target!!.index)
         assertEquals(liveOffset, target.offset)
         assertEquals(2L, (target.item as ReaderUiItem.Page).page.chapter.chapter.id)
-        assertEquals(0, (target.item as ReaderUiItem.Page).page.index)
+        assertEquals(0, target.item.page.index)
     }
 
     @Test

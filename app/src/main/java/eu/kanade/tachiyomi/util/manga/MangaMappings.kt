@@ -63,7 +63,7 @@ class MangaMappings(context: Context) {
         if (!dbMappings.isOpen) {
             return null
         }
-        val cursor = dbMappings.rawQuery(queryString, whereArgs) ?: return null
+        val cursor = dbMappings.rawQuery(queryString, whereArgs)
         var result: String? = null
         if (cursor.moveToFirst()) {
             result = cursor.getString(0)?.ifBlank { null }

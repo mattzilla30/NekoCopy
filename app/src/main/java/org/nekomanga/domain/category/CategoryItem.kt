@@ -61,7 +61,7 @@ fun Category.toCategoryItem(): CategoryItem {
         flags = this.flags,
         mangaOrder = this.mangaOrder.toList(),
         isAscending = this.isAscending(),
-        sortOrder = LibrarySort.filteredValueOf(this.mangaSort) ?: LibrarySort.Title,
+        sortOrder = LibrarySort.filteredValueOf(this.mangaSort),
         isAlone = this.isAlone,
         isHidden = this.isHidden,
         isDynamic = this.isDynamic,

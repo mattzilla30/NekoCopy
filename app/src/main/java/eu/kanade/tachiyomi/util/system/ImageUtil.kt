@@ -113,7 +113,6 @@ object ImageUtil {
             Format.Jxl -> ImageType.JXL
             Format.Png -> ImageType.PNG
             Format.Webp -> ImageType.WEBP
-            else -> null
         }
     }
 

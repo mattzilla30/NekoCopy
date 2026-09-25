@@ -96,7 +96,7 @@ class CheckTallPageUseCaseTest {
         assertEquals(12000, totalHeight)
 
         nonNullSplits.forEach { split ->
-            assertEquals(1000f / 4000f, split.aspectRatio!!, 0.001f)
+            assertEquals(1000f / 4000f, split.aspectRatio, 0.001f)
             assertEquals(page, split.page)
         }
     }

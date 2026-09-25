@@ -33,20 +33,14 @@ interface Category : Serializable {
         return ((mangaSort?.minus('a') ?: 0) % 2) != 1
     }
 
-    fun sortingMode(nullAsDND: Boolean = false): LibrarySort? =
-        LibrarySort.valueOf(mangaSort)
-            ?: if (nullAsDND && !isDynamic) LibrarySort.DragAndDrop else null
-
     val isDragAndDrop
         get() =
             (mangaSort == null || mangaSort == LibrarySort.DragAndDrop.categoryValue) && !isDynamic
 
-    @StringRes
-    fun sortRes(): Int =
-        (LibrarySort.valueOf(mangaSort) ?: LibrarySort.DragAndDrop).stringRes(isDynamic)
+    @StringRes fun sortRes(): Int = LibrarySort.valueOf(mangaSort).stringRes(isDynamic)
 
     fun changeSortTo(sort: Int) {
-        mangaSort = (LibrarySort.valueOf(sort) ?: LibrarySort.Title).categoryValue
+        mangaSort = LibrarySort.valueOf(sort).categoryValue
     }
 
     companion object {
@@ -59,7 +53,7 @@ interface Category : Serializable {
 
         fun createCustom(name: String, libSort: Int, ascending: Boolean): Category =
             create(name).apply {
-                val librarySort = LibrarySort.valueOf(libSort) ?: LibrarySort.DragAndDrop
+                val librarySort = LibrarySort.valueOf(libSort)
                 changeSortTo(librarySort.mainValue)
                 if (mangaSort != LibrarySort.DragAndDrop.categoryValue && !ascending) {
                     mangaSort = mangaSort?.plus(1)

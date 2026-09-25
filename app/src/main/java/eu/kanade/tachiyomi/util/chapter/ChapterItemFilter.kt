@@ -136,13 +136,12 @@ class ChapterItemFilter(
                     chapterItems.find { it.chapter.id == selectedChapterItem?.chapter?.id }
                         ?: chapterItems.find {
                             it.chapter.scanlator == selectedChapterItem?.chapter?.scanlator &&
-                                it.chapter.uploader == selectedChapterItem?.chapter?.uploader
+                                it.chapter.uploader == selectedChapterItem.chapter.uploader
                         }
                         ?: chapterItems.maxByOrNull {
                             val mainScans =
                                 ChapterUtil.getScanlators(it.chapter.scanlator).toMutableSet()
-                            if (Constants.NO_GROUP in mainScans)
-                                it.chapter.uploader?.let { up -> mainScans.add(up) }
+                            if (Constants.NO_GROUP in mainScans) mainScans.add(it.chapter.uploader)
 
                             val currScans =
                                 ChapterUtil.getScanlators(selectedChapterItem?.chapter?.scanlator)

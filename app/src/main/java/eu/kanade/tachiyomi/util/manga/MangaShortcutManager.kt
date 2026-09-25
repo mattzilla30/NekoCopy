@@ -58,7 +58,7 @@ class MangaShortcutManager(
                     ImageRequest.Builder(context).data(item.toDisplayManga().currentArtwork).build()
                 val bitmap = context.imageLoader.execute(request).image?.toBitmap()
 
-                ShortcutInfo.Builder(context, "Manga-${item.id.toString() ?: item.title}")
+                ShortcutInfo.Builder(context, "Manga-${item.id}")
                     .setShortLabel(
                         item.title.takeUnless { it.isBlank() } ?: context.getString(R.string.manga)
                     )

@@ -1230,7 +1230,6 @@ class LibraryViewModel() : ViewModel() {
 
                         downloadManager.deleteChapters(dbManga, readDbChapters)
                     }
-                    else -> Unit
                 }
             }
         }

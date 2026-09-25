@@ -35,7 +35,7 @@ class MangaHotHandler {
     }
 
     fun pageListParse(response: Response): List<Page> {
-        return Json.parseToJsonElement(response.body!!.string())
+        return Json.parseToJsonElement(response.body.string())
             .jsonObject["content"]!!
             .jsonObject["contentUrls"]!!
             .jsonArray

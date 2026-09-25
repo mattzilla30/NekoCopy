@@ -35,7 +35,7 @@ class AzukiHandler {
     }
 
     fun pageListParse(response: Response): List<Page> {
-        return Json.parseToJsonElement(response.body!!.string())
+        return Json.parseToJsonElement(response.body.string())
             .jsonObject["pages"]!!
             .jsonArray
             .mapIndexed { index, element ->

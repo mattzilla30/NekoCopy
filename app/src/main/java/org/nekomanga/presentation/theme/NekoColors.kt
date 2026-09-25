@@ -1,7 +1,6 @@
 package org.nekomanga.presentation.components
 
 import androidx.compose.foundation.text.selection.TextSelectionColors
-import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RippleConfiguration
 import androidx.compose.runtime.Composable
@@ -46,21 +45,13 @@ object ChartColors {
     val twelve = Color(0xFFde1f62)
 }
 
-fun nekoRippleConfiguration(color: Color) = RippleConfiguration(color, nekoRippleAlpha)
+fun nekoRippleConfiguration(color: Color) = RippleConfiguration(color)
 
 @Composable
 @ReadOnlyComposable
 fun defaultRippleConfiguration(): RippleConfiguration {
     return nekoRippleConfiguration(MaterialTheme.colorScheme.primary)
 }
-
-private val nekoRippleAlpha =
-    RippleAlpha(
-        draggedAlpha = NekoColors.mediumAlphaLowContrast,
-        focusedAlpha = NekoColors.mediumAlphaLowContrast,
-        hoveredAlpha = NekoColors.mediumAlphaLowContrast,
-        pressedAlpha = NekoColors.mediumAlphaLowContrast,
-    )
 
 fun dynamicTextSelectionColor(color: Color) =
     TextSelectionColors(

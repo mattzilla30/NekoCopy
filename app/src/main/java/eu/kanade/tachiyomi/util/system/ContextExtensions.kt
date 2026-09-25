@@ -17,6 +17,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.TypedValue
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.AttrRes
@@ -159,7 +160,13 @@ val Int.dpToPx: Int
     get() = (this * Resources.getSystem().displayMetrics.density).toInt()
 
 val Int.spToPx: Int
-    get() = (this * Resources.getSystem().displayMetrics.scaledDensity).toInt()
+    get() =
+        TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_SP,
+                this.toFloat(),
+                Resources.getSystem().displayMetrics,
+            )
+            .toInt()
 
 val Float.dpToPx: Float
     get() = (this * Resources.getSystem().displayMetrics.density)

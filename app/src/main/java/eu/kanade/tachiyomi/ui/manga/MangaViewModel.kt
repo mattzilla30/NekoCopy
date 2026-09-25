@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.ui.state.ToggleableState
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.fold
 import com.github.michaelbull.result.getOrElse
@@ -130,12 +129,6 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class MangaViewModel(val mangaId: Long) : ViewModel() {
-
-    class Factory(private val mangaId: Long) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MangaViewModel(mangaId) as T
-        }
-    }
 
     companion object {
         private const val DYNAMIC_COVER_UPDATE_DELAY_MS = 1000L

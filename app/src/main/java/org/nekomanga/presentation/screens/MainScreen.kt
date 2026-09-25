@@ -27,6 +27,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel
 import eu.kanade.tachiyomi.ui.source.latest.DisplayViewModel
+import eu.kanade.tachiyomi.ui.source.latest.toDomain
 import eu.kanade.tachiyomi.ui.source.latest.toSerializable
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.components.AppBar
@@ -208,8 +209,9 @@ fun MainScreen(
                     }
 
                     entry<Screens.Manga> { screen ->
-                        val mangaViewModel: MangaViewModel =
-                            viewModel(factory = MangaViewModel.Factory(screen.mangaId))
+                        val mangaViewModel: MangaViewModel = viewModel {
+                            MangaViewModel(screen.mangaId)
+                        }
 
                         MangaScreen(
                             mangaViewModel = mangaViewModel,
@@ -235,8 +237,9 @@ fun MainScreen(
                     }
 
                     entry<Screens.Display> { screen ->
-                        val displayViewModel: DisplayViewModel =
-                            viewModel(factory = DisplayViewModel.Factory(screen.displayScreenType))
+                        val displayViewModel: DisplayViewModel = viewModel {
+                            DisplayViewModel(screen.displayScreenType.toDomain())
+                        }
 
                         DisplayScreen(
                             viewModel = displayViewModel,
@@ -247,8 +250,9 @@ fun MainScreen(
                     }
 
                     entry<Screens.Similar> { screen ->
-                        val similarViewModel: SimilarViewModel =
-                            viewModel(factory = SimilarViewModel.Factory(screen.mangaUUID))
+                        val similarViewModel: SimilarViewModel = viewModel {
+                            SimilarViewModel(screen.mangaUUID)
+                        }
 
                         SimilarScreen(
                             viewModel = similarViewModel,

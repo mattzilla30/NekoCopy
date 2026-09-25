@@ -113,7 +113,7 @@ internal class TrackingSettingsScreen(
                         showLoginDialog = false
                     },
                     onConfirm = { username, password, _ ->
-                        trackServiceForLoginLogout?.let { login(it, username, password) }
+                        login(trackServiceForLoginLogout, username, password)
                     },
                 )
             }
@@ -129,7 +129,7 @@ internal class TrackingSettingsScreen(
                         trackServiceIdForLoginLogout = null
                         showLogoutDialog = false
                     },
-                    onConfirm = { trackServiceForLoginLogout?.let { logout(it) } },
+                    onConfirm = { logout(trackServiceForLoginLogout) },
                 )
             }
         }

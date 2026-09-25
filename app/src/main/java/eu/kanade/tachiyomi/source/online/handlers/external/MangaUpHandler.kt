@@ -121,7 +121,6 @@ class MangaUpHandler {
             with(webView.settings) {
                 javaScriptEnabled = true
                 domStorageEnabled = true
-                databaseEnabled = true
                 blockNetworkImage = true
             }
             webView.webViewClient =
@@ -159,7 +158,6 @@ class MangaUpHandler {
             with(webView.settings) {
                 javaScriptEnabled = true
                 domStorageEnabled = true
-                databaseEnabled = true
                 blockNetworkImage = true
             }
             webView.webViewClient =

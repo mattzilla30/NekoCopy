@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Handler
+import android.os.Looper
 import androidx.core.app.TaskStackBuilder
 import androidx.core.net.toUri
 import androidx.work.WorkManager
@@ -295,7 +296,9 @@ class NotificationReceiver : BroadcastReceiver() {
 
     private fun cancelTrackingSync(context: Context) {
         WorkManager.getInstance(context).cancelAllWorkByTag(TrackingSyncJob.TAG)
-        Handler().post { dismissNotification(context, Notifications.Id.Tracking.Progress) }
+        Handler(Looper.getMainLooper()).post {
+            dismissNotification(context, Notifications.Id.Tracking.Progress)
+        }
     }
 
     private fun cancelFollowSync(context: Context) {

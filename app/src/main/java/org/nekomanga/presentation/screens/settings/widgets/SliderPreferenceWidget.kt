@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.roundToInt
+import org.nekomanga.presentation.components.ExpressiveSlider
 import org.nekomanga.presentation.components.NekoColors
 import org.nekomanga.presentation.screens.settings.BasePreferenceWidget
 import org.nekomanga.presentation.screens.settings.PrefsHorizontalPadding
@@ -81,7 +81,7 @@ fun SliderPreferenceWidget(
                         maxLines = 10,
                     )
                 }
-                Slider(
+                ExpressiveSlider(
                     value = sliderValue,
                     onValueChange = { sliderValue = it },
                     onValueChangeFinished = { onValueChange(sliderValue.roundToInt()) },

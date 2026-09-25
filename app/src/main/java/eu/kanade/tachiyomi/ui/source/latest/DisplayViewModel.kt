@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.source.latest
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.map
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
@@ -30,13 +29,6 @@ import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 
 class DisplayViewModel(val displayScreenType: DisplayScreenType) : ViewModel() {
-
-    class Factory(private val serializableDisplayScreenType: SerializableDisplayScreenType) :
-        ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return DisplayViewModel(serializableDisplayScreenType.toDomain()) as T
-        }
-    }
 
     private val displayRepository: DisplayRepository = Injekt.get()
     private val preferences: PreferencesHelper = Injekt.get()

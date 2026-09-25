@@ -144,7 +144,7 @@ class ListHandler {
         }
 
         return when (resultError != null) {
-            true -> Err(resultError!!)
+            true -> Err(resultError)
             false ->
                 Ok(
                     ListResults(

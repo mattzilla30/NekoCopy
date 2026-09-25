@@ -18,11 +18,7 @@ fun ConfirmationDialog(
 ) {
     AlertDialog(
         title = { Text(text = title) },
-        text = {
-            if (body != null) {
-                Text(text = body)
-            } else null
-        },
+        text = body?.let { { Text(text = it) } },
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(

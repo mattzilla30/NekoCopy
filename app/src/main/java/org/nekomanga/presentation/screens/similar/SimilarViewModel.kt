@@ -1,7 +1,6 @@
 package org.nekomanga.presentation.screens.similar
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.util.category.CategoryUtil
@@ -28,12 +27,6 @@ import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 
 class SimilarViewModel(val mangaUUID: String) : ViewModel() {
-
-    class Factory(private val mangaUUID: String) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SimilarViewModel(mangaUUID) as T
-        }
-    }
 
     private val repo: SimilarRepo = Injekt.get()
     private val categoryUseCases: CategoryUseCases by injectLazy()

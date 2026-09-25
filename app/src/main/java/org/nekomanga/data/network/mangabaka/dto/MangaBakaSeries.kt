@@ -12,20 +12,12 @@ data class MangaBakaSeries(
     val id: Long,
     val state: MangaBakaSeriesState,
     @SerialName("merged_with") val mergedWith: Long? = null,
-    @Deprecated("Use the titles property instead") val title: String? = null,
-    @Deprecated("Use the titles property instead")
-    @SerialName("native_title")
-    val nativeTitle: String? = null,
-    @Deprecated("Use the titles property instead")
-    @SerialName("romanized_title")
-    val romanizedTitle: String? = null,
     @SerialName("secondary_titles")
     val secondaryTitles: Map<String, List<MangaBakaSecondaryTitle>>? = null,
     val cover: MangaBakaCover,
     val authors: List<String>? = null,
     val artists: List<String>? = null,
     val description: String? = null,
-    @Deprecated("The year publication began for the series") val year: Long? = null,
     val published: MangaBakaPublished? = null,
     val status: MangaBakaPublicationStatus,
     @SerialName("is_licensed") val isLicensed: Boolean? = null,
@@ -40,9 +32,7 @@ data class MangaBakaSeries(
     val publishers: List<MangaBakaPublisher>? = null,
     val titles: List<MangaBakaTitleInfo>? = null,
     @SerialName("genres_v2") val genresV2: List<MangaBakaTagV2>? = null,
-    @Deprecated("Use genres_v2 instead") val genres: List<String>? = emptyList(),
     @SerialName("tags_v2") val tagsV2: List<MangaBakaTagV2>? = null,
-    @Deprecated("Use tags_v2 instead") val tags: List<String>? = null,
     @SerialName("last_updated_at") val lastUpdatedAt: String? = null,
     val relationships: MangaBakaRelationships? = null,
     val source: MangaBakaSourceSpecificData,

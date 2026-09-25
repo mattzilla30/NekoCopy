@@ -30,11 +30,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import eu.kanade.tachiyomi.util.system.launchRequestPackageInstallsPermission
 import org.nekomanga.R
 import org.nekomanga.presentation.theme.Size
@@ -138,7 +138,6 @@ internal class PermissionStep : OnboardingStep {
     ) {
         ListItem(
             modifier = modifier,
-            headlineContent = { Text(text = title) },
             supportingContent = { Text(text = subtitle) },
             trailingContent = {
                 OutlinedButton(
@@ -158,6 +157,8 @@ internal class PermissionStep : OnboardingStep {
                 }
             },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        )
+        ) {
+            Text(text = title)
+        }
     }
 }

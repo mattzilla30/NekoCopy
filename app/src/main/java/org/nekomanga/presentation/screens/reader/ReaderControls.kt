@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
@@ -65,6 +64,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import eu.kanade.tachiyomi.ui.reader.settings.ReaderSliderPosition
 import kotlin.math.roundToInt
 import org.nekomanga.R
+import org.nekomanga.presentation.components.ExpressiveSlider
 import org.nekomanga.presentation.components.ToolTipButton
 import org.nekomanga.presentation.components.bars.TitleTopAppBar
 import org.nekomanga.presentation.components.icons.SkipNext
@@ -362,7 +362,7 @@ private fun HorizontalFloatingSlider(
                                 0f,
                                 targetMax,
                             )
-                        Slider(
+                        ExpressiveSlider(
                             value = displayValue,
                             onValueChange = { value ->
                                 draggingValue = value

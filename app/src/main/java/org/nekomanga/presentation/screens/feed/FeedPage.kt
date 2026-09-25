@@ -178,7 +178,7 @@ fun FeedChapterTitleLine(
                             Modifier.height(Size.medium)
                                 .clip(RoundedCornerShape(Size.tiny))
                                 .align(Alignment.CenterVertically),
-                        contentDescription = lang!!.prettyPrint,
+                        contentDescription = lang.prettyPrint,
                     )
                     Gap(Size.extraTiny)
                 }

@@ -78,7 +78,7 @@ class ReaderPagerController {
             chapters.nextChapter == null ||
                 nextHasMissingChapters ||
                 forceTransition ||
-                chapters.nextChapter?.state !is ReaderChapter.State.Loaded
+                chapters.nextChapter.state !is ReaderChapter.State.Loaded
         ) {
             subItems.add(nextTrans)
         }
