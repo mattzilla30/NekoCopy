@@ -6,7 +6,6 @@ import org.nekomanga.presentation.screens.library.filter.FilterBookmarked
 import org.nekomanga.presentation.screens.library.filter.FilterCompleted
 import org.nekomanga.presentation.screens.library.filter.FilterDownloaded
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-import org.nekomanga.presentation.screens.library.filter.FilterMerged
 import org.nekomanga.presentation.screens.library.filter.FilterMissingChapters
 import org.nekomanga.presentation.screens.library.filter.FilterTracked
 import org.nekomanga.presentation.screens.library.filter.FilterUnavailable
@@ -189,14 +188,6 @@ class LibraryPreferences(private val preferenceStore: PreferenceStore) {
             defaultValue = FilterMangaType.Inactive,
             serializer = FilterMangaType::toInt,
             deserializer = FilterMangaType::fromInt,
-        )
-
-    fun filterMerged() =
-        this.preferenceStore.getObjectFromInt(
-            "pref_filter_merged_key",
-            defaultValue = FilterMerged.Inactive,
-            serializer = FilterMerged::toInt,
-            deserializer = FilterMerged::fromInt,
         )
 
     fun filterMissingChapters() =

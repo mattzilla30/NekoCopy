@@ -92,19 +92,9 @@ class SourceChapterSorterTest {
     }
 
     @Test
-    fun `getChapterNum parses oneshot correctly based on merged status`() {
-        // Name contains oneshot and is not merged -> returns 0f
+    fun `getChapterNum returns zero for oneshots`() {
         getChapterNum(createChapter("Oneshot title", scanlator = "NormalScanlator")) shouldBe 0f
         getChapterNum(createChapter("oneshot", scanlator = "NormalScanlator")) shouldBe 0f
-
-        // Name contains oneshot but IS merged -> parses from text instead of returning 0f
-        // Let's use "Toonily" as it contains a merge source name (part of MergeType)
-        getChapterNum(
-            createChapter("Oneshot title", chapterTxt = "Ch. 1", scanlator = "Toonily")
-        ) shouldBe 1f
-        getChapterNum(
-            createChapter("oneshot", chapterTxt = "Ch. 2.5", scanlator = "Toonily")
-        ) shouldBe 2.5f
     }
 
     @Test

@@ -235,13 +235,11 @@ private fun ChapterRowContent(
     val dropdownItems =
         remember(
             chapterItem.chapter.isLocalSource(),
-            chapterItem.chapter.isMergedChapter(),
             chapterItem.chapter.scanlator,
             chapterItem.chapter.uploader,
         ) {
             buildChapterDropdownItems(
                 isLocal = chapterItem.chapter.isLocalSource(),
-                isMerged = chapterItem.chapter.isMergedChapter(),
                 scanlator = chapterItem.chapter.scanlator,
                 uploader = chapterItem.chapter.uploader,
                 onWebView = { onWebView(chapterItem) },
@@ -297,7 +295,6 @@ private fun ChapterRowContent(
                     chapterItem.chapter.pagesLeft,
                     chapterItem.chapter.scanlator,
                     chapterItem.chapter.uploader,
-                    chapterItem.chapter.isMergedChapter(),
                 ) {
                     val statuses = mutableListOf<String>()
                     ChapterUtil.relativeDate(chapterItem.chapter.dateUpload)?.let {
@@ -325,11 +322,6 @@ private fun ChapterRowContent(
                         if (chapterItem.chapter.scanlator == Constants.NO_GROUP)
                             statuses.add(chapterItem.chapter.uploader)
                         statuses.add(chapterItem.chapter.scanlator)
-                        if (
-                            chapterItem.chapter.isMergedChapter() &&
-                                chapterItem.chapter.uploader.isNotBlank()
-                        )
-                            statuses.add(chapterItem.chapter.uploader)
                     }
                     statuses.joinToString(Constants.SEPARATOR)
                 }
@@ -466,7 +458,6 @@ private fun ChapterDownloadIndicator(
 
 private fun buildChapterDropdownItems(
     isLocal: Boolean,
-    isMerged: Boolean,
     scanlator: String,
     uploader: String,
     onWebView: () -> Unit,
@@ -527,7 +518,7 @@ private fun buildChapterDropdownItems(
             )
         }
 
-        if (!isMerged && !isLocal) {
+        if (!isLocal) {
             add(
                 SimpleDropDownItem.Action(
                     text = UiText.StringResource(R.string.comments),

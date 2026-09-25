@@ -41,7 +41,6 @@ import eu.kanade.tachiyomi.ui.setting.SettingsScreenType
 import org.nekomanga.BuildConfig
 import org.nekomanga.R
 import org.nekomanga.presentation.components.UiText
-import org.nekomanga.presentation.components.icons.MergeIcon
 import org.nekomanga.presentation.components.listcard.ExpressiveListCard
 import org.nekomanga.presentation.components.listcard.ListCardType
 import org.nekomanga.presentation.components.scaffold.ChildScreenScaffold
@@ -54,7 +53,6 @@ import org.nekomanga.presentation.screens.settings.screens.DownloadSettingsScree
 import org.nekomanga.presentation.screens.settings.screens.GeneralSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.LibrarySettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.MangaDexSettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.MergeSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.ReaderSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.SearchableSettings
 import org.nekomanga.presentation.screens.settings.screens.SecuritySettingsScreen
@@ -99,7 +97,6 @@ fun SettingsMainScreen(
                         SettingsScreenType.General -> Screens.Settings.General
                         SettingsScreenType.Library -> Screens.Settings.Library
                         SettingsScreenType.MangaDex -> Screens.Settings.MangaDex
-                        SettingsScreenType.MergeSource -> Screens.Settings.MergeSource
                         SettingsScreenType.Reader -> Screens.Settings.Reader
                         SettingsScreenType.Security -> Screens.Settings.Security
                         SettingsScreenType.Tracking -> Screens.Settings.Tracking
@@ -167,14 +164,6 @@ private fun mainContent(
                         icon = Icons.Outlined.Public,
                         isSelected = selectedScreen == Screens.Settings.MangaDex,
                         onClick = { onNavigateClick(Screens.Settings.MangaDex) },
-                    )
-                )
-                add(
-                    SettingsMenuItem(
-                        labelText = UiText.StringResource(R.string.merge_source_settings),
-                        icon = MergeIcon,
-                        isSelected = selectedScreen == Screens.Settings.MergeSource,
-                        onClick = { onNavigateClick(Screens.Settings.MergeSource) },
                     )
                 )
                 add(
@@ -374,11 +363,6 @@ private fun searchTerms() =
             settingScreenType = SettingsScreenType.MangaDex,
             settingsStringTitle = stringResource(R.string.site_specific_settings),
             contents = MangaDexSettingsScreen.getSearchTerms(),
-        ),
-        SettingsData(
-            settingScreenType = SettingsScreenType.MergeSource,
-            settingsStringTitle = stringResource(R.string.merge_source_settings),
-            contents = MergeSettingsScreen.getSearchTerms(),
         ),
         SettingsData(
             settingScreenType = SettingsScreenType.Reader,

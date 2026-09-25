@@ -61,8 +61,6 @@ import org.nekomanga.data.database.repository.MangaAggregateRepository
 import org.nekomanga.data.database.repository.MangaAggregateRepositoryImpl
 import org.nekomanga.data.database.repository.MangaRepository
 import org.nekomanga.data.database.repository.MangaRepositoryImpl
-import org.nekomanga.data.database.repository.MergeMangaRepository
-import org.nekomanga.data.database.repository.MergeMangaRepositoryImpl
 import org.nekomanga.data.database.repository.ScanlatorGroupRepository
 import org.nekomanga.data.database.repository.ScanlatorGroupRepositoryImpl
 import org.nekomanga.data.database.repository.SimilarRepository
@@ -110,7 +108,10 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory {
             Room.databaseBuilder(app, AppDatabase::class.java, AppDatabase.DATABASE_NAME)
                 .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
-                .addMigrations(DatabaseMigrations.MIGRATION_45_46)
+                .addMigrations(
+                    DatabaseMigrations.MIGRATION_45_46,
+                    DatabaseMigrations.MIGRATION_46_47,
+                )
                 .fallbackToDestructiveMigration(false)
                 .build()
         }
@@ -145,10 +146,6 @@ class AppModule(val app: Application) : InjektModule {
                 mangaDexPreferences = get(),
                 libraryPreferences = get(),
             )
-        }
-
-        addSingletonFactory<MergeMangaRepository> {
-            MergeMangaRepositoryImpl(mergeMangaDao = get<AppDatabase>().mergeMangaDao())
         }
 
         // Bind the ScanlatorGroup repository

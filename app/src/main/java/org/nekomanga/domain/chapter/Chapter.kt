@@ -2,7 +2,6 @@ package org.nekomanga.domain.chapter
 
 import androidx.compose.runtime.Immutable
 import eu.kanade.tachiyomi.data.database.models.Chapter
-import eu.kanade.tachiyomi.data.database.models.MergeType
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SChapter
@@ -39,22 +38,11 @@ data class SimpleChapter(
 ) {
     val isRecognizedNumber = chapterNumber >= 0f
 
-    fun isMergedChapter() = MergeType.containsMergeSourceName(this.scanlator)
-
     fun isLocalSource() = this.scanlator == Constants.LOCAL_SOURCE && this.isUnavailable
 
     fun canDeleteChapter() = !this.isLocalSource() && !this.bookmark && !this.isUnavailable
 
-    fun isMergedChapterOfType(mergeType: MergeType) =
-        MergeType.getMergeTypeName(mergeType) == this.scanlator
-
-    fun getHttpSource(sourceManager: SourceManager): HttpSource {
-        val mergeType = MergeType.getMergeTypeFromName(this.scanlator)
-        return when (mergeType == null) {
-            true -> sourceManager.mangaDex
-            false -> MergeType.getSource(mergeType, sourceManager)
-        }
-    }
+    fun getHttpSource(sourceManager: SourceManager): HttpSource = sourceManager.mangaDex
 
     fun scanlatorList(): List<String> {
         return ChapterUtil.getScanlators(this.scanlator)

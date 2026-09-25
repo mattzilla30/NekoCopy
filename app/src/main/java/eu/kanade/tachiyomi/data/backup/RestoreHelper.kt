@@ -12,7 +12,6 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.History
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
-import eu.kanade.tachiyomi.data.database.models.MergeMangaImpl
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
@@ -30,7 +29,6 @@ import org.nekomanga.data.database.repository.CategoryRepository
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.HistoryRepository
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.data.database.repository.MergeMangaRepository
 import org.nekomanga.data.database.repository.TrackRepository
 import org.nekomanga.logging.TimberKt
 import uy.kohesive.injekt.injectLazy
@@ -42,7 +40,6 @@ class RestoreHelper(val context: Context) {
     val chapterRepository: ChapterRepository by injectLazy()
     val historyRepository: HistoryRepository by injectLazy()
     val mangaRepository: MangaRepository by injectLazy()
-    val mergeMangaRepository: MergeMangaRepository by injectLazy()
     val trackRepository: TrackRepository by injectLazy()
     val trackManager: TrackManager by injectLazy()
 
@@ -396,22 +393,6 @@ class RestoreHelper(val context: Context) {
         // Update database
         if (trackToUpdate.isNotEmpty() || needToUpdate) {
             trackRepository.insertTracks(trackToUpdate)
-        }
-    }
-
-    suspend fun restoreMergeMangaForManga(
-        manga: Manga,
-        mergeMangaList: List<MergeMangaImpl>,
-        preFetchedDbMergeMangaList: List<MergeMangaImpl>? = null,
-    ) {
-        val dbMergeMangaList =
-            preFetchedDbMergeMangaList ?: mergeMangaRepository.getMergeMangaList(manga.id!!)
-        mergeMangaList.forEach { mergeManga ->
-            val dbMergeManga = dbMergeMangaList.find { it.mergeType == mergeManga.mergeType }
-            if (dbMergeManga == null) {
-                val newMergeManga = mergeManga.copy(mangaId = manga.id!!)
-                mergeMangaRepository.insertMergeManga(newMergeManga)
-            }
         }
     }
 

@@ -4,9 +4,6 @@ import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.state.ToggleableState
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.database.models.MergeMangaImpl
-import eu.kanade.tachiyomi.data.database.models.MergeType
-import eu.kanade.tachiyomi.data.database.models.SourceMergeManga
 import eu.kanade.tachiyomi.data.external.ExternalLink
 import eu.kanade.tachiyomi.util.chapter.MissingChapterHolder
 import org.nekomanga.constants.MdConstants
@@ -57,7 +54,6 @@ object MangaConstants {
     data class MangaScreenMangaState(
         val initialized: Boolean = false,
         val inLibrary: Boolean = false,
-        val isMerged: MergeConstants.IsMergedManga = MergeConstants.IsMergedManga.No,
         val currentTitle: String = "",
         val originalTitle: String = "",
         val alternativeTitles: List<String> = listOf(),
@@ -113,19 +109,11 @@ object MangaConstants {
     )
 
     @Immutable
-    data class MangaScreenMergeState(
-        val validMergeTypes: List<MergeType> = listOf(),
-        val mergeSearchResult: MergeConstants.MergeSearchResult =
-            MergeConstants.MergeSearchResult.Loading,
-    )
-
-    @Immutable
     data class MangaDetailScreenState(
         val general: MangaScreenGeneralState,
         val manga: MangaScreenMangaState,
         val chapters: MangaScreenChapterState = MangaScreenChapterState(),
         val track: MangaScreenTrackState = MangaScreenTrackState(),
-        val merge: MangaScreenMergeState = MangaScreenMergeState(),
         val category: MangaScreenCategoryState = MangaScreenCategoryState(),
     )
 
@@ -324,13 +312,6 @@ object MangaConstants {
         val set: (Artwork) -> Unit,
         val save: (Artwork) -> Unit,
         val reset: () -> Unit,
-    )
-
-    @Immutable
-    class MergeActions(
-        val remove: (MergeMangaImpl) -> Unit,
-        val search: (String, MergeType, List<String>) -> Unit,
-        val add: (SourceMergeManga) -> Unit,
     )
 
     @Immutable

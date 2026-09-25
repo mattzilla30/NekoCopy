@@ -12,7 +12,7 @@ import androidx.compose.ui.res.stringResource
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.mangabaka.MangaBakaApi
 import eu.kanade.tachiyomi.jobs.tracking.TrackingSyncJob
-import eu.kanade.tachiyomi.ui.setting.MergeLoginEvent
+import eu.kanade.tachiyomi.ui.setting.LoginEvent
 import eu.kanade.tachiyomi.ui.setting.TrackingSettingsViewModel
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import kotlinx.coroutines.flow.SharedFlow
@@ -31,7 +31,7 @@ internal class TrackingSettingsScreen(
     val updateAutoAddTrack: (Boolean, TrackServiceItem) -> Unit,
     val logout: (TrackServiceItem) -> Unit,
     val login: (TrackServiceItem, String, String) -> Unit,
-    val loginEvent: SharedFlow<MergeLoginEvent>,
+    val loginEvent: SharedFlow<LoginEvent>,
     onNavigationIconClick: (() -> Unit)?,
 ) : SearchableSettings(onNavigationIconClick, incognitoMode) {
     override fun getTitleRes(): Int = R.string.tracking

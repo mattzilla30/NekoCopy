@@ -27,7 +27,6 @@ import org.nekomanga.presentation.screens.library.filter.FilterBookmarked
 import org.nekomanga.presentation.screens.library.filter.FilterCompleted
 import org.nekomanga.presentation.screens.library.filter.FilterDownloaded
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-import org.nekomanga.presentation.screens.library.filter.FilterMerged
 import org.nekomanga.presentation.screens.library.filter.FilterMissingChapters
 import org.nekomanga.presentation.screens.library.filter.FilterTracked
 import org.nekomanga.presentation.screens.library.filter.FilterUnavailable
@@ -116,7 +115,6 @@ fun LibraryButtonBar(
             listOf(FilterMissingChapters.MissingChapter, FilterMissingChapters.NoMissingChapters)
         val unavailableToggleList =
             listOf(FilterUnavailable.Unavailable, FilterUnavailable.NoUnavailable)
-        val mergedToggleList = listOf(FilterMerged.Merged, FilterMerged.NotMerged)
         val trackedToggleList = listOf(FilterTracked.Tracked, FilterTracked.NotTracked)
         ConnectedToggleButtons(
             libraryScreenState.libraryFilters.filterUnread,
@@ -155,11 +153,6 @@ fun LibraryButtonBar(
                 libraryScreenActions.filterToggled,
             )
         }
-        ConnectedToggleButtons(
-            libraryScreenState.libraryFilters.filterMerged,
-            mergedToggleList,
-            libraryScreenActions.filterToggled,
-        )
         if (libraryScreenState.showTrackedFilter) {
             ConnectedToggleButtons(
                 libraryScreenState.libraryFilters.filterTracked,

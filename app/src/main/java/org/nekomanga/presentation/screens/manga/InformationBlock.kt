@@ -47,7 +47,6 @@ import org.nekomanga.presentation.components.NoRippleText
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.dropdown.SimpleDropDownItem
 import org.nekomanga.presentation.components.dropdown.SimpleDropdownMenu
-import org.nekomanga.presentation.components.icons.MergeCheckIcon
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.theme.Size
 
@@ -66,7 +65,6 @@ fun InformationBlock(
     missingChapters: String?,
     estimatedMissingChapters: String?,
     isExpanded: Boolean,
-    showMergedIcon: Boolean,
     modifier: Modifier = Modifier,
     titleLongClick: (String) -> Unit = {},
     creatorCopyClick: (String) -> Unit = {},
@@ -211,15 +209,6 @@ fun InformationBlock(
                         contentDescription = stringResource(id = R.string.comments),
                     )
                 }
-            }
-
-            if (showMergedIcon) {
-                StatItem(
-                    text = "",
-                    icon = MergeCheckIcon,
-                    color = mediumAlpha,
-                    contentDescription = stringResource(id = R.string.merged),
-                )
             }
         }
 

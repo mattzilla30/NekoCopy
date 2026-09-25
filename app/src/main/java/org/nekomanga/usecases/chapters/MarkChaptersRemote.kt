@@ -27,20 +27,12 @@ class MarkChaptersRemote(
             }
         if (syncRead != null && !skipSync && mangaDexPreferences.readingSync().get()) {
 
-            val (mergedChapters, nonMergedChapters) =
-                chapterItems.map { it.chapter }.partition { it.isMergedChapter() }
-
+            val chapters = chapterItems.map { it.chapter }
             withNonCancellableContext {
-                if (nonMergedChapters.isNotEmpty()) {
+                if (chapters.isNotEmpty()) {
                     statusHandler.markChaptersStatus(
                         mangaUuid,
-                        nonMergedChapters.map { it.mangaDexChapterId },
-                        syncRead,
-                    )
-                }
-                if (mergedChapters.isNotEmpty()) {
-                    statusHandler.markMergedChaptersStatus(
-                        mergedChapters.map { it.toSChapter() },
+                        chapters.map { it.mangaDexChapterId },
                         syncRead,
                     )
                 }

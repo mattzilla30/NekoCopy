@@ -68,7 +68,6 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.source.model.Page
-import eu.kanade.tachiyomi.source.model.isMergedChapter
 import eu.kanade.tachiyomi.ui.base.activity.BaseMainActivity
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.AddToLibraryFirst
@@ -1707,25 +1706,21 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
         currentChapter ?: return
 
         if (isComments) {
-            if (currentChapter.chapter.isMergedChapter()) {
-                toast(R.string.comments_unavailable, duration = Toast.LENGTH_SHORT)
-            } else {
-                viewModel.setIsLoading(true)
-                scope.launchIO {
-                    val threadId = viewModel.lookupComment(currentChapter.chapter.uuid())
+            viewModel.setIsLoading(true)
+            scope.launchIO {
+                val threadId = viewModel.lookupComment(currentChapter.chapter.uuid())
 
-                    scope.launchUI {
-                        viewModel.setIsLoading(false)
+                scope.launchUI {
+                    viewModel.setIsLoading(false)
 
-                        if (threadId == null) {
-                            toast(R.string.comments_unavailable, duration = Toast.LENGTH_SHORT)
+                    if (threadId == null) {
+                        toast(R.string.comments_unavailable, duration = Toast.LENGTH_SHORT)
+                    } else {
+                        val url = MdConstants.forumUrl + threadId
+                        if (preferences.openLinksInBrowser().get()) {
+                            openInBrowser(url, forceDefaultBrowser = true)
                         } else {
-                            val url = MdConstants.forumUrl + threadId
-                            if (preferences.openLinksInBrowser().get()) {
-                                openInBrowser(url, forceDefaultBrowser = true)
-                            } else {
-                                openInWebView(url, title = getString(R.string.comments))
-                            }
+                            openInWebView(url, title = getString(R.string.comments))
                         }
                     }
                 }

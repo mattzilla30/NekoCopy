@@ -27,7 +27,6 @@ fun coilImageLoader(context: Context) =
                 add(TachiyomiImageDecoder.Factory())
                 add(MangaCoverFactory(lazy(diskCacheInit)))
                 add(ArtworkFactory(lazy(diskCacheInit)))
-                add(MergeArtworkFactory())
                 add(ArtworkKeyer())
                 add(ReaderPageKeyer())
                 add(ReaderPageSplitKeyer())

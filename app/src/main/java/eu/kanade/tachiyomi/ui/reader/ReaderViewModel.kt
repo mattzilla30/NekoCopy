@@ -29,7 +29,6 @@ import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.getHttpSource
-import eu.kanade.tachiyomi.source.model.isMergedChapter
 import eu.kanade.tachiyomi.source.online.MangaDex
 import eu.kanade.tachiyomi.source.online.handlers.StatusHandler
 import eu.kanade.tachiyomi.ui.reader.chapter.ReaderChapterItem
@@ -1319,17 +1318,11 @@ constructor(
             return
         }
 
-        if (!readerChapter.chapter.isMergedChapter()) {
-            viewModelScope.launchIO {
-                statusHandler.markChaptersStatus(
-                    manga!!.uuid(),
-                    listOf(readerChapter.chapter.mangadex_chapter_id),
-                )
-            }
-        } else {
-            viewModelScope.launchIO {
-                statusHandler.markMergedChaptersStatus(listOf(readerChapter.chapter))
-            }
+        viewModelScope.launchIO {
+            statusHandler.markChaptersStatus(
+                manga!!.uuid(),
+                listOf(readerChapter.chapter.mangadex_chapter_id),
+            )
         }
     }
 

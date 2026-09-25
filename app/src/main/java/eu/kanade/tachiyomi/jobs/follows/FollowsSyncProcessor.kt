@@ -8,7 +8,6 @@ import eu.kanade.tachiyomi.data.database.models.uuid
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.source.model.isMergedChapter
 import eu.kanade.tachiyomi.source.online.handlers.FollowsHandler
 import eu.kanade.tachiyomi.source.online.utils.FollowStatus
 import eu.kanade.tachiyomi.source.online.utils.MdUtil
@@ -203,7 +202,7 @@ class FollowsSyncProcessor {
                         try {
                             val readMdChapters =
                                 chapterRepository.getChaptersForManga(mangaId).mapNotNull {
-                                    if (!it.read || it.isMergedChapter()) return@mapNotNull null
+                                    if (!it.read) return@mapNotNull null
                                     it.toSimpleChapter()?.toChapterItem()
                                 }
 

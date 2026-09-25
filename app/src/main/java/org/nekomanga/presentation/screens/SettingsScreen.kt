@@ -36,7 +36,6 @@ import eu.kanade.tachiyomi.ui.setting.DebugSettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.DownloadSettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.LibrarySettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.MangaDexSettingsViewModel
-import eu.kanade.tachiyomi.ui.setting.MergeSettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.ReaderSettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.SettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.TrackingSettingsViewModel
@@ -50,7 +49,6 @@ import org.nekomanga.presentation.screens.settings.screens.DownloadSettingsScree
 import org.nekomanga.presentation.screens.settings.screens.GeneralSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.LibrarySettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.MangaDexSettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.MergeSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.ReaderSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.SecuritySettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.TrackingSettingsScreen
@@ -250,30 +248,6 @@ fun SettingsScreen(windowSizeClass: WindowSizeClass, onBackPressed: () -> Unit, 
                     mangaDexSettingsState = vm.state.collectAsState().value,
                     deleteSavedFilters = vm::deleteAllBrowseFilters,
                     logout = vm::logout,
-                )
-                .Content()
-        }
-        entry<Screens.Settings.MergeSource> {
-            val vm: MergeSettingsViewModel = viewModel()
-            MergeSettingsScreen(
-                    login = vm::login,
-                    logout = vm::logout,
-                    onNavigationIconClick =
-                        if (isTablet && detailBackStack.size == 1) null
-                        else {
-                            {
-                                if (isTablet && detailBackStack.size > 1) {
-                                    detailBackStack.removeLastOrNull()
-                                } else {
-                                    reset(backStack, wasDeepLink, onBackPressed)
-                                }
-                            }
-                        },
-                    incognitoMode = settingsVm.securityPreferences.incognitoMode().get(),
-                    loginEvent = vm.loginEvent,
-                    komgaState = vm.komgaMergeScreenState.collectAsState().value,
-                    suwayomiState = vm.suwayomiMergeScreenState.collectAsState().value,
-                    preferences = vm.preferences,
                 )
                 .Content()
         }

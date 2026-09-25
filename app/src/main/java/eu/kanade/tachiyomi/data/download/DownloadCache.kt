@@ -3,9 +3,7 @@ package eu.kanade.tachiyomi.data.download
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.database.models.MergeType
 import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.source.model.isMergedChapter
 import eu.kanade.tachiyomi.util.lang.isUUID
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -79,16 +77,13 @@ class DownloadCache(
         val mangadexIds = cache.mangadexIds
 
         // Fast path: Check UUIDs/Mangadex IDs from memory
-        if (!chapter.isMergedChapter()) {
-            if (
-                chapter.mangadex_chapter_id.isNotEmpty() &&
-                    chapter.mangadex_chapter_id in mangadexIds
-            ) {
-                return true
-            }
-            if (chapter.old_mangadex_id != null && chapter.old_mangadex_id in mangadexIds) {
-                return true
-            }
+        if (
+            chapter.mangadex_chapter_id.isNotEmpty() && chapter.mangadex_chapter_id in mangadexIds
+        ) {
+            return true
+        }
+        if (chapter.old_mangadex_id != null && chapter.old_mangadex_id in mangadexIds) {
+            return true
         }
 
         // Slow path: Check directory names (requires provider generation)
@@ -235,9 +230,7 @@ class DownloadCache(
         // though we are in a Synchronized block so standard get/put is fine.
         val entry = mangaFiles.getOrPut(id) { MangaFiles(mutableSetOf(), mutableSetOf()) }
         entry.files.add(cleanName)
-        if (!MergeType.containsMergeSourceName(chapterDirName)) {
-            entry.mangadexIds.add(mangadexId)
-        }
+        entry.mangadexIds.add(mangadexId)
     }
 
     @Synchronized
@@ -246,9 +239,7 @@ class DownloadCache(
         val cache = mangaFiles[id] ?: return
 
         for (chapter in chapters) {
-            if (!chapter.isMergedChapter()) {
-                cache.mangadexIds.remove(chapter.mangadex_chapter_id)
-            }
+            cache.mangadexIds.remove(chapter.mangadex_chapter_id)
 
             val validNames = provider.getValidChapterDirNames(chapter)
             validNames.forEach { cache.files.remove(it) }
@@ -262,10 +253,7 @@ class DownloadCache(
 
         for (folder in folders) {
             cache.files.remove(folder)
-            if (!MergeType.containsMergeSourceName(folder)) {
-                val mangadexId = folder.substringAfterLast("- ")
-                cache.mangadexIds.remove(mangadexId)
-            }
+            cache.mangadexIds.remove(folder.substringAfterLast("- "))
         }
     }
 

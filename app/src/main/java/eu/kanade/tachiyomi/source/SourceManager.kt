@@ -1,16 +1,6 @@
 package eu.kanade.tachiyomi.source
 
 import eu.kanade.tachiyomi.source.online.MangaDex
-import eu.kanade.tachiyomi.source.online.merged.InvalidHttpSource
-import eu.kanade.tachiyomi.source.online.merged.atsumaru.Atsumaru
-import eu.kanade.tachiyomi.source.online.merged.comix.Comix
-import eu.kanade.tachiyomi.source.online.merged.kagane.Kagane
-import eu.kanade.tachiyomi.source.online.merged.komga.Komga
-import eu.kanade.tachiyomi.source.online.merged.mangaball.MangaBall
-import eu.kanade.tachiyomi.source.online.merged.projectsuki.ProjectSuki
-import eu.kanade.tachiyomi.source.online.merged.suwayomi.Suwayomi
-import eu.kanade.tachiyomi.source.online.merged.toonily.Toonily
-import eu.kanade.tachiyomi.source.online.merged.weebcentral.WeebCentral
 import eu.kanade.tachiyomi.source.online.utils.MdLang
 import java.security.MessageDigest
 import org.nekomanga.constants.Constants
@@ -19,26 +9,6 @@ import org.nekomanga.constants.Constants
 open class SourceManager {
 
     val mangaDex: MangaDex = MangaDex()
-
-    val mangaBall: MangaBall by lazy { MangaBall() }
-
-    val invalidMergeSource: InvalidHttpSource by lazy { InvalidHttpSource() }
-
-    val komga: Komga by lazy { Komga() }
-
-    val suwayomi: Suwayomi by lazy { Suwayomi() }
-
-    val toonily: Toonily by lazy { Toonily() }
-
-    val weebCentral: WeebCentral by lazy { WeebCentral() }
-
-    val comix: Comix by lazy { Comix() }
-
-    val atsumaru: Atsumaru by lazy { Atsumaru() }
-
-    val projectSuki: ProjectSuki by lazy { ProjectSuki() }
-
-    val kagane: Kagane by lazy { Kagane() }
 
     open fun get(sourceKey: Long): Source? {
         return mangaDex
@@ -50,19 +20,8 @@ open class SourceManager {
 
     companion object {
 
-        val mergeSourceNames =
-            listOf<String>(
-                Komga.name,
-                Constants.LOCAL_SOURCE,
-                Suwayomi.name,
-                Toonily.name,
-                WeebCentral.name,
-                MangaBall.name,
-                Comix.name,
-                ProjectSuki.name,
-                Atsumaru.name,
-                Kagane.name,
-            )
+        /** Scanlator names that mark where a chapter came from rather than a scanlation group. */
+        val sourceScanlatorNames = listOf(Constants.LOCAL_SOURCE)
 
         val possibleIds = MdLang.entries.map { getId(it.lang) }
 

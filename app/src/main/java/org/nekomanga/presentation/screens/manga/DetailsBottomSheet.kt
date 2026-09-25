@@ -13,7 +13,6 @@ import org.nekomanga.presentation.components.sheets.ArtworkSheet
 import org.nekomanga.presentation.components.sheets.EditCategorySheet
 import org.nekomanga.presentation.components.sheets.ExternalLinksSheet
 import org.nekomanga.presentation.components.sheets.FilterChapterSheet
-import org.nekomanga.presentation.components.sheets.MergeSheet
 import org.nekomanga.presentation.components.sheets.TrackingDateSheet
 import org.nekomanga.presentation.components.sheets.TrackingSearchSheet
 import org.nekomanga.presentation.components.sheets.TrackingSheet
@@ -30,8 +29,6 @@ sealed class DetailsBottomSheetScreen {
     object TrackingSheet : DetailsBottomSheetScreen()
 
     object ExternalLinksSheet : DetailsBottomSheetScreen()
-
-    object MergeSheet : DetailsBottomSheetScreen()
 
     object ArtworkSheet : DetailsBottomSheetScreen()
 
@@ -59,7 +56,6 @@ fun DetailsBottomSheet(
     trackActions: MangaConstants.TrackActions,
     openInWebView: (String, String) -> Unit,
     coverActions: MangaConstants.CoverActions,
-    mergeActions: MangaConstants.MergeActions,
     chapterFilterActions: MangaConstants.ChapterFilterActions,
     onNavigate: (DetailsBottomSheetScreen?) -> Unit,
 ) {
@@ -164,35 +160,6 @@ fun DetailsBottomSheet(
                     onNavigate(null)
                     openInWebView(url, title)
                 },
-            )
-        }
-        is DetailsBottomSheetScreen.MergeSheet -> {
-            MergeSheet(
-                themeColorState = themeColorState,
-                isMergedManga = mangaDetailScreenState.manga.isMerged,
-                title = mangaDetailScreenState.manga.currentTitle,
-                altTitles =
-                    buildList {
-                        add(mangaDetailScreenState.manga.originalTitle)
-                        addAll(mangaDetailScreenState.manga.alternativeTitles)
-                    },
-                mergeSearchResults = mangaDetailScreenState.merge.mergeSearchResult,
-                openMergeSource = { url, title ->
-                    onNavigate(null)
-                    openInWebView(url, title)
-                },
-                removeMergeSource = { mergeMangaImpl ->
-                    onNavigate(null)
-                    mergeActions.remove(mergeMangaImpl)
-                },
-                search = { query, mergeType, mergedUrls ->
-                    mergeActions.search(query, mergeType, mergedUrls)
-                },
-                mergeMangaClick = { mergeManga ->
-                    onNavigate(null)
-                    mergeActions.add(mergeManga)
-                },
-                validMergeTypes = mangaDetailScreenState.merge.validMergeTypes,
             )
         }
         is DetailsBottomSheetScreen.ArtworkSheet -> {

@@ -4,10 +4,8 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.source.model.isLocalSource
-import eu.kanade.tachiyomi.source.model.isMergedChapter
 import kotlin.math.floor
 import org.nekomanga.constants.Constants
-import org.nekomanga.constants.MdConstants
 import org.nekomanga.domain.chapter.ChapterItem
 
 data class MissingChapterHolder(val count: String = "", val estimatedChapters: String = "")
@@ -57,26 +55,6 @@ fun List<ChapterItem>.getMissingChapters(): MissingChapterHolder {
         estimatedChapters =
             missingRanges.takeIf { it.isNotEmpty() }?.joinToString(Constants.SEPARATOR) ?: "",
     )
-}
-
-/**
- * returns true for a list filter, if the source name exists in the filtered sources, and the
- * chapter has the scanlator
- */
-fun Chapter.filteredBySource(sourceName: String, filteredSources: Set<String>): Boolean {
-    if (filteredSources.isEmpty()) {
-        return false
-    }
-    val shouldCheck = sourceName in filteredSources
-    if (!shouldCheck) {
-        return false
-    }
-
-    if (sourceName == MdConstants.name) {
-        return !this.isMergedChapter()
-    }
-
-    return ChapterUtil.getScanlators(this.scanlator).any { group -> group == sourceName }
 }
 
 fun ChapterItem.isAvailable(): Boolean {

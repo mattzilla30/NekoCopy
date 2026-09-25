@@ -1,7 +1,6 @@
 package org.nekomanga.data.database.mapper
 
 import eu.kanade.tachiyomi.data.database.models.LibraryManga
-import eu.kanade.tachiyomi.data.database.models.MergeType
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
 import org.nekomanga.constants.Constants
@@ -51,10 +50,8 @@ fun LibraryMangaRaw.toLibraryManga(
         this.users = baseManga.users
         this.thread_id = baseManga.thread_id
         this.replies_count = baseManga.replies_count
-        this.merge_manga_url = baseManga.merge_manga_url
         this.last_volume_number = baseManga.last_volume_number
         this.last_chapter_number = baseManga.last_chapter_number
-        this.merge_manga_image_url = baseManga.merge_manga_image_url
         this.alt_titles = baseManga.alt_titles
         this.user_cover = baseManga.user_cover
         this.user_title = baseManga.user_title
@@ -65,7 +62,6 @@ fun LibraryMangaRaw.toLibraryManga(
         this.category = raw.category
         this.bookmarkCount = raw.bookmarkCount
         this.unavailableCount = raw.unavailableCount
-        this.isMerged = raw.isMerged
 
         // 3. Parse the concatenated chapter strings
         this.unread =
@@ -88,7 +84,7 @@ fun LibraryMangaRaw.toLibraryManga(
     }
 }
 
-private val SOURCES = SourceManager.mergeSourceNames + MdConstants.name
+private val SOURCES = SourceManager.sourceScanlatorNames + MdConstants.name
 
 private fun parseChapterCount(
     countString: String?,
@@ -141,8 +137,6 @@ private fun parseChapterCount(
                     if (
                         ChapterUtil.filteredBySource(
                             source,
-                            scanlators,
-                            MergeType.containsMergeSourceName(scanlator),
                             scanlator == Constants.LOCAL_SOURCE,
                             filtered,
                         )

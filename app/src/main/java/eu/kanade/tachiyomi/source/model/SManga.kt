@@ -5,7 +5,6 @@ import eu.kanade.tachiyomi.source.online.utils.FollowStatus
 import eu.kanade.tachiyomi.source.online.utils.MdUtil
 import java.io.Serializable
 import org.nekomanga.constants.Constants.ALT_TITLES_SEPARATOR
-import tachiyomi.source.model.MangaInfo
 
 interface SManga : Serializable {
 
@@ -52,10 +51,6 @@ interface SManga : Serializable {
     var replies_count: String?
 
     var thread_id: String?
-
-    var merge_manga_url: String?
-
-    var merge_manga_image_url: String?
 
     var last_volume_number: Int?
 
@@ -153,20 +148,6 @@ interface SManga : Serializable {
         fun create(): SManga {
             return MangaImpl()
         }
-    }
-}
-
-fun MangaInfo.toSManga(): SManga {
-    val mangaInfo = this
-    return SManga.create().apply {
-        url = mangaInfo.key
-        title = mangaInfo.title
-        artist = mangaInfo.artist
-        author = mangaInfo.author
-        description = mangaInfo.description
-        genre = mangaInfo.genres.joinToString(", ")
-        status = mangaInfo.status
-        thumbnail_url = mangaInfo.cover
     }
 }
 

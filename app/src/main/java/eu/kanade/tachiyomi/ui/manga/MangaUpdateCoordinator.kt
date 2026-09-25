@@ -6,19 +6,15 @@ import com.github.michaelbull.result.onErr
 import com.github.michaelbull.result.onOk
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.database.models.MergeType
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SChapter
-import eu.kanade.tachiyomi.source.model.isMergedChapter
 import eu.kanade.tachiyomi.util.chapter.getChapterNum
 import eu.kanade.tachiyomi.util.chapter.syncChaptersWithSource
 import eu.kanade.tachiyomi.util.manga.MangaShortcutManager
 import eu.kanade.tachiyomi.util.manga.shouldDownloadNewChapters
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.channelFlow
@@ -31,7 +27,6 @@ import org.nekomanga.data.database.repository.ArtworkRepository
 import org.nekomanga.data.database.repository.CategoryRepository
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.data.database.repository.MergeMangaRepository
 import org.nekomanga.data.database.repository.ScanlatorGroupRepository
 import org.nekomanga.data.database.repository.UploaderRepository
 import org.nekomanga.domain.chapter.ChapterItem
@@ -61,7 +56,6 @@ class MangaUpdateCoordinator {
 
     private val chapterRepository: ChapterRepository by injectLazy()
     private val mangaRepository: MangaRepository by injectLazy()
-    private val mergeMangaRepository: MergeMangaRepository by injectLazy()
 
     private val scanlatorGroupRepository: ScanlatorGroupRepository by injectLazy()
 
@@ -77,7 +71,7 @@ class MangaUpdateCoordinator {
     private val mangaShortcutManager: MangaShortcutManager by injectLazy()
     private val mangaUseCases: MangaUseCases by injectLazy()
 
-    fun update(mangaItem: MangaItem, isMerging: Boolean) = channelFlow {
+    fun update(mangaItem: MangaItem) = channelFlow {
         if (!sourceManager.mangaDex.checkIfUp()) {
             send(MangaResult.Error(R.string.site_down))
             return@channelFlow
@@ -91,7 +85,7 @@ class MangaUpdateCoordinator {
         try {
             coroutineScope {
                 launch { updateMangaDetailsAndPersist(mangaItem) }
-                launch { updateChapters(mangaItem, mangaWasInitialized, isMerging) }
+                launch { updateChapters(mangaItem, mangaWasInitialized) }
             }
         } catch (e: UpdateError) {
             return@channelFlow
@@ -160,11 +154,10 @@ class MangaUpdateCoordinator {
     private suspend fun ProducerScope<MangaResult>.updateChapters(
         mangaItem: MangaItem,
         mangaWasAlreadyInitialized: Boolean,
-        isMerging: Boolean,
     ) {
         val manga = mangaItem.toManga()
 
-        val (allChapters, readFromMerged, errorFromMerged) = fetchAndCombineChapters(manga)
+        val allChapters = fetchChapters(manga)
         val (newChapters, removedChapters) =
             syncChaptersWithSource(
                 appDatabase = appDatabase,
@@ -172,8 +165,6 @@ class MangaUpdateCoordinator {
                 mangaRepository = mangaRepository,
                 rawSourceChapters = allChapters,
                 manga = manga,
-                errorFromMerged = errorFromMerged,
-                readFromMerged = readFromMerged,
             )
 
         if (newChapters.isNotEmpty()) {
@@ -184,10 +175,7 @@ class MangaUpdateCoordinator {
             ) {
                 val chaptersToDownload =
                     newChapters
-                        .mapNotNull {
-                            if (isMerging && it.isMergedChapter()) null
-                            else it.toSimpleChapter()?.toChapterItem()
-                        }
+                        .mapNotNull { it.toSimpleChapter()?.toChapterItem() }
                         .sortedBy { it.chapter.chapterNumber }
                 downloadChapters(manga, chaptersToDownload)
             }
@@ -201,59 +189,16 @@ class MangaUpdateCoordinator {
         send(MangaResult.UpdatedChapters)
     }
 
-    /** Fetches chapters from the main source and any merged sources concurrently. */
-    private suspend fun ProducerScope<MangaResult>.fetchAndCombineChapters(
-        manga: Manga
-    ): Triple<List<SChapter>, Set<String>, Boolean> = coroutineScope {
-        val dexChaptersDeferred = async {
-            sourceManager.mangaDex
-                .fetchChapterList(manga)
-                .onErr {
-                    send(MangaResult.Error(text = "MangaDex chapter fetch failed: ${it.message()}"))
-                    throw UpdateError()
-                }
-                .getOrElse { emptyList() }
-        }
-
-        var mergedSourceError = false
-
-        val mergedSourcesChapters =
-            mergeMangaRepository.getMergeMangaList(manga.id!!).map { mergeManga ->
-                async {
-                    val source = MergeType.getSource(mergeManga.mergeType, sourceManager)
-                    source
-                        .fetchChapters(mergeManga.url)
-                        .onErr {
-                            val msg = "Failed to fetch from ${source.name}: ${it.message()}"
-                            send(MangaResult.Error(text = msg))
-
-                            TimberKt.e { msg }
-                            mergedSourceError = true
-                        }
-                        .getOrElse { emptyList() }
-                }
+    /** Fetches the chapter list from MangaDex, sorted by chapter number. */
+    private suspend fun ProducerScope<MangaResult>.fetchChapters(manga: Manga): List<SChapter> =
+        sourceManager.mangaDex
+            .fetchChapterList(manga)
+            .onErr {
+                send(MangaResult.Error(text = "MangaDex chapter fetch failed: ${it.message()}"))
+                throw UpdateError()
             }
-
-        val dexChapters = dexChaptersDeferred.await()
-        val mergedChapterPairs =
-            mergedSourcesChapters
-                .awaitAll()
-                .flatten()
-                .sortedWith(compareBy { getChapterNum(it.first) })
-
-        val readFromMerged =
-            mergedChapterPairs.mapNotNull { if (it.second) it.first.url else null }.toSet()
-        val mergedChapters = mergedChapterPairs.map { (sChapter, _) ->
-            val lastChapterNum = manga.last_chapter_number?.toFloat()
-            if (lastChapterNum != null && sChapter.chapter_number == lastChapterNum) {
-                sChapter.name += " [END]"
-            }
-            sChapter
-        }
-
-        val allChapters = (dexChapters + mergedChapters).sortedWith(compareBy { getChapterNum(it) })
-        Triple(allChapters, readFromMerged, mergedSourceError)
-    }
+            .getOrElse { emptyList() }
+            .sortedWith(compareBy { getChapterNum(it) })
 
     /** Filters and downloads the given list of chapters. */
     fun downloadChapters(manga: Manga, chapters: List<ChapterItem>) {

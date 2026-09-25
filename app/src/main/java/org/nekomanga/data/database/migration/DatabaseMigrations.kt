@@ -2,8 +2,34 @@ package org.nekomanga.data.database.migration
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import org.nekomanga.constants.Constants
 
 object DatabaseMigrations {
+    /**
+     * Merged sources were removed. Delete the chapters they added, with their history, and drop the
+     * merge_manga table.
+     */
+    val MIGRATION_46_47 =
+        object : Migration(46, 47) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                val mergedChapter =
+                    RemovedMergeSources.names.joinToString(" OR ") {
+                        "scanlator = ? OR scanlator LIKE ?"
+                    }
+                val args =
+                    RemovedMergeSources.names
+                        .flatMap { name -> listOf(name, "$name${Constants.SCANLATOR_SEPARATOR}%") }
+                        .toTypedArray()
+                db.execSQL(
+                    "DELETE FROM history WHERE chapter_id IN " +
+                        "(SELECT id FROM chapters WHERE $mergedChapter)",
+                    args,
+                )
+                db.execSQL("DELETE FROM chapters WHERE $mergedChapter", args)
+                db.execSQL("DROP TABLE IF EXISTS merge_manga")
+            }
+        }
+
     val MIGRATION_45_46 =
         object : Migration(45, 46) {
             override fun migrate(db: SupportSQLiteDatabase) {

@@ -92,9 +92,9 @@ class ChapterUtilTest {
     }
 
     @Test
-    fun `filterByScanlator ignores merge source names`() {
+    fun `filterByScanlator ignores source names`() {
         ChapterUtil.filterByScanlator(
-            scanlators = listOf("Toonily", "Group A"),
+            scanlators = listOf(Constants.LOCAL_SOURCE, "Group A"),
             uploader = "",
             all = true,
             filteredGroups = setOf("Group A"),

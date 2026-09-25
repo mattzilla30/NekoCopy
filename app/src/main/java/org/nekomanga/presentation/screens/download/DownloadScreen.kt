@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import eu.kanade.tachiyomi.data.database.models.MergeType
 import jp.wasabeef.gap.Gap
 import org.nekomanga.R
 import org.nekomanga.constants.MdConstants
@@ -54,13 +53,7 @@ fun DownloadScreen(
 
     val scrollState = rememberLazyListState()
 
-    val downloadGroup =
-        remember(downloads) {
-            downloads.groupBy {
-                MergeType.getMergeTypeFromName(it.chapterItem.chapter.scanlator)?.scanlatorName
-                    ?: MdConstants.name
-            }
-        }
+    val downloadGroup = remember(downloads) { downloads.groupBy { MdConstants.name } }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(

@@ -12,7 +12,6 @@ import org.nekomanga.data.database.dao.LibraryDao
 import org.nekomanga.data.database.dao.MangaAggregateDao
 import org.nekomanga.data.database.dao.MangaCategoryDao
 import org.nekomanga.data.database.dao.MangaDao
-import org.nekomanga.data.database.dao.MergeMangaDao
 import org.nekomanga.data.database.dao.ScanlatorGroupDao
 import org.nekomanga.data.database.dao.SimilarDao
 import org.nekomanga.data.database.dao.TrackDao
@@ -26,12 +25,10 @@ import org.nekomanga.data.database.entity.MangaAggregateEntity
 import org.nekomanga.data.database.entity.MangaCategoryEntity
 import org.nekomanga.data.database.entity.MangaEntity
 import org.nekomanga.data.database.entity.MangaSimilarEntity
-import org.nekomanga.data.database.entity.MergeMangaEntity
 import org.nekomanga.data.database.entity.ScanlatorGroupEntity
 import org.nekomanga.data.database.entity.TrackEntity
 import org.nekomanga.data.database.entity.UploaderEntity
 import org.nekomanga.data.database.utils.FollowStatusConverter
-import org.nekomanga.data.database.utils.MergeTypeConverter
 
 @Database(
     entities =
@@ -48,12 +45,11 @@ import org.nekomanga.data.database.utils.MergeTypeConverter
             ScanlatorGroupEntity::class,
             MangaSimilarEntity::class,
             UploaderEntity::class,
-            MergeMangaEntity::class,
         ],
-    version = 46, // Set higher than StorIO version 45
+    version = 47,
     exportSchema = true,
 )
-@TypeConverters(MergeTypeConverter::class, FollowStatusConverter::class)
+@TypeConverters(FollowStatusConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun artworkDao(): ArtworkDao
 
@@ -72,8 +68,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun mangaCategoryDao(): MangaCategoryDao
 
     abstract fun mangaDao(): MangaDao
-
-    abstract fun mergeMangaDao(): MergeMangaDao
 
     abstract fun scanlatorGroupDao(): ScanlatorGroupDao
 

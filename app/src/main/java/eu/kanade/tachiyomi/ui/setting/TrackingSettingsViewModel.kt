@@ -30,7 +30,7 @@ class TrackingSettingsViewModel : ViewModel() {
 
     private val trackUseCases: TrackUseCases by injectLazy()
 
-    private val _loginEvent = MutableSharedFlow<MergeLoginEvent>()
+    private val _loginEvent = MutableSharedFlow<LoginEvent>()
     val loginEvent = _loginEvent.asSharedFlow()
 
     private val _state =
@@ -120,10 +120,10 @@ class TrackingSettingsViewModel : ViewModel() {
 
             when (loginSuccessful) {
                 true -> {
-                    _loginEvent.emit(MergeLoginEvent.Success)
+                    _loginEvent.emit(LoginEvent.Success)
                 }
                 false -> {
-                    _loginEvent.emit(MergeLoginEvent.Error)
+                    _loginEvent.emit(LoginEvent.Error)
                 }
             }
         }
@@ -169,4 +169,11 @@ class TrackingSettingsViewModel : ViewModel() {
         val mangaBakaIsLoggedIn: Boolean = false,
         val mangaBakaAutoAddTrack: Boolean = false,
     )
+}
+
+/** Result of a login attempt from a login dialog. */
+sealed interface LoginEvent {
+    data object Success : LoginEvent
+
+    data object Error : LoginEvent
 }

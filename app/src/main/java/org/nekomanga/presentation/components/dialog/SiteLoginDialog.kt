@@ -32,7 +32,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
-import eu.kanade.tachiyomi.ui.setting.MergeLoginEvent
+import eu.kanade.tachiyomi.ui.setting.LoginEvent
 import kotlinx.coroutines.flow.SharedFlow
 import org.nekomanga.R
 import org.nekomanga.presentation.extensions.runOnEnterKeyPressed
@@ -46,7 +46,7 @@ fun LoginDialog(
     showUrlField: Boolean = false,
     showCredentialsField: () -> Boolean = { true },
     usernameLabel: String = stringResource(R.string.username),
-    loginEvent: SharedFlow<MergeLoginEvent>,
+    loginEvent: SharedFlow<LoginEvent>,
 ) {
 
     var username by
@@ -66,9 +66,9 @@ fun LoginDialog(
         }
         loginEvent.collect { event ->
             when (event) {
-                is MergeLoginEvent.Success -> onDismiss()
+                is LoginEvent.Success -> onDismiss()
 
-                is MergeLoginEvent.Error -> {
+                is LoginEvent.Error -> {
                     showLoginError = true
                     showLoading = false
                 }

@@ -6,8 +6,6 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.isLocalSource
-import eu.kanade.tachiyomi.source.model.isMergedChapter
-import eu.kanade.tachiyomi.source.online.handlers.StatusHandler
 import eu.kanade.tachiyomi.source.online.utils.MdUtil
 import java.util.Date
 import java.util.TreeSet
@@ -16,7 +14,6 @@ import org.nekomanga.data.database.AppDatabase
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.MangaRepository
 import org.nekomanga.domain.library.LibraryPreferences
-import org.nekomanga.domain.site.MangaDexPreferences
 import org.nekomanga.logging.TimberKt
 import tachiyomi.core.util.storage.DiskUtil
 import tachiyomi.core.util.storage.nameWithoutExtension
@@ -29,8 +26,6 @@ import uy.kohesive.injekt.api.get
  * @param db the database.
  * @param rawSourceChapters a list of chapters from the source.
  * @param manga the manga of the chapters.
- * @param errorFromMerged whether there is an error is from a merged source
- * @param readFromMerged a set of merged chapters that have a read status
  * @return a pair of new insertions and deletions.
  */
 suspend fun syncChaptersWithSource(
@@ -39,12 +34,9 @@ suspend fun syncChaptersWithSource(
     mangaRepository: MangaRepository,
     rawSourceChapters: List<SChapter>,
     manga: Manga,
-    errorFromMerged: Boolean = false,
-    readFromMerged: Set<String> = emptySet(),
 ): Pair<List<Chapter>, List<Chapter>> {
     val downloadManager: DownloadManager = Injekt.get()
     val libraryPreferences: LibraryPreferences = Injekt.get()
-    val mangaDexPreferences: MangaDexPreferences = Injekt.get()
 
     // Chapters from db.
     var dbChapters = chapterRepository.getChaptersForManga(manga.id!!)
@@ -52,7 +44,7 @@ suspend fun syncChaptersWithSource(
     // Dedup unavailable with local prefix
     val chapterUUIDs =
         dbChapters
-            .filterNot { it.isLocalSource() || it.isMergedChapter() }
+            .filterNot { it.isLocalSource() }
             .map { MdUtil.getChapterUUID(it.url) }
             .toHashSet()
     dbChapters = dbChapters.mapNotNull { dbChapter ->
@@ -180,40 +172,22 @@ suspend fun syncChaptersWithSource(
     val dbChaptersByUrl = dbChapters.associateBy { it.url }
     val sourceChaptersByUrl = sourceChapters.associateBy { it.url }
 
-    // If merged source had an error, we need to get them from the db so the smart order is kept
-    val allChapters = sourceChapters.toMutableList()
-    if (errorFromMerged)
-        allChapters += dbChapters.filter { it.isMergedChapter() && it.url !in sourceChaptersByUrl }
-    val sortedChapters = reorderChapters(allChapters)
-    val (mergeErrorDbChapters, finalChapters) =
-        sortedChapters
-            .mapIndexed { i, chapter ->
-                Chapter.create().apply {
-                    copyFrom(chapter)
-                    TimberKt.d {
-                        "ChapterSourceSync ${this.scanlator} ${this.chapter_txt} sourceOrder=${this.source_order} smartOrder=${i}"
-                    }
-                    smart_order = i
+    val finalChapters =
+        reorderChapters(sourceChapters).mapIndexed { i, chapter ->
+            Chapter.create().apply {
+                copyFrom(chapter)
+                TimberKt.d {
+                    "ChapterSourceSync ${this.scanlator} ${this.chapter_txt} sourceOrder=${this.source_order} smartOrder=${i}"
                 }
+                smart_order = i
             }
-            .partition { errorFromMerged && it.isMergedChapter() && it.url !in sourceChaptersByUrl }
+        }
 
     // Chapters from the source not in db.
     val toAdd = mutableListOf<Chapter>()
 
     // Chapters whose metadata have changed.
-    // This includes the smart order changes when there is a merged source error.
-    val toChange =
-        mergeErrorDbChapters
-            .map { chapter ->
-                val dbChapter = dbChaptersByUrl[chapter.url]!!
-                dbChapter.smart_order = chapter.smart_order
-                dbChapter
-            }
-            .toMutableList()
-
-    // Read chapters to push to  remote hosted source.
-    val toSync = mutableListOf<Chapter>()
+    val toChange = mutableListOf<Chapter>()
 
     for (sourceChapter in finalChapters) {
         val dbChapter = dbChaptersByUrl[sourceChapter.url]
@@ -221,14 +195,10 @@ suspend fun syncChaptersWithSource(
         // Add the chapter if not in db already, or update if the metadata changed.
 
         if (dbChapter == null) {
-            val chapter = sourceChapter.apply { if (this.url in readFromMerged) this.read = true }
-            toAdd.add(chapter)
+            toAdd.add(sourceChapter)
         } else {
             ChapterRecognition.parseChapterNumber(sourceChapter, manga)
-            val isMergedRead = sourceChapter.url in readFromMerged
-            if (
-                shouldUpdateDbChapter(dbChapter, sourceChapter) || (!dbChapter.read && isMergedRead)
-            ) {
+            if (shouldUpdateDbChapter(dbChapter, sourceChapter)) {
                 if (
                     dbChapter.name != sourceChapter.name &&
                         downloadManager.isChapterDownloaded(dbChapter, manga)
@@ -250,27 +220,16 @@ suspend fun syncChaptersWithSource(
                 dbChapter.isUnavailable = sourceChapter.isUnavailable
                 dbChapter.source_order = sourceChapter.source_order
                 dbChapter.smart_order = sourceChapter.smart_order
-                if (isMergedRead) dbChapter.read = true
                 toChange.add(dbChapter)
-            }
-            if (!isMergedRead && dbChapter.read) {
-                toSync.add(dbChapter)
             }
         }
     }
-    if (mangaDexPreferences.readingSync().get()) {
-        Injekt.get<StatusHandler>().markMergedChaptersStatus(toSync, true)
-    }
-
     // Recognize number for new chapters.
     toAdd.forEach { ChapterRecognition.parseChapterNumber(it, manga) }
 
     // Chapters from the db not in the source.
     var toDelete = dbChapters.filterNot { dbChapter ->
-        // ignore to delete when there is a site error
-        if (dbChapter.isMergedChapter() && errorFromMerged) {
-            true
-        } else if (dbChapter.isLocalSource()) {
+        if (dbChapter.isLocalSource()) {
             downloadManager.isChapterDownloaded(dbChapter, manga, true)
         } else {
             sourceChaptersByUrl[dbChapter.url] != null

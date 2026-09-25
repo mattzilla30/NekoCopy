@@ -33,21 +33,21 @@ class MarkChaptersRemoteTest {
             val mangaUuid = "manga-uuid-123"
             val markAction = ChapterMarkActions.Read(canUndo = false)
 
-            val nonMergedChapter =
+            val firstChapter =
                 SimpleChapter.create()
                     .copy(id = 1L, mangaDexChapterId = "md-chapter-1", scanlator = "Some Scanlator")
-            val mergedChapter =
+            val secondChapter =
                 SimpleChapter.create()
                     .copy(
                         id = 2L,
                         mangaDexChapterId = "md-chapter-2",
-                        scanlator = "Komga", // This makes isMergedChapter() true
+                        scanlator = "Komga",
                     )
 
             val chapterItems =
                 listOf(
-                    ChapterItem(chapter = nonMergedChapter),
-                    ChapterItem(chapter = mergedChapter),
+                    ChapterItem(chapter = firstChapter),
+                    ChapterItem(chapter = secondChapter),
                 )
 
             // Mock reading sync true just to be sure skipSync supersedes it
@@ -58,38 +58,35 @@ class MarkChaptersRemoteTest {
 
             // Assert
             coVerify(exactly = 0) { statusHandler.markChaptersStatus(any(), any(), any()) }
-
-            coVerify(exactly = 0) { statusHandler.markMergedChaptersStatus(any(), any()) }
         }
 
     @Test
-    fun `given read action with sync true when marking mixed chapters then updates both merged and non-merged status`() =
+    fun `given read action with sync true when marking chapters then syncs all of them to MangaDex`() =
         runTest {
             // Arrange
             val mangaUuid = "manga-uuid-123"
             val markAction = ChapterMarkActions.Read(canUndo = false)
 
-            val nonMergedChapter =
+            val firstChapter =
                 SimpleChapter.create()
                     .copy(id = 1L, mangaDexChapterId = "md-chapter-1", scanlator = "Some Scanlator")
-            val mergedChapter =
+            val secondChapter =
                 SimpleChapter.create()
                     .copy(
                         id = 2L,
                         mangaDexChapterId = "md-chapter-2",
-                        scanlator = "Komga", // This makes isMergedChapter() true
+                        scanlator = "Komga",
                     )
 
             val chapterItems =
                 listOf(
-                    ChapterItem(chapter = nonMergedChapter),
-                    ChapterItem(chapter = mergedChapter),
+                    ChapterItem(chapter = firstChapter),
+                    ChapterItem(chapter = secondChapter),
                 )
 
             every { mangaDexPreferences.readingSync().get() } returns true
 
             coEvery { statusHandler.markChaptersStatus(any(), any(), any()) } returns Unit
-            coEvery { statusHandler.markMergedChaptersStatus(any(), any()) } returns Unit
 
             // Act
             markChaptersRemote(markAction, mangaUuid, chapterItems, skipSync = false)
@@ -98,14 +95,7 @@ class MarkChaptersRemoteTest {
             coVerify(exactly = 1) {
                 statusHandler.markChaptersStatus(
                     mangaId = mangaUuid,
-                    chapterIds = listOf("md-chapter-1"),
-                    read = true,
-                )
-            }
-
-            coVerify(exactly = 1) {
-                statusHandler.markMergedChaptersStatus(
-                    chapters = match { it.size == 1 && it.first().url == "" },
+                    chapterIds = listOf("md-chapter-1", "md-chapter-2"),
                     read = true,
                 )
             }

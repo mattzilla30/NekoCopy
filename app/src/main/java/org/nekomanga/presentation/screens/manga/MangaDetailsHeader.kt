@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.ui.manga.MangaConstants
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.DescriptionActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.InformationActions
-import eu.kanade.tachiyomi.ui.manga.MergeConstants
 import jp.wasabeef.gap.Gap
 import org.nekomanga.presentation.components.nekoRippleConfiguration
 import org.nekomanga.presentation.components.theme.ThemeColorState
@@ -55,7 +54,6 @@ fun MangaDetailsHeader(
     onTrackingClick: () -> Unit,
     onArtworkClick: () -> Unit,
     onSimilarClick: () -> Unit,
-    onMergeClick: () -> Unit,
     onLinksClick: () -> Unit,
     onShareClick: () -> Unit,
     descriptionActions: DescriptionActions,
@@ -111,10 +109,6 @@ fun MangaDetailsHeader(
                         estimatedMissingChapters =
                             mangaDetailScreenState.manga.estimatedMissingChapters,
                         isExpanded = isDescriptionExpanded,
-                        showMergedIcon =
-                            mangaDetailScreenState.manga.isMerged is
-                                MergeConstants.IsMergedManga.Yes &&
-                                !mangaDetailScreenState.general.hideButtonText,
                         modifier = Modifier.statusBarsPadding().padding(top = 70.dp),
                         titleLongClick = informationActions.titleLongClick,
                         creatorCopyClick = informationActions.creatorCopy,
@@ -131,13 +125,6 @@ fun MangaDetailsHeader(
                             ButtonBlock(
                                 hideButtonText = mangaDetailScreenState.general.hideButtonText,
                                 isInitialized = mangaDetailScreenState.manga.initialized,
-                                mergedCount =
-                                    if (
-                                        mangaDetailScreenState.manga.isMerged
-                                            is MergeConstants.IsMergedManga.Yes
-                                    )
-                                        mangaDetailScreenState.manga.isMerged.mergedMangaList.size
-                                    else 0,
                                 inLibrary = mangaDetailScreenState.manga.inLibrary,
                                 loggedIntoTrackers = isLoggedIntoTrackers,
                                 trackServiceCount = mangaDetailScreenState.track.trackServiceCount,
@@ -146,7 +133,6 @@ fun MangaDetailsHeader(
                                 trackingClick = onTrackingClick,
                                 artworkClick = onArtworkClick,
                                 similarClick = onSimilarClick,
-                                mergeClick = onMergeClick,
                                 linksClick = onLinksClick,
                                 shareClick = onShareClick,
                                 moveCategories = onCategoriesClick,

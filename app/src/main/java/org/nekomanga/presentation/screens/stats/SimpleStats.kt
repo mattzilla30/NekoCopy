@@ -62,42 +62,31 @@ fun SimpleStats(
                 false -> statsState.lastLibraryUpdateDuration
             }
 
-        val mergeCounts =
-            statsState.mergeCounts.mapNotNull {
-                if (it.second > 0) {
-                    (it.first.scanlatorName + " merged") to it.second.toString()
-                } else {
-                    null
-                }
-            }
-
-        (listOf(
-                numberFormat.format(statsState.mangaCount).toString() to
-                    context.getString(R.string.total_manga),
-                numberFormat.format(statsState.chapterCount).toString() to
-                    context.getString(R.string.total_chapters),
-                numberFormat.format(statsState.readCount).toString() to
-                    context.getString(R.string.chapters_read),
-                numberFormat.format(statsState.bookmarkCount).toString() to
-                    context.getString(R.string.chapters_bookmarked),
-                numberFormat.format(statsState.unavailableCount).toString() to
-                    context.getString(R.string.chapters_unavailable),
-                statsState.readDuration to context.getString(R.string.read_duration),
-                libUpdates to context.getString(R.string.last_library_update),
-                lastUpdateDuration to context.getString(R.string.last_library_update_duration),
-                libUpdateAttempt to context.getString(R.string.last_library_update_attempt),
-                numberFormat.format(statsState.globalUpdateCount).toString() to
-                    context.getString(R.string.global_update_manga),
-                statsState.averageMangaRating.toString() to
-                    context.getString(R.string.average_score),
-                userScore to context.getString(R.string.mean_score),
-                statsState.trackerCount.toString() to context.getString(R.string.trackers),
-                numberFormat.format(statsState.trackedCount).toString() to
-                    context.getString(R.string.manga_tracked),
-                numberFormat.format(statsState.tagCount).toString() to
-                    context.getString(R.string.total_tags),
-            ) + mergeCounts)
-            .toList()
+        listOf(
+            numberFormat.format(statsState.mangaCount).toString() to
+                context.getString(R.string.total_manga),
+            numberFormat.format(statsState.chapterCount).toString() to
+                context.getString(R.string.total_chapters),
+            numberFormat.format(statsState.readCount).toString() to
+                context.getString(R.string.chapters_read),
+            numberFormat.format(statsState.bookmarkCount).toString() to
+                context.getString(R.string.chapters_bookmarked),
+            numberFormat.format(statsState.unavailableCount).toString() to
+                context.getString(R.string.chapters_unavailable),
+            statsState.readDuration to context.getString(R.string.read_duration),
+            libUpdates to context.getString(R.string.last_library_update),
+            lastUpdateDuration to context.getString(R.string.last_library_update_duration),
+            libUpdateAttempt to context.getString(R.string.last_library_update_attempt),
+            numberFormat.format(statsState.globalUpdateCount).toString() to
+                context.getString(R.string.global_update_manga),
+            statsState.averageMangaRating.toString() to context.getString(R.string.average_score),
+            userScore to context.getString(R.string.mean_score),
+            statsState.trackerCount.toString() to context.getString(R.string.trackers),
+            numberFormat.format(statsState.trackedCount).toString() to
+                context.getString(R.string.manga_tracked),
+            numberFormat.format(statsState.tagCount).toString() to
+                context.getString(R.string.total_tags),
+        )
     }
 
     val isTablet = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded

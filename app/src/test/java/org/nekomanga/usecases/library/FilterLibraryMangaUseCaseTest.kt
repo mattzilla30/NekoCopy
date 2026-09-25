@@ -12,7 +12,6 @@ import org.nekomanga.presentation.screens.library.filter.FilterBookmarked
 import org.nekomanga.presentation.screens.library.filter.FilterCompleted
 import org.nekomanga.presentation.screens.library.filter.FilterDownloaded
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-import org.nekomanga.presentation.screens.library.filter.FilterMerged
 import org.nekomanga.presentation.screens.library.filter.FilterMissingChapters
 import org.nekomanga.presentation.screens.library.filter.FilterTracked
 import org.nekomanga.presentation.screens.library.filter.FilterUnavailable
@@ -26,7 +25,6 @@ class FilterLibraryMangaUseCaseTest {
         unreadCount: Int = 0,
         downloadCount: Int = 0,
         bookmarkCount: Int = 0,
-        isMerged: Boolean = false,
         isTracked: Boolean = false,
         unavailableCount: Int = 0,
         hasMissingChapters: Boolean = false,
@@ -42,7 +40,6 @@ class FilterLibraryMangaUseCaseTest {
             unreadCount = unreadCount,
             downloadCount = downloadCount,
             bookmarkCount = bookmarkCount,
-            isMerged = isMerged,
             trackCount = if (isTracked) 1 else 0,
             userCover = null,
             dynamicCover = null,
@@ -235,38 +232,6 @@ class FilterLibraryMangaUseCaseTest {
         val filters = LibraryFilters(filterMangaType = FilterMangaType.Manhua)
 
         assertTrue(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when merged filter active and item is merged, returns true`() {
-        val manga = mockMangaItem(isMerged = true)
-        val filters = LibraryFilters(filterMerged = FilterMerged.Merged)
-
-        assertTrue(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when merged filter active and item is not merged, returns false`() {
-        val manga = mockMangaItem(isMerged = false)
-        val filters = LibraryFilters(filterMerged = FilterMerged.Merged)
-
-        assertFalse(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when not merged filter active and item is not merged, returns true`() {
-        val manga = mockMangaItem(isMerged = false)
-        val filters = LibraryFilters(filterMerged = FilterMerged.NotMerged)
-
-        assertTrue(useCase(manga, filters))
-    }
-
-    @Test
-    fun `when not merged filter active and item is merged, returns false`() {
-        val manga = mockMangaItem(isMerged = true)
-        val filters = LibraryFilters(filterMerged = FilterMerged.NotMerged)
-
-        assertFalse(useCase(manga, filters))
     }
 
     @Test

@@ -1,7 +1,6 @@
 package org.nekomanga.presentation.screens.stats
 
 import androidx.compose.runtime.Immutable
-import eu.kanade.tachiyomi.data.database.models.MergeType
 import org.nekomanga.domain.manga.MangaContentRating
 import org.nekomanga.domain.manga.MangaStatus
 import org.nekomanga.domain.manga.MangaType
@@ -19,7 +18,6 @@ object StatsConstants {
         val globalUpdateCount: Int = 0,
         val downloadCount: Int = 0,
         val tagCount: Int = 0,
-        val mergeCounts: List<Pair<MergeType, Int>> = listOf(),
         val averageMangaRating: Double = 0.0,
         val averageUserRating: Double = 0.0,
         val trackerCount: Int = 0,

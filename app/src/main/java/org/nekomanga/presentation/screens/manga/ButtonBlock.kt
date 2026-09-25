@@ -44,7 +44,6 @@ import org.nekomanga.presentation.components.dropdown.SimpleDropDownItem
 import org.nekomanga.presentation.components.dropdown.SimpleDropdownMenu
 import org.nekomanga.presentation.components.icons.AccountTreeIcon
 import org.nekomanga.presentation.components.icons.ArtTrackIcon
-import org.nekomanga.presentation.components.icons.MergeCheckIcon
 import org.nekomanga.presentation.components.icons.Numeric0BoxOutlineIcon
 import org.nekomanga.presentation.components.icons.Numeric1BoxOutlineIcon
 import org.nekomanga.presentation.components.icons.Numeric2BoxOutlineIcon
@@ -60,7 +59,6 @@ import org.nekomanga.presentation.theme.Size
 fun ButtonBlock(
     hideButtonText: Boolean,
     isInitialized: Boolean,
-    mergedCount: Int,
     inLibrary: Boolean,
     loggedIntoTrackers: Boolean,
     trackServiceCount: Int,
@@ -69,7 +67,6 @@ fun ButtonBlock(
     trackingClick: () -> Unit,
     artworkClick: () -> Unit,
     similarClick: () -> Unit,
-    mergeClick: () -> Unit,
     linksClick: () -> Unit,
     shareClick: () -> Unit,
     moveCategories: () -> Unit,
@@ -101,7 +98,7 @@ fun ButtonBlock(
         }
 
     val actionButtons =
-        remember(inLibrary, mergedCount, trackServiceCount, loggedIntoTrackers) {
+        remember(inLibrary, trackServiceCount, loggedIntoTrackers) {
             buildList<ActionButtonData> {
                 // Favorite Button
                 add(
@@ -175,27 +172,6 @@ fun ButtonBlock(
                         icon = AccountTreeIcon,
                         text = UiText.StringResource(R.string.similar_work),
                         onClick = similarClick,
-                    )
-                )
-                add(
-                    ActionButtonData(
-                        icon =
-                            when (mergedCount) {
-                                0 -> Numeric0BoxOutlineIcon
-                                1 -> Numeric1BoxOutlineIcon
-                                2 -> Numeric2BoxOutlineIcon
-                                3 -> Numeric3BoxOutlineIcon
-                                4 -> Numeric4BoxOutlineIcon
-                                5 -> Numeric5BoxOutlineIcon
-                                6 -> Numeric6BoxOutlineIcon
-                                else -> MergeCheckIcon
-                            },
-                        text =
-                            UiText.StringResource(
-                                if (mergedCount != 0) R.string.is_merged else R.string.is_not_merged
-                            ),
-                        isChecked = mergedCount != 0,
-                        onClick = mergeClick,
                     )
                 )
                 add(

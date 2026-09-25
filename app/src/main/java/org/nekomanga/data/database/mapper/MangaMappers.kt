@@ -41,10 +41,8 @@ fun MangaEntity.toManga(): MangaImpl {
         users = this@toManga.users
         thread_id = this@toManga.threadId
         replies_count = this@toManga.repliesCount
-        merge_manga_url = this@toManga.mergeMangaUrl
         last_volume_number = this@toManga.lastVolumeNumber
         last_chapter_number = this@toManga.lastChapterNumber
-        merge_manga_image_url = this@toManga.mergeMangaImageUrl
         alt_titles = this@toManga.altTitles
         user_cover = this@toManga.userCover
         user_title = this@toManga.userTitle
@@ -88,10 +86,10 @@ fun Manga.toEntity(): MangaEntity {
         users = this.users,
         threadId = this.thread_id,
         repliesCount = this.replies_count,
-        mergeMangaUrl = this.merge_manga_url,
+        mergeMangaUrl = null,
         lastVolumeNumber = this.last_volume_number,
         lastChapterNumber = this.last_chapter_number,
-        mergeMangaImageUrl = this.merge_manga_image_url,
+        mergeMangaImageUrl = null,
         altTitles = this.alt_titles,
         userCover = this.user_cover,
         userTitle = this.user_title,

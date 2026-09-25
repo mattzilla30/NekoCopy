@@ -20,10 +20,13 @@ object Migrations {
     fun upgrade(preferences: PreferencesHelper): Boolean {
         val context = preferences.context
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        // The in-app updater is gone. Clear what it left behind on existing installs.
+        // Clear preferences left behind by removed features on existing installs.
         prefs.edit {
             remove("notify_on_install_complete")
             remove(PreferenceKeys.shouldAutoUpdate)
+            // Merged sources were removed.
+            remove("pref_filter_merged_key")
+            remove("suwayomi_login_mode")
         }
         WorkManager.getInstance(context).cancelAllWorkByTag("UpdateChecker")
         val oldVersion = preferences.lastVersionCode().get()

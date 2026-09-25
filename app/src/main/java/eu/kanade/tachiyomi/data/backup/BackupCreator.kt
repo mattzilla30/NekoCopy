@@ -19,14 +19,12 @@ import eu.kanade.tachiyomi.data.backup.models.BackupCategory
 import eu.kanade.tachiyomi.data.backup.models.BackupChapter
 import eu.kanade.tachiyomi.data.backup.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
-import eu.kanade.tachiyomi.data.backup.models.BackupMergeManga
 import eu.kanade.tachiyomi.data.backup.models.BackupTracking
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.History
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
-import eu.kanade.tachiyomi.data.database.models.MergeMangaImpl
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.SourceManager
@@ -41,7 +39,6 @@ import org.nekomanga.data.database.repository.CategoryRepository
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.HistoryRepository
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.data.database.repository.MergeMangaRepository
 import org.nekomanga.data.database.repository.TrackRepository
 import org.nekomanga.domain.storage.StorageManager
 import org.nekomanga.logging.TimberKt
@@ -53,7 +50,6 @@ class BackupCreator(val context: Context) {
     internal val chapterRepository: ChapterRepository by injectLazy()
     internal val historyRepository: HistoryRepository by injectLazy()
     internal val mangaRepository: MangaRepository by injectLazy()
-    internal val mergeMangaRepository: MergeMangaRepository by injectLazy()
     internal val trackRepository: TrackRepository by injectLazy()
     internal val sourceManager: SourceManager by injectLazy()
     internal val trackManager: TrackManager by injectLazy()
@@ -155,9 +151,6 @@ class BackupCreator(val context: Context) {
             val mangaIds = chunk.mapNotNull { it.id }
 
             // Pre-fetch all dependencies for the list of mangas
-            val mergeMangaMap =
-                mergeMangaRepository.getMergeMangaList(mangaIds).groupBy { it.mangaId }
-
             val chaptersMap =
                 if (
                     flags and BACKUP_CHAPTER_MASK == BACKUP_CHAPTER ||
@@ -200,7 +193,6 @@ class BackupCreator(val context: Context) {
                 backupMangaObject(
                     it,
                     flags,
-                    mergeMangaMap[it.id] ?: emptyList(),
                     chaptersMap[it.id] ?: emptyList(),
                     categoriesMap[it.id] ?: emptyList(),
                     allCategories,
@@ -230,7 +222,6 @@ class BackupCreator(val context: Context) {
     private fun backupMangaObject(
         manga: Manga,
         options: Int,
-        mergeMangaList: List<MergeMangaImpl>,
         chapters: List<Chapter>,
         categoriesForManga: List<MangaCategory>,
         allCategories: Map<Int?, Category>,
@@ -239,10 +230,6 @@ class BackupCreator(val context: Context) {
     ): BackupManga {
         // Entry for this manga
         val mangaObject = BackupManga.copyFrom(manga)
-
-        if (mergeMangaList.isNotEmpty()) {
-            mangaObject.mergeMangaList = mergeMangaList.map { BackupMergeManga.copyFrom(it) }
-        }
 
         // Check if user wants chapter information in backup
         if (options and BACKUP_CHAPTER_MASK == BACKUP_CHAPTER) {

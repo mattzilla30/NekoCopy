@@ -8,7 +8,6 @@ enum class SettingsScreenType {
     General,
     Library,
     MangaDex,
-    MergeSource,
     Reader,
     Security,
     Tracking,

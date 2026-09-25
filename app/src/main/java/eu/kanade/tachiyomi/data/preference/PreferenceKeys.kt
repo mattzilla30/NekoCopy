@@ -53,14 +53,6 @@ object PreferenceKeys {
 
     fun trackToken(syncId: Int) = "track_token_$syncId"
 
-    fun sourceUsername(sourceId: Long) = "pref_source_username_$sourceId"
-
-    fun sourcePassword(sourceId: Long) = "pref_source_password_$sourceId"
-
-    fun sourceUrl(sourceId: Long) = "pref_source_url_$sourceId"
-
-    fun sourceWafCookie(sourceId: Long) = "pref_source_waf_cookie_$sourceId"
-
     const val autoAddTracker = "auto_add_tracker"
 
     const val thumbnailQuality = "mangadex_thumbnail_quality"

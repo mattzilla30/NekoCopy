@@ -26,7 +26,6 @@ import org.nekomanga.R
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.HistoryRepository
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.data.database.repository.MergeMangaRepository
 import org.nekomanga.data.database.repository.TrackRepository
 import org.nekomanga.domain.library.LibraryPreferences
 import org.nekomanga.domain.manga.MangaContentRating
@@ -45,7 +44,6 @@ class StatsViewModel() : ViewModel() {
     private val categoryUseCases: CategoryUseCases = Injekt.get()
     private val historyRepository: HistoryRepository = Injekt.get()
     private val mangaRepository: MangaRepository = Injekt.get()
-    private val mergeMangaRepository: MergeMangaRepository = Injekt.get()
     private val chapterRepository: ChapterRepository = Injekt.get()
 
     private val trackRepository: TrackRepository = Injekt.get()
@@ -93,13 +91,6 @@ class StatsViewModel() : ViewModel() {
         val lastUpdateAttempt = libraryPreferences.lastUpdateAttemptTimestamp().get()
         val lastUpdateDuration = libraryPreferences.lastUpdateDuration().get()
 
-        val favoritedMangaIds = mangaRepository.getFavoriteMangaList().mapNotNull { it.id }.toSet()
-
-        val mergedMangaList =
-            mergeMangaRepository.getAllMergeManga().filter { mergedManga ->
-                mergedManga.mangaId in favoritedMangaIds
-            }
-
         _simpleState.update {
             StatsConstants.SimpleState(
                 screenState = StatsConstants.ScreenState.Simple,
@@ -109,11 +100,6 @@ class StatsViewModel() : ViewModel() {
                 bookmarkCount = libraryList.sumOf { it.bookmarkCount },
                 unavailableCount = libraryList.sumOf { it.unavailableCount },
                 trackedCount = getMangaByTrackCount(libraryList, tracks),
-                mergeCounts =
-                    mergedMangaList
-                        .groupBy { it.mergeType }
-                        .map { it.key to it.value.size }
-                        .toList(),
                 globalUpdateCount = getGlobalUpdateManga(libraryList, tracksByMangaId).count(),
                 downloadCount = libraryList.sumOf { getDownloadCount(it) },
                 tagCount =

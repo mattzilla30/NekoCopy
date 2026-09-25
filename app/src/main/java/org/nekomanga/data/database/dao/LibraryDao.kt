@@ -16,7 +16,7 @@ interface LibraryDao {
 
     @Query(
         """
-        SELECT M.*, COALESCE(MC.category_id, 0) AS category, M.id IN (SELECT manga_id FROM merge_manga) AS is_merged
+        SELECT M.*, COALESCE(MC.category_id, 0) AS category
         FROM (
             SELECT manga.*,
                 COALESCE(C.unread, '') AS unread,
@@ -88,7 +88,7 @@ interface LibraryDao {
 
     @Query(
         """
-        SELECT M.*, COALESCE(MC.category_id, 0) AS category, M.id IN (SELECT manga_id FROM merge_manga) AS is_merged
+        SELECT M.*, COALESCE(MC.category_id, 0) AS category
         FROM (
             SELECT manga.*,
                 COALESCE(C.unread, '') AS unread,

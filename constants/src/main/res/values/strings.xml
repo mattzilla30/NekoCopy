@@ -1324,7 +1324,6 @@
     <string name="merge_source_">Merge Source: %1$s</string>
     <string name="remove_merged_source">Remove merged source</string>
     <string name="merged_sources">Merged Sources</string>
-    <string name="add_merge_source">Add merge source</string>
     <string name="options">Options</string>
     <string name="pause">Pause</string>
     <string name="picture_saved">Picture saved</string>
@@ -1400,8 +1399,6 @@
     <!-- Library Filter -->
     <string name="no_missing_chp">No missing chapters</string>
     <string name="has_missing_chp">Missing chapters</string>
-    <string name="not_merged">Not merged</string>
-    <string name="merged">Merged</string>
     <string name="has_unavailable">Has unavailable</string>
     <string name="has_available">Has available</string>
 
@@ -1421,8 +1418,6 @@
     <string name="artwork">Artwork</string>
     <string name="no_artwork_found">"No artwork found, try refreshing the manga."</string>
     <string name="similar_work">Similar Work</string>
-    <string name="is_merged">Merged</string>
-    <string name="is_not_merged">Merge</string>
     <string name="links">Links</string>
     <string name="supported_links">Supported links</string>
     <string name="supported_links_summary">Open Android settings to choose which links are associated with this app</string>
@@ -1520,17 +1515,7 @@
     <string name="skip_hidden_chapters">Skip chapters hidden by filters</string>
 
     <!-- Merge Settings -->
-    <string name="merge_source_settings">Merge source</string>
-    <string name="komga">Komga</string>
-    <string name="suwayomi">Suwayomi</string>
     <string name="signed_in_to">Signed in to: %1$s</string>
-    <string name="minimum_komga_version">Minimum required Komga version: 0.151.0</string>
-    <string name="minimum_suwayomi_version">Minimum required Suwayomi-Server version: 1.0.0</string>
-    <string name="suwayomi_login_mode">Login mode</string>
-    <string name="suwayomi_login_mode_none">None</string>
-    <string name="suwayomi_login_mode_basic">Basic Authentication</string>
-    <string name="suwayomi_login_mode_simple">Simple Login</string>
-    <string name="suwayomi_login_mode_ui">UI Login</string>
 
 
     <!-- Site Settings -->

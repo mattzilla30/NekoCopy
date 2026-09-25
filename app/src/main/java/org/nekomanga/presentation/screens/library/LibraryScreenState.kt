@@ -12,7 +12,6 @@ import org.nekomanga.presentation.screens.library.filter.FilterBookmarked
 import org.nekomanga.presentation.screens.library.filter.FilterCompleted
 import org.nekomanga.presentation.screens.library.filter.FilterDownloaded
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-import org.nekomanga.presentation.screens.library.filter.FilterMerged
 import org.nekomanga.presentation.screens.library.filter.FilterMissingChapters
 import org.nekomanga.presentation.screens.library.filter.FilterTracked
 import org.nekomanga.presentation.screens.library.filter.FilterUnavailable
@@ -137,7 +136,6 @@ data class LibraryFilters(
     val filterCompleted: FilterCompleted = FilterCompleted.Inactive,
     val filterDownloaded: FilterDownloaded = FilterDownloaded.Inactive,
     val filterMangaType: FilterMangaType = FilterMangaType.Inactive,
-    val filterMerged: FilterMerged = FilterMerged.Inactive,
     val filterMissingChapters: FilterMissingChapters = FilterMissingChapters.Inactive,
     val filterTracked: FilterTracked = FilterTracked.Inactive,
     val filterUnavailable: FilterUnavailable = FilterUnavailable.Inactive,
@@ -148,7 +146,6 @@ data class LibraryFilters(
             filterCompleted !is FilterCompleted.Inactive ||
             filterDownloaded !is FilterDownloaded.Inactive ||
             filterMangaType !is FilterMangaType.Inactive ||
-            filterMerged !is FilterMerged.Inactive ||
             filterMissingChapters !is FilterMissingChapters.Inactive ||
             filterTracked !is FilterTracked.Inactive ||
             filterUnavailable !is FilterUnavailable.Inactive ||

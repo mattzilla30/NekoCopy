@@ -51,8 +51,6 @@ object Screens {
 
         @Serializable data object MangaDex : Screen
 
-        @Serializable data object MergeSource : Screen
-
         @Serializable data object Reader : Screen
 
         @Serializable data object Downloads : Screen

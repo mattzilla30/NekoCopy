@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.util.chapter
 
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.source.model.SChapter
-import eu.kanade.tachiyomi.source.model.isMergedChapter
 import kotlin.math.floor
 import org.nekomanga.domain.chapter.ChapterItem
 
@@ -99,7 +98,7 @@ fun <T> List<List<T>>.mergeSorted(comparator: Comparator<T>): List<T> {
 }
 
 fun getChapterNum(chapter: SChapter): Float? {
-    return when (chapter.name.contains("oneshot", true) && !chapter.isMergedChapter()) {
+    return when (chapter.name.contains("oneshot", true)) {
         true -> 0f
         false -> {
             val txt = chapter.chapter_txt

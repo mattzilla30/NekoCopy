@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.source.model
 
 import eu.kanade.tachiyomi.data.database.models.ChapterImpl
-import eu.kanade.tachiyomi.data.database.models.MergeType
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.HttpSource
 import java.io.Serializable
@@ -76,15 +75,4 @@ interface SChapter : Serializable {
 fun SChapter.isLocalSource() =
     this.scanlator?.equals(Constants.LOCAL_SOURCE) == true && this.isUnavailable
 
-fun SChapter.isMergedChapter() = MergeType.containsMergeSourceName(this.scanlator)
-
-fun SChapter.isMergedChapterOfType(mergeType: MergeType) =
-    this.scanlator?.contains(MergeType.getMergeTypeName(mergeType)) == true
-
-fun SChapter.getHttpSource(sourceManager: SourceManager): HttpSource {
-    val mergeType = MergeType.getMergeTypeFromName(this.scanlator)
-    return when (mergeType == null) {
-        true -> sourceManager.mangaDex
-        false -> MergeType.getSource(mergeType, sourceManager)
-    }
-}
+fun SChapter.getHttpSource(sourceManager: SourceManager): HttpSource = sourceManager.mangaDex

@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.data.backup.models
 import eu.kanade.tachiyomi.data.database.models.ChapterImpl
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaImpl
-import eu.kanade.tachiyomi.data.database.models.MergeMangaImpl
 import eu.kanade.tachiyomi.data.database.models.TrackImpl
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
@@ -44,7 +43,6 @@ data class BackupManga(
     // Neko Values
     @ProtoNumber(901) var scanlatorFilter: String? = null,
     @ProtoNumber(903) var alternativeArtwork: String? = null,
-    @ProtoNumber(904) var mergeMangaList: List<BackupMergeManga> = emptyList(),
 ) {
     fun getMangaImpl(): MangaImpl {
         return MangaImpl().apply {
@@ -70,10 +68,6 @@ data class BackupManga(
             user_title = this@BackupManga.customTitle
             user_cover = this@BackupManga.alternativeArtwork
         }
-    }
-
-    fun getMergeMangaImpl(): List<MergeMangaImpl> {
-        return mergeMangaList.mapNotNull { it.toMergeMangaImpl() }
     }
 
     fun getChaptersImpl(): List<ChapterImpl> {

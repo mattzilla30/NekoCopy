@@ -6,8 +6,6 @@ import com.google.android.material.color.DynamicColors
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.TrackService
-import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.online.merged.suwayomi.LoginMode
 import eu.kanade.tachiyomi.ui.main.states.SideNavAlignment
 import eu.kanade.tachiyomi.ui.main.states.SideNavMode
 import java.text.DateFormat
@@ -97,25 +95,6 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
             Keys.catalogueDisplayMode,
             if (browseShowLibrary().get()) 0 else 2,
         )
-
-    fun sourceUsername(source: Source) =
-        this.preferenceStore.getString(Keys.sourceUsername(source.id), "")
-
-    fun sourcePassword(source: Source) =
-        this.preferenceStore.getString(Keys.sourcePassword(source.id), "")
-
-    fun sourceUrl(source: Source) = this.preferenceStore.getString(Keys.sourceUrl(source.id), "")
-
-    fun sourceWafCookie(source: Source) =
-        this.preferenceStore.getString(Keys.sourceWafCookie(source.id), "")
-
-    fun setSourceCredentials(source: Source, username: String, password: String, url: String) {
-        this.preferenceStore.getString(Keys.sourceUsername(source.id)).set(username)
-        this.preferenceStore.getString(Keys.sourcePassword(source.id)).set(password)
-        this.preferenceStore.getString(Keys.sourceUrl(source.id)).set(url)
-    }
-
-    fun suwayomiLoginMode() = this.preferenceStore.getEnum("suwayomi_login_mode", LoginMode.None)
 
     fun trackUsername(sync: TrackService) =
         this.preferenceStore.getString(Keys.trackUsername(sync.id))

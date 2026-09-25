@@ -3,7 +3,6 @@ package org.nekomanga.domain.manga
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.util.fastAny
-import eu.kanade.tachiyomi.data.database.models.MergeType
 import eu.kanade.tachiyomi.util.lang.removeArticles
 import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.presentation.screens.library.filter.FilterMangaType
@@ -34,7 +33,6 @@ data class LibraryMangaItem(
     val unavailableCount: Int = 0,
     val downloadCount: Int = 0,
     val trackCount: Int = 0,
-    val isMerged: Boolean = false,
     val hasMissingChapters: Boolean = false,
     val allCategories: List<CategoryItem> = emptyList(),
     val altTitles: List<String> = emptyList(),
@@ -120,8 +118,6 @@ data class DisplayManga(
         return userTitle.ifEmpty { originalTitle }
     }
 }
-
-@Immutable data class MergeArtwork(val url: String, val mergeType: MergeType)
 
 @Immutable
 data class Artwork(

@@ -23,7 +23,6 @@ import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.jobs.follows.StatusSyncJob
 import eu.kanade.tachiyomi.jobs.tracking.TrackingSyncJob
-import eu.kanade.tachiyomi.source.model.isMergedChapter
 import eu.kanade.tachiyomi.source.online.handlers.StatusHandler
 import eu.kanade.tachiyomi.ui.main.DeepLinks
 import eu.kanade.tachiyomi.ui.main.MainActivity
@@ -319,17 +318,9 @@ class NotificationReceiver : BroadcastReceiver() {
         }
 
         if (mangaDexPreference.readingSync().get()) {
-            val (mergedChapters, nonMergedChapters) = dbChapters.partition { it.isMergedChapter() }
-            if (nonMergedChapters.isNotEmpty()) {
-                val statusHandler: StatusHandler = Injekt.get()
-                statusHandler.markChaptersStatus(
-                    manga.uuid(),
-                    nonMergedChapters.map { it.mangadex_chapter_id },
-                )
-            }
-            if (mergedChapters.isNotEmpty()) {
-                val statusHandler: StatusHandler = Injekt.get()
-                statusHandler.markMergedChaptersStatus(mergedChapters)
+            if (dbChapters.isNotEmpty()) {
+                Injekt.get<StatusHandler>()
+                    .markChaptersStatus(manga.uuid(), dbChapters.map { it.mangadex_chapter_id })
             }
         }
         val newLastChapter = dbChapters.maxByOrNull { it.chapter_number.toInt() }

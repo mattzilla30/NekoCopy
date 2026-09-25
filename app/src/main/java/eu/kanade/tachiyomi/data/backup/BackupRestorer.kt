@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.History
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.database.models.MergeMangaImpl
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.track.TrackManager
@@ -35,11 +34,11 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.nekomanga.R
 import org.nekomanga.data.database.AppDatabase
+import org.nekomanga.data.database.migration.RemovedMergeSources
 import org.nekomanga.data.database.repository.CategoryRepository
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.HistoryRepository
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.data.database.repository.MergeMangaRepository
 import org.nekomanga.data.database.repository.TrackRepository
 import org.nekomanga.logging.TimberKt
 import uy.kohesive.injekt.injectLazy
@@ -65,7 +64,6 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
     private val chapterRepository: ChapterRepository by injectLazy()
     private val historyRepository: HistoryRepository by injectLazy()
     private val mangaRepository: MangaRepository by injectLazy()
-    private val mergeMangaRepository: MergeMangaRepository by injectLazy()
 
     private val trackRepository: TrackRepository by injectLazy()
     internal val trackManager: TrackManager by injectLazy()
@@ -84,7 +82,6 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
         val categories: List<Int>,
         val history: List<BackupHistory>,
         val tracks: List<Track>,
-        val mergeMangaList: List<MergeMangaImpl>,
         val backupCategories: List<BackupCategory>,
     )
 
@@ -173,12 +170,6 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
                                     it.manga_id
                                 }
                             else emptyMap()
-                        val dbMergeMangaMap =
-                            if (existingMangaIds.isNotEmpty())
-                                mergeMangaRepository.getMergeMangaList(existingMangaIds).groupBy {
-                                    it.mangaId
-                                }
-                            else emptyMap()
                         val dbTracksMap =
                             if (existingMangaIds.isNotEmpty())
                                 trackRepository.getTracksForMangaByIds(existingMangaIds).groupBy {
@@ -205,7 +196,6 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
                             val existingManga = dbMangaMap[MdUtil.getMangaUUID(item.manga.url)]
                             val mangaId = existingManga?.id
                             val dbChapters = dbChaptersMap[mangaId] ?: emptyList()
-                            val dbMergeMangaList = dbMergeMangaMap[mangaId] ?: emptyList()
                             val dbTracks = dbTracksMap[mangaId] ?: emptyList()
                             val dbHistories = dbHistoriesMap[mangaId] ?: emptyList() // <-- Add this
 
@@ -214,7 +204,6 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
                                 existingDbManga = existingManga,
                                 dbCategories = dbCategories,
                                 dbChapters = dbChapters,
-                                dbMergeMangaList = dbMergeMangaList,
                                 dbTracks = dbTracks,
                                 dbHistories = dbHistories,
                             )
@@ -299,11 +288,14 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
 
             backupManga.source = SourceManager.getId(MdLang.ENGLISH.lang)
             val manga = backupManga.getMangaImpl()
-            val chapters = backupManga.getChaptersImpl()
+            // Skip chapters from merged sources, which no longer exist.
+            val chapters =
+                backupManga.getChaptersImpl().filterNot {
+                    RemovedMergeSources.isMergedChapter(it.scanlator)
+                }
             val categories = backupManga.categories
             val history = backupManga.history
             val tracks = backupManga.getTrackingImpl()
-            val mergeMangaList = backupManga.getMergeMangaImpl()
 
             return RestorableItem(
                 manga = manga,
@@ -311,7 +303,6 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
                 categories = categories,
                 history = history,
                 tracks = tracks,
-                mergeMangaList = mergeMangaList,
                 backupCategories = backupCategories,
             )
         } catch (e: Exception) {
@@ -327,7 +318,6 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
         existingDbManga: Manga?,
         dbCategories: List<Category>,
         dbChapters: List<Chapter>,
-        dbMergeMangaList: List<MergeMangaImpl>,
         dbTracks: List<Track>,
         dbHistories: List<History>,
     ) {
@@ -345,7 +335,6 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
             // Restore related data using helper (Blocking calls are fine inside transaction)
             val updatedChapters =
                 restoreHelper.restoreChaptersForMangaOffline(manga, item.chapters, dbChapters)
-            restoreHelper.restoreMergeMangaForManga(manga, item.mergeMangaList, dbMergeMangaList)
             restoreHelper.restoreCategoriesForManga(
                 manga,
                 item.categories,

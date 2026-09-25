@@ -76,40 +76,22 @@ class ChapterUtil {
         }
 
         /**
-         * returns true for a list filter, if the source name exists in the filtered sources, and
-         * the chapter has the scanlator
+         * Returns true when [sourceName] is one of the [filteredSources] and the chapter comes from
+         * that source: MangaDex for every non-local chapter, Local for local ones.
          */
         fun filteredBySource(
             sourceName: String,
-            scanlators: List<String>,
-            isMerged: Boolean,
             isLocal: Boolean,
             filteredSources: Set<String>,
         ): Boolean {
-            if (filteredSources.isEmpty()) {
+            if (sourceName !in filteredSources) {
                 return false
             }
-
-            val shouldCheck = sourceName in filteredSources
-            if (!shouldCheck) {
-                return false
+            return when (sourceName) {
+                MdConstants.name -> !isLocal
+                Constants.LOCAL_SOURCE -> isLocal
+                else -> false
             }
-
-            if (sourceName == MdConstants.name && !isLocal) {
-                return !isMerged
-            }
-
-            if (sourceName == Constants.LOCAL_SOURCE) {
-                return isLocal
-            }
-
-            // at this point if the chapter is not merged and the source is Not MangaDex or Local
-            // then we already know it's not a matching chapter
-            if (!isMerged) {
-                return false
-            }
-
-            return scanlators.any { group -> group == sourceName }
         }
 
         /**
@@ -141,7 +123,7 @@ class ChapterUtil {
 
             var nonMergeCount = 0
             for (s in scanlators) {
-                if (s !in SourceManager.mergeSourceNames) {
+                if (s !in SourceManager.sourceScanlatorNames) {
                     nonMergeCount++
                 }
             }
@@ -151,7 +133,7 @@ class ChapterUtil {
             var hasNoGroup = false
             if (nonMergeCount > 0) {
                 for (s in scanlators) {
-                    if (s !in SourceManager.mergeSourceNames && s == Constants.NO_GROUP) {
+                    if (s !in SourceManager.sourceScanlatorNames && s == Constants.NO_GROUP) {
                         hasNoGroup = true
                         break
                     }
@@ -171,7 +153,7 @@ class ChapterUtil {
                 }
 
                 for (s in scanlators) {
-                    if (s in SourceManager.mergeSourceNames) continue
+                    if (s in SourceManager.sourceScanlatorNames) continue
                     if (s == Constants.NO_GROUP && skipNoGroup) continue
 
                     val isFiltered =
@@ -187,7 +169,7 @@ class ChapterUtil {
                 }
 
                 for (s in scanlators) {
-                    if (s in SourceManager.mergeSourceNames) continue
+                    if (s in SourceManager.sourceScanlatorNames) continue
                     val isFiltered =
                         s in filteredGroups || (needsUploaderCheck && s in filteredUploaders)
                     if (isFiltered) return true

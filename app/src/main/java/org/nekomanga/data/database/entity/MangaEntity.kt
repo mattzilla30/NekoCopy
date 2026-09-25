@@ -39,6 +39,8 @@ data class MangaEntity(
     @ColumnInfo(name = "users") val users: String?,
     @ColumnInfo(name = "thread_id") val threadId: String?,
     @ColumnInfo(name = "replies_count") val repliesCount: String?,
+    // Unused since merged sources were removed. SQLite on Android 12 cannot drop columns, so the
+    // legacy merge columns stay in the table and are always written as null.
     @ColumnInfo(name = "merge_manga_url") val mergeMangaUrl: String?,
     @ColumnInfo(name = "manga_last_volume") val lastVolumeNumber: Int?,
     @ColumnInfo(name = "manga_last_chapter") val lastChapterNumber: Int?,

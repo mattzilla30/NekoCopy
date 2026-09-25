@@ -56,7 +56,6 @@ import eu.kanade.tachiyomi.ui.manga.MangaConstants.ChapterFilterActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.CoverActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.DescriptionActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.InformationActions
-import eu.kanade.tachiyomi.ui.manga.MangaConstants.MergeActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.TrackActions
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
@@ -214,12 +213,6 @@ fun MangaScreen(
                     mangaViewModel.removeTracking(alsoRemoveFromTracker, service)
                 },
                 dateChange = { trackDateChange -> mangaViewModel.updateTrackDate(trackDateChange) },
-            ),
-        mergeActions =
-            MergeActions(
-                remove = mangaViewModel::removeMergedManga,
-                search = mangaViewModel::searchMergedManga,
-                add = mangaViewModel::addMergedManga,
             ),
         onSimilarClick = { onNavigate(Screens.Similar(mangaViewModel.getManga().uuid())) },
         onShareClick = {
@@ -391,7 +384,6 @@ private fun MangaScreenWrapper(
     trackActions: TrackActions,
     onSimilarClick: () -> Unit,
     coverActions: CoverActions,
-    mergeActions: MergeActions,
     onShareClick: () -> Unit,
     informationActions: InformationActions,
     descriptionActions: DescriptionActions,
@@ -448,7 +440,6 @@ private fun MangaScreenWrapper(
                     dateFormat = dateFormat,
                     trackActions = trackActions,
                     coverActions = coverActions,
-                    mergeActions = mergeActions,
                     chapterFilterActions = chapterFilterActions,
                     openInWebView = { url, title -> openWebView(url, title) },
                     onNavigate = { newSheet -> scope.launch { currentBottomSheet = newSheet } },
@@ -691,7 +682,6 @@ private fun VerticalLayout(
                     onTrackingClick = { onOpenSheet(DetailsBottomSheetScreen.TrackingSheet) },
                     onArtworkClick = { onOpenSheet(DetailsBottomSheetScreen.ArtworkSheet) },
                     onSimilarClick = onSimilarClick,
-                    onMergeClick = { onOpenSheet(DetailsBottomSheetScreen.MergeSheet) },
                     onLinksClick = { onOpenSheet(DetailsBottomSheetScreen.ExternalLinksSheet) },
                     onShareClick = onShareClick,
                     descriptionActions = descriptionActions,
@@ -769,7 +759,6 @@ private fun SideBySideLayout(
                     onTrackingClick = { onOpenSheet(DetailsBottomSheetScreen.TrackingSheet) },
                     onArtworkClick = { onOpenSheet(DetailsBottomSheetScreen.ArtworkSheet) },
                     onSimilarClick = onSimilarClick,
-                    onMergeClick = { onOpenSheet(DetailsBottomSheetScreen.MergeSheet) },
                     onLinksClick = { onOpenSheet(DetailsBottomSheetScreen.ExternalLinksSheet) },
                     onShareClick = onShareClick,
                     descriptionActions = descriptionActions,
