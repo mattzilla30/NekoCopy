@@ -42,9 +42,7 @@ data class BackupManga(
     @ProtoNumber(800) var customTitle: String? = null,
 
     // Neko Values
-    @Deprecated("Use mergeMangaList") @ProtoNumber(900) var mergedMangaUrl: String? = null,
     @ProtoNumber(901) var scanlatorFilter: String? = null,
-    @Deprecated("Use mergeMangaList") @ProtoNumber(902) var mergedMangaImageUrl: String? = null,
     @ProtoNumber(903) var alternativeArtwork: String? = null,
     @ProtoNumber(904) var mergeMangaList: List<BackupMergeManga> = emptyList(),
 ) {
@@ -65,7 +63,6 @@ data class BackupManga(
             favorite = this@BackupManga.favorite
             source = this@BackupManga.source
             date_added = this@BackupManga.dateAdded
-            merge_manga_url = this@BackupManga.mergedMangaUrl
             viewer_flags =
                 (this@BackupManga.viewer_flags ?: this@BackupManga.viewer).takeIf { it != 0 } ?: -1
             chapter_flags = this@BackupManga.chapterFlags

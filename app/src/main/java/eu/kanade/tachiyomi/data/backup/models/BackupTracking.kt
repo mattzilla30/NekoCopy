@@ -12,9 +12,6 @@ data class BackupTracking(
     @ProtoNumber(1) var syncId: Int,
     // LibraryId is not null in 1.x
     @ProtoNumber(2) var libraryId: Long,
-    @Deprecated("Use mediaId instead", level = DeprecationLevel.WARNING)
-    @ProtoNumber(3)
-    var mediaIdInt: Int = 0,
     // trackingUrl is called mediaUrl in 1.x
     @ProtoNumber(4) var trackingUrl: String = "",
     @ProtoNumber(5) var title: String = "",
@@ -32,12 +29,7 @@ data class BackupTracking(
     fun getTrackingImpl(): TrackImpl {
         return TrackImpl().apply {
             sync_id = this@BackupTracking.syncId
-            media_id =
-                if (this@BackupTracking.mediaIdInt != 0) {
-                    this@BackupTracking.mediaIdInt.toLong()
-                } else {
-                    this@BackupTracking.mediaId
-                }
+            media_id = this@BackupTracking.mediaId
             library_id = this@BackupTracking.libraryId
             title = this@BackupTracking.title
             // convert from float to int because of 1.x types
