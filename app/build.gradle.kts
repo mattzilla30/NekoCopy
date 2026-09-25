@@ -19,7 +19,7 @@ android {
     defaultConfig {
         minSdk = AndroidConfig.minSdkVersion
         targetSdk = AndroidConfig.targetSdkVersion
-        applicationId = "org.nekomanga.neko"
+        applicationId = "com.kitty.manga"
         versionCode = 3800
         versionName = "3.8.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

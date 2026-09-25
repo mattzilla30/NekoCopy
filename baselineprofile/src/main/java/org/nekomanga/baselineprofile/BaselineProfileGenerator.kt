@@ -20,7 +20,7 @@ class BaselineProfileGenerator {
     @Test
     fun generate() {
         val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
-        val targetPackage = "org.nekomanga.neko"
+        val targetPackage = "com.kitty.manga"
 
         rule.collect(
             packageName = targetPackage,
