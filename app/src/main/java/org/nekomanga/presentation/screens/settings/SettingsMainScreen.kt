@@ -2,9 +2,9 @@ package org.nekomanga.presentation.screens.settings
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +27,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -34,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
 import eu.kanade.tachiyomi.ui.setting.SettingsScreenType
@@ -70,7 +70,8 @@ fun SettingsMainScreen(
     selectedScreen: NavKey? = null,
 ) {
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    // The menu fits on one screen, so the top bar stays pinned.
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     var searchText: String by remember { mutableStateOf("") }
 
@@ -219,23 +220,16 @@ private fun mainContent(
             }
         }
 
-    val layoutDirection = LocalLayoutDirection.current
-    val topPadding = contentPadding.calculateTopPadding() + Size.medium
-    LazyColumn(
-        contentPadding =
-            PaddingValues(
-                start = contentPadding.calculateStartPadding(layoutDirection),
-                top = topPadding,
-                end = contentPadding.calculateEndPadding(layoutDirection),
-                bottom = contentPadding.calculateBottomPadding(),
-            ),
-        modifier = Modifier.fillMaxWidth(),
+    // A fixed page: the cards share the available height, so the menu never scrolls.
+    Column(
+        modifier =
+            Modifier.fillMaxSize()
+                .padding(contentPadding)
+                .padding(horizontal = Size.medium)
+                .padding(top = Size.medium, bottom = Size.small),
         verticalArrangement = Arrangement.spacedBy(Size.tiny),
     ) {
-        itemsIndexed(
-            items = menuItems,
-            key = { _, item -> item.labelText.hashCode() },
-        ) { index, item ->
+        menuItems.forEachIndexed { index, item ->
             val cardType =
                 when {
                     menuItems.size == 1 -> ListCardType.Single
@@ -243,16 +237,19 @@ private fun mainContent(
                     index == menuItems.lastIndex -> ListCardType.Bottom
                     else -> ListCardType.Center
                 }
-            ExpressiveListCard(
-                listCardType = cardType,
-                modifier = Modifier.padding(horizontal = Size.medium),
-            ) {
-                IconItem(
-                    labelText = item.labelText,
-                    icon = item.icon,
-                    isSelected = item.isSelected,
-                    onClick = item.onClick,
-                )
+            key(item.labelText) {
+                ExpressiveListCard(
+                    listCardType = cardType,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                ) {
+                    IconItem(
+                        labelText = item.labelText,
+                        icon = item.icon,
+                        isSelected = item.isSelected,
+                        modifier = Modifier.fillMaxHeight(),
+                        onClick = item.onClick,
+                    )
+                }
             }
         }
     }

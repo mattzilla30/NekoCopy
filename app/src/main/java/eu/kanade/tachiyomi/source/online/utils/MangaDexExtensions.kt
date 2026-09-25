@@ -2,7 +2,9 @@ package eu.kanade.tachiyomi.source.online.utils
 
 import androidx.annotation.StringRes
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.online.models.dto.MangaAttributesDto
 import eu.kanade.tachiyomi.source.online.models.dto.MangaDataDto
+import eu.kanade.tachiyomi.source.online.models.dto.asMdMap
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.domain.manga.SourceManga
 
@@ -14,6 +16,7 @@ fun MangaDataDto.toBasicManga(coverQuality: Int = 0, useNoCoverUrl: Boolean = tr
                 MdUtil.getTitle(
                     this@toBasicManga.attributes.title,
                     this@toBasicManga.attributes.originalLanguage,
+                    this@toBasicManga.attributes.altTitleMaps(),
                 )
             )
 
@@ -52,6 +55,7 @@ fun MangaDataDto.toSourceManga(
                 MdUtil.getTitle(
                     this@toSourceManga.attributes.title,
                     this@toSourceManga.attributes.originalLanguage,
+                    this@toSourceManga.attributes.altTitleMaps(),
                 )
             ),
         displayText = displayText,
@@ -59,3 +63,6 @@ fun MangaDataDto.toSourceManga(
         currentThumbnail = thumbnail,
     )
 }
+
+private fun MangaAttributesDto.altTitleMaps(): List<Map<String, String?>> =
+    altTitles.orEmpty().map { it.asMdMap<String?>() }

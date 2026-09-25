@@ -31,11 +31,13 @@ fun IconItem(
     labelText: UiText,
     icon: ImageVector,
     isSelected: Boolean = false,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     BaseSettingsItem(
         labelText = labelText,
         isSelected = isSelected,
+        modifier = modifier,
         widget = {
             Icon(
                 modifier = Modifier.size(Size.large),
@@ -69,10 +71,12 @@ private fun BaseSettingsItem(
     widget: @Composable RowScope.() -> Unit,
     onClick: () -> Unit,
     isSelected: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier =
-            Modifier.clickable(onClick = onClick)
+            modifier
+                .clickable(onClick = onClick)
                 .fillMaxWidth()
                 .then(
                     if (isSelected) {

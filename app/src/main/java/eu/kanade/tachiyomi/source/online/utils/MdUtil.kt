@@ -67,8 +67,19 @@ class MdUtil {
                 MdLang.entries.firstOrNull { mdLang -> enabledLang == mdLang.lang } != null
             }
 
-        fun getTitle(titleMap: Map<String, String?>, originalLanguage: String): String {
-            return titleMap[MdLang.ENGLISH.lang]
+        /**
+         * Picks the English title first. MangaDex often keeps the main title in romaji and lists
+         * the English name among the alternative titles, so check those before other languages.
+         */
+        fun getTitle(
+            titleMap: Map<String, String?>,
+            originalLanguage: String,
+            altTitles: List<Map<String, String?>> = emptyList(),
+        ): String {
+            return titleMap[MdLang.ENGLISH.lang]?.takeIf { it.isNotBlank() }
+                ?: altTitles.firstNotNullOfOrNull { altTitle ->
+                    altTitle[MdLang.ENGLISH.lang]?.takeIf { it.isNotBlank() }
+                }
                 ?: titleMap[originalLanguage]
                 ?: titleMap["$originalLanguage-ro"]
                 ?: titleMap[MdLang.JAPANESE.lang]
