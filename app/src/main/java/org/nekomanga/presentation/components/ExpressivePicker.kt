@@ -61,8 +61,6 @@ fun <T> ExpressivePicker(
         rememberLazyListState(initialFirstVisibleItemIndex = initialIndex.coerceAtLeast(0))
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
-    val leadingSpacersCount = visibleItemsCount / 2
-
     var internalScrollValue by remember { mutableStateOf(value) }
 
     // 1. Update the value state when scrolling settles

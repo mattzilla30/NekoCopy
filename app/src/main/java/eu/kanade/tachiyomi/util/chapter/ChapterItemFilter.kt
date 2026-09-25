@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.util.chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.source.SourceManager
 import org.nekomanga.constants.Constants
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.domain.chapter.ChapterItem
@@ -181,25 +180,16 @@ class ChapterItemFilter(
         val blockedGroups = mangaDexPreferences.blockedGroups().get().toSet()
         val blockedUploaders = mangaDexPreferences.blockedUploaders().get().toSet()
 
-        // Filtered sources, groups and uploaders
+        // Filtered groups and uploaders
         val filteredScanlators = ChapterUtil.getScanlators(manga.filtered_scanlators).toSet()
         val filteredLanguages = ChapterUtil.getLanguages(manga.filtered_language).toSet()
 
-        val sources = SourceManager.sourceScanlatorNames + MdConstants.name
         val scanlatorMatchAll =
             libraryPreferences.chapterScanlatorFilterOption().get() == ScanlatorFilterOption.ALL
 
         return chapters.filterNot { chapterItem ->
             val scanlators = ChapterUtil.getScanlators(chapterItem.chapter.scanlator)
             val languages = ChapterUtil.getLanguages(chapterItem.chapter.language)
-
-            val sourceFiltered = sources.any { sourceName ->
-                ChapterUtil.filteredBySource(
-                    sourceName,
-                    chapterItem.chapter.isLocalSource(),
-                    filteredScanlators,
-                )
-            }
 
             val languageFiltered = ChapterUtil.filterByLanguage(languages, filteredLanguages)
 
@@ -218,7 +208,7 @@ class ChapterItemFilter(
                     scanlatorMatchAll,
                     filteredScanlators,
                 )
-            sourceFiltered || languageFiltered || blockedScanlator || filteredScanlator
+            languageFiltered || blockedScanlator || filteredScanlator
         }
     }
 

@@ -1,8 +1,6 @@
 package org.nekomanga.domain.storage
 
 import android.content.Context
-import androidx.core.net.toUri
-import com.hippo.unifile.UniFile
 import tachiyomi.core.preference.Preference
 import tachiyomi.core.preference.PreferenceStore
 import tachiyomi.core.util.storage.FolderProvider
@@ -21,9 +19,6 @@ class StoragePreferences(
 
     fun lastAutoBackupTimestamp() =
         preferenceStore.getLong(Preference.appStateKey("last_auto_backup_timestamp"), 0L)
-
-    fun baseStorageDirectoryAsUniFile() =
-        UniFile.fromUri(context, baseStorageDirectory().get().toUri())!!
 
     companion object {
         const val BACKUP_DIR = "backup"

@@ -12,8 +12,6 @@ object Constants {
 
     const val NO_GROUP = "No Group"
 
-    const val LOCAL_SOURCE = "Local"
-
     const val TRACKER_SEARCH_ID_PREFIX = "id:"
 
     const val SEPARATOR = " · "

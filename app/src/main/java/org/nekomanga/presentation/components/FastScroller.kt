@@ -110,7 +110,6 @@ fun VerticalFastScroller(
                     val stableScrollInProgress =
                         scrollStateTracker.value || listState.isScrollInProgress
                     scrollStateTracker.value = listState.isScrollInProgress
-                    val anyScrollInProgress = stableScrollInProgress || isThumbDragged
 
                     val maxRemainingSections = remember { MutableData(0f) }
                     val estimateConfidence = remember { MutableData(0f) }

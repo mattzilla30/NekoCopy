@@ -7,9 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
@@ -93,7 +90,6 @@ import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.util.lang.orUnknownError
 import eu.kanade.tachiyomi.util.storage.getUriWithAuthority
 import eu.kanade.tachiyomi.util.system.dpToPx
-import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.system.isTablet
 import eu.kanade.tachiyomi.util.system.launchIO
@@ -289,8 +285,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
     private var lastShiftDoubleState: Boolean? = null
     private var indexPageToShift: Int? = null
     private var indexChapterToShift: Long? = null
-
-    private var lastCropRes = 0
 
     val isSplitScreen: Boolean
         get() = isInMultiWindowMode
@@ -1159,7 +1153,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
         lastVis = window.decorView.rootWindowInsetsCompat?.isVisible(statusBars()) ?: false
         var firstPass = true
         window.decorView.doOnApplyWindowInsetsCompat { _, insets, _ ->
-            val systemInsets = insets.ignoredSystemInsets
             val vis = insets.isVisible(statusBars())
             val fullscreen = readerPreferences.fullscreen().get() && !isSplitScreen
             if (!firstPass && lastVis != vis && fullscreen) {
@@ -1212,7 +1205,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
      * [animate] the views.
      */
     private fun setMenuVisibility(visible: Boolean, animate: Boolean = true) {
-        val oldVisibility = menuVisible
         menuVisible = visible
         viewModel.setMenuVisibility(visible)
 
@@ -1413,7 +1405,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                         it.fullPage == true || it.isolatedPage
                     } ?: 0)) % 2 != 0
         }
-        val currentChapterPageCount = viewerChapters.currChapter.pages?.size ?: 1
         lastShiftDoubleState = null
         viewer?.setChapters(viewerChapters)
         if (viewer is PagerViewerState) {
@@ -1479,10 +1470,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
         if (chapterChange) {
             isScrollingThroughPagesOrChapters = false
         }
-    }
-
-    fun refreshChapters() {
-        lifecycleScope.launch { viewModel.getChapters() }
     }
 
     /**
@@ -1986,47 +1973,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                     .launchIn(scope)
             } else {
                 colorFilterOverlayColor = 0
-            }
-        }
-
-        private fun getCombinedPaint(grayscale: Boolean, invertedColors: Boolean): Paint {
-            return Paint().apply {
-                colorFilter =
-                    ColorMatrixColorFilter(
-                        ColorMatrix().apply {
-                            if (grayscale) {
-                                setSaturation(0f)
-                            }
-                            if (invertedColors) {
-                                postConcat(
-                                    ColorMatrix(
-                                        floatArrayOf(
-                                            -1f,
-                                            0f,
-                                            0f,
-                                            0f,
-                                            255f,
-                                            0f,
-                                            -1f,
-                                            0f,
-                                            0f,
-                                            255f,
-                                            0f,
-                                            0f,
-                                            -1f,
-                                            0f,
-                                            255f,
-                                            0f,
-                                            0f,
-                                            0f,
-                                            1f,
-                                            0f,
-                                        )
-                                    )
-                                )
-                            }
-                        }
-                    )
             }
         }
 

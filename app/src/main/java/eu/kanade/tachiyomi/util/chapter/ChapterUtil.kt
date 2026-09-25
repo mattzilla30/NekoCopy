@@ -2,13 +2,11 @@ package eu.kanade.tachiyomi.util.chapter
 
 import android.content.Context
 import eu.kanade.tachiyomi.data.database.models.Chapter
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.system.contextCompatColor
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
 import org.nekomanga.R
 import org.nekomanga.constants.Constants
-import org.nekomanga.constants.MdConstants
 
 class ChapterUtil {
     companion object {
@@ -76,25 +74,6 @@ class ChapterUtil {
         }
 
         /**
-         * Returns true when [sourceName] is one of the [filteredSources] and the chapter comes from
-         * that source: MangaDex for every non-local chapter, Local for local ones.
-         */
-        fun filteredBySource(
-            sourceName: String,
-            isLocal: Boolean,
-            filteredSources: Set<String>,
-        ): Boolean {
-            if (sourceName !in filteredSources) {
-                return false
-            }
-            return when (sourceName) {
-                MdConstants.name -> !isLocal
-                Constants.LOCAL_SOURCE -> isLocal
-                else -> false
-            }
-        }
-
-        /**
          * returns true for a list filter, if the language of the chapter exists in the filtered
          * language set
          */
@@ -121,24 +100,9 @@ class ChapterUtil {
         ): Boolean {
             if (filteredGroups.isEmpty() && filteredUploaders.isEmpty()) return false
 
-            var nonMergeCount = 0
-            for (s in scanlators) {
-                if (s !in SourceManager.sourceScanlatorNames) {
-                    nonMergeCount++
-                }
-            }
+            if (scanlators.isEmpty() && uploader.isEmpty()) return false
 
-            if (nonMergeCount == 0 && uploader.isEmpty()) return false
-
-            var hasNoGroup = false
-            if (nonMergeCount > 0) {
-                for (s in scanlators) {
-                    if (s !in SourceManager.sourceScanlatorNames && s == Constants.NO_GROUP) {
-                        hasNoGroup = true
-                        break
-                    }
-                }
-            }
+            val hasNoGroup = Constants.NO_GROUP in scanlators
 
             val needsUploaderCheck = uploader.isNotEmpty() && hasNoGroup
 
@@ -153,7 +117,6 @@ class ChapterUtil {
                 }
 
                 for (s in scanlators) {
-                    if (s in SourceManager.sourceScanlatorNames) continue
                     if (s == Constants.NO_GROUP && skipNoGroup) continue
 
                     val isFiltered =
@@ -169,7 +132,6 @@ class ChapterUtil {
                 }
 
                 for (s in scanlators) {
-                    if (s in SourceManager.sourceScanlatorNames) continue
                     val isFiltered =
                         s in filteredGroups || (needsUploaderCheck && s in filteredUploaders)
                     if (isFiltered) return true

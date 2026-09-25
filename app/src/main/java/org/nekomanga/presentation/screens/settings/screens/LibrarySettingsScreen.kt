@@ -64,11 +64,6 @@ internal class LibrarySettingsScreen(
             preferenceItems =
                 listOf(
                     Preference.PreferenceItem.SwitchPreference(
-                        pref = libraryPreferences.enableLocalChapters(),
-                        title = stringResource(R.string.enable_local_manga),
-                        subtitle = stringResource(R.string.enable_local_manga_summary),
-                    ),
-                    Preference.PreferenceItem.SwitchPreference(
                         pref = libraryPreferences.removeArticles(),
                         title = stringResource(R.string.sort_by_ignoring_articles),
                         subtitle = stringResource(R.string.when_sorting_ignore_articles),
@@ -296,11 +291,6 @@ internal class LibrarySettingsScreen(
         @Composable
         override fun getSearchTerms(): List<SearchTerm> {
             return listOf(
-                SearchTerm(
-                    title = stringResource(R.string.enable_local_manga),
-                    subtitle = stringResource(R.string.enable_local_manga_summary),
-                    group = stringResource(R.string.general),
-                ),
                 SearchTerm(
                     title = stringResource(R.string.sort_by_ignoring_articles),
                     subtitle = stringResource(R.string.when_sorting_ignore_articles),

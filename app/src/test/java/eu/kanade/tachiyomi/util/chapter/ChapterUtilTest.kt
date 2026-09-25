@@ -92,17 +92,6 @@ class ChapterUtilTest {
     }
 
     @Test
-    fun `filterByScanlator ignores source names`() {
-        ChapterUtil.filterByScanlator(
-            scanlators = listOf(Constants.LOCAL_SOURCE, "Group A"),
-            uploader = "",
-            all = true,
-            filteredGroups = setOf("Group A"),
-            filteredUploaders = emptySet(),
-        ) shouldBe true
-    }
-
-    @Test
     fun `filterByScanlator handles uploader match when NO_GROUP is present under match any`() {
         ChapterUtil.filterByScanlator(
             scanlators = listOf(Constants.NO_GROUP),

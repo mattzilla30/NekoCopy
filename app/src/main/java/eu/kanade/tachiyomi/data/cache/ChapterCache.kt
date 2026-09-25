@@ -64,13 +64,6 @@ class ChapterCache(private val context: Context) {
     val cacheDir: File
         get() = diskCache.directory
 
-    /** Returns real size of directory. */
-    suspend fun getReadableSize(): String =
-        withContext(Dispatchers.IO) {
-            val size = DiskUtil.getDirectorySize(cacheDir)
-            Formatter.formatFileSize(context, size)
-        }
-
     init {
         readerPreferences
             .preloadPageAmount()
@@ -93,32 +86,6 @@ class ChapterCache(private val context: Context) {
             // 4 pages = 115MB, 6 = ~150MB, 10 = ~200MB, 20 = ~300MB
             (PARAMETER_CACHE_SIZE * cacheSize.toFloat().pow(0.6f)).roundToLong(),
         )
-    }
-
-    /**
-     * Remove file from cache.
-     *
-     * @param file name of file "md5.0".
-     * @return status of deletion for the file.
-     */
-    fun removeFileFromCache(file: String): Boolean {
-        TimberKt.d { "remove file from cache" }
-        // Make sure we don't delete the journal file (keeps track of cache).
-        if (file == "journal" || file.startsWith("journal.")) {
-            return false
-        }
-
-        return try {
-            // Remove the extension from the file to get the key of the cache
-            val key = file.substringBeforeLast(".")
-            // Remove file from cache.
-            diskCache.remove(key)
-        } catch (e: Exception) {
-            TimberKt.e(e) { "Error removing from from cache" }
-            false
-        } finally {
-            TimberKt.d { "finished removing file from cache" }
-        }
     }
 
     /**

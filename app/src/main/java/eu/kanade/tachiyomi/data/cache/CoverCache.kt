@@ -7,7 +7,6 @@ import coil3.memory.MemoryCache
 import eu.kanade.tachiyomi.data.coil.CoilDiskCache
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.util.system.toast
-import eu.kanade.tachiyomi.util.system.withIOContext
 import eu.kanade.tachiyomi.util.system.withUIContext
 import java.io.File
 import java.io.IOException
@@ -17,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.nekomanga.R
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.logging.TimberKt
 import tachiyomi.core.util.storage.DiskUtil
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -46,8 +44,6 @@ class CoverCache(val context: Context) {
     /** Cache directory used for covers not in library management. */
     val onlineCoverDirectory = File(context.cacheDir, ONLINE_COVERS_DIR).also { it.mkdirs() }
 
-    private val maxOnlineCacheSize = 50L * 1024L * 1024L // 50 MB
-
     private var lastClean = 0L
 
     /**
@@ -55,14 +51,6 @@ class CoverCache(val context: Context) {
      * issues, as the cache is only used for UI feedback.
      */
     private val renewInterval = TimeUnit.HOURS.toMillis(1)
-
-    fun getCoverCacheSize(): String {
-        return Formatter.formatFileSize(context, DiskUtil.getDirectorySize(cacheDir))
-    }
-
-    fun getOnlineCoverCacheSize(): String {
-        return Formatter.formatFileSize(context, DiskUtil.getDirectorySize(onlineCoverDirectory))
-    }
 
     suspend fun deleteOldCovers() {
         val mangaRepository = Injekt.get<MangaRepository>()
@@ -125,36 +113,6 @@ class CoverCache(val context: Context) {
             context.toast(
                 context.getString(R.string.deleted_, Formatter.formatFileSize(context, deletedSize))
             )
-        }
-    }
-
-    /** Clear out online covers until its under a certain size */
-    suspend fun deleteCachedCovers() {
-        withIOContext {
-            if (lastClean + renewInterval < System.currentTimeMillis()) {
-                try {
-                    val directory = onlineCoverDirectory
-                    val size = DiskUtil.getDirectorySize(directory)
-                    if (size <= maxOnlineCacheSize) {
-                        return@withIOContext
-                    }
-                    var deletedSize = 0L
-                    val files =
-                        directory.listFiles()?.sortedBy { it.lastModified() }?.iterator()
-                            ?: return@withIOContext
-                    while (files.hasNext()) {
-                        val file = files.next()
-                        deletedSize += file.length()
-                        file.delete()
-                        if (size - deletedSize <= maxOnlineCacheSize) {
-                            break
-                        }
-                    }
-                } catch (e: Exception) {
-                    TimberKt.e(e)
-                }
-                lastClean = System.currentTimeMillis()
-            }
         }
     }
 

@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.data.download
 
-import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.source.SourceManager
@@ -132,14 +131,6 @@ class DownloadCache(
         return mangaIds.associateWith { mangaId ->
             mangaFiles[mangaId]?.files?.count { !it.endsWith(TMP_DIR_SUFFIX) } ?: 0
         }
-    }
-
-    fun getAllDownloadFiles(manga: Manga): List<UniFile> {
-        val mangaDir = provider.findMangaDir(manga) ?: return emptyList()
-        return mangaDir
-            .listFiles { _, filename -> !filename.endsWith(TMP_DIR_SUFFIX) }
-            .orEmpty()
-            .toList()
     }
 
     @Synchronized

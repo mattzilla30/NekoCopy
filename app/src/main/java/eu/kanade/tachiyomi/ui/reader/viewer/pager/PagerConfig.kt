@@ -197,15 +197,6 @@ class PagerConfig(
         }
     }
 
-    fun scaleTypeIsFullFit(): Boolean {
-        return when (imageScaleType) {
-            2, // Stretch
-            4, // Fit height
-            6 -> true // Smart fit
-            else -> false
-        }
-    }
-
     override fun updateNavigation(navigationMode: Int) {
         navigator =
             when (navigationMode) {
@@ -226,9 +217,5 @@ class PagerConfig(
         Right,
     }
 
-    companion object {
-        const val CUTOUT_PAD = 0
-        const val CUTOUT_START_EXTENDED = 1
-        const val CUTOUT_IGNORE = 2
-    }
+    companion object {}
 }

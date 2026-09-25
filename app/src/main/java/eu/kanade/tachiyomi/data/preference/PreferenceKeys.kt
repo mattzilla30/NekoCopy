@@ -11,10 +11,6 @@ object PreferenceKeys {
 
     const val startingTab = "starting_tab"
 
-    const val backToStart = "back_to_start"
-
-    const val deniedA11FilePermission = "denied_a11_file_permission"
-
     const val showNavigationOverlayNewUser = "reader_navigation_overlay_new_user"
 
     const val showNavigationOverlayNewUserWebtoon = "reader_navigation_overlay_new_user_webtoon"
@@ -30,16 +26,9 @@ object PreferenceKeys {
 
     const val dateFormat = "app_date_format"
     const val openLinksInBrowser = "open_links_in_browser"
-    const val showDLsInRecents = "show_dls_in_recents"
-    const val showRemHistoryInRecents = "show_rem_history_in_recents"
-    const val showReadInAllRecents = "show_read_in_all_recents"
-    const val showTitleFirstInRecents = "show_title_first_in_recents"
-
-    const val groupChaptersHistory = "group_chapters_history"
 
     const val historyChapterGrouping = "history_chapter_grouping"
 
-    const val showUpdatedTime = "show_updated_time"
     const val groupChaptersUpdates = "group_chapters_updates"
 
     const val showSeriesInShortcuts = "show_series_shortcuts"
@@ -54,6 +43,4 @@ object PreferenceKeys {
     fun trackToken(syncId: Int) = "track_token_$syncId"
 
     const val autoAddTracker = "auto_add_tracker"
-
-    const val thumbnailQuality = "mangadex_thumbnail_quality"
 }

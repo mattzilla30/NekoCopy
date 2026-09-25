@@ -30,17 +30,15 @@ class GetChapterFilterTextTest {
         every { context.getString(R.string.unavailable) } returns "Unavailable"
         every { context.getString(R.string.language) } returns "Language"
         every { context.getString(R.string.scanlators) } returns "Scanlators"
-        every { context.getString(R.string.sources) } returns "Sources"
     }
 
     @Test
     fun `test no filters applied`() {
         val display = MangaConstants.ChapterDisplay()
-        val source = MangaConstants.ScanlatorFilter()
         val scanlator = MangaConstants.ScanlatorFilter()
         val language = MangaConstants.LanguageFilter()
 
-        val result = getChapterFilterText(display, source, scanlator, language)
+        val result = getChapterFilterText(display, scanlator, language)
 
         assertEquals("", result)
     }
@@ -48,11 +46,10 @@ class GetChapterFilterTextTest {
     @Test
     fun `test single display filter applied`() {
         val display = MangaConstants.ChapterDisplay(unread = ToggleableState.On)
-        val source = MangaConstants.ScanlatorFilter()
         val scanlator = MangaConstants.ScanlatorFilter()
         val language = MangaConstants.LanguageFilter()
 
-        val result = getChapterFilterText(display, source, scanlator, language)
+        val result = getChapterFilterText(display, scanlator, language)
 
         assertEquals("Unread", result)
     }
@@ -64,14 +61,13 @@ class GetChapterFilterTextTest {
                 unread = ToggleableState.Indeterminate,
                 downloaded = ToggleableState.On,
             )
-        val source = MangaConstants.ScanlatorFilter()
         val scanlator =
             MangaConstants.ScanlatorFilter(
                 scanlators = listOf(MangaConstants.ScanlatorOption("test", disabled = true))
             )
         val language = MangaConstants.LanguageFilter()
 
-        val result = getChapterFilterText(display, source, scanlator, language)
+        val result = getChapterFilterText(display, scanlator, language)
 
         assertEquals("Read, Downloaded, Scanlators", result)
     }

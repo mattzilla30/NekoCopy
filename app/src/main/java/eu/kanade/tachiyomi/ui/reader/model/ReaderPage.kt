@@ -44,15 +44,6 @@ open class ReaderPage(
             if (value == true) shiftedPage = false
         }
 
-    val alonePage: Boolean
-        get() = fullPage == true || isolatedPage
-
-    val isEndPage
-        get() = endPageConfidence?.let { it > 0 && it > (startPageConfidence ?: 0) }
-
-    val isStartPage
-        get() = startPageConfidence?.let { it > 0 && it > (endPageConfidence ?: 0) }
-
     fun isFromSamePage(page: ReaderPage): Boolean =
         index == page.index && chapter.chapter.id == page.chapter.chapter.id
 }

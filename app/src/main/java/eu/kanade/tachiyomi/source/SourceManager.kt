@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.source
 import eu.kanade.tachiyomi.source.online.MangaDex
 import eu.kanade.tachiyomi.source.online.utils.MdLang
 import java.security.MessageDigest
-import org.nekomanga.constants.Constants
 
 /** Currently hardcoded to always return the same English [MangaDex] instance */
 open class SourceManager {
@@ -19,9 +18,6 @@ open class SourceManager {
     }
 
     companion object {
-
-        /** Scanlator names that mark where a chapter came from rather than a scanlation group. */
-        val sourceScanlatorNames = listOf(Constants.LOCAL_SOURCE)
 
         val possibleIds = MdLang.entries.map { getId(it.lang) }
 

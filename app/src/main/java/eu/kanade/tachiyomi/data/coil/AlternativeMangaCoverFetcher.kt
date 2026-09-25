@@ -15,9 +15,6 @@ import java.net.HttpURLConnection.HTTP_NOT_MODIFIED
 import java.util.Date
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import okhttp3.CacheControl
 import okhttp3.Request
 import okhttp3.Response
@@ -47,8 +44,6 @@ class AlternativeMangaCoverFetcher(
                 options,
             )
     }
-
-    val fileScope = CoroutineScope(Job() + Dispatchers.IO)
 
     override suspend fun fetch(): FetchResult {
         return when (getResourceType(url)) {

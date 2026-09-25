@@ -26,7 +26,6 @@ object MangaConstants {
         val missingChapters: MissingChapterHolder,
         val allScanlators: Set<String>,
         val allUploaders: Set<String>,
-        val allSources: Set<String>,
         val allLanguages: Set<String>,
     )
 
@@ -84,11 +83,9 @@ object MangaConstants {
         val chapterFilterText: String = "",
         val chapterSortFilter: SortFilter = SortFilter(),
         val chapterScanlatorFilter: ScanlatorFilter = ScanlatorFilter(listOf()),
-        val chapterSourceFilter: ScanlatorFilter = ScanlatorFilter(listOf()),
         val chapterLanguageFilter: LanguageFilter = LanguageFilter(listOf()),
         val allScanlators: Set<String> = setOf(),
         val allUploaders: Set<String> = setOf(),
-        val allSources: Set<String> = setOf(),
         val allLanguages: Set<String> = setOf(),
     )
 

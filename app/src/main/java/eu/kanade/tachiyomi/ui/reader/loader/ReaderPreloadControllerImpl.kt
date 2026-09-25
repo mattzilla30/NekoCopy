@@ -80,9 +80,6 @@ class ReaderPreloadControllerImpl(
     private var lastIsRtl: Boolean = false
     private var lastIsWebtoon: Boolean = false
 
-    fun isJobActive(): Boolean =
-        activeOrchestratorJob?.isActive == true || activeDownloads.values.any { it.isActive }
-
     internal fun itemDomainKey(item: ReaderUiItem): String = item.key(DOMAIN_KEY_PREFIX)
 
     override fun onPositionChanged(

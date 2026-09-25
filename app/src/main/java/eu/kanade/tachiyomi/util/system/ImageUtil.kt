@@ -1,7 +1,5 @@
 package eu.kanade.tachiyomi.util.system
 
-import android.content.Context
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
@@ -10,9 +8,6 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
 import android.webkit.MimeTypeMap
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
@@ -27,21 +22,14 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.URLConnection
 import java.util.Locale
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 import okio.Buffer
 import okio.BufferedSource
-import org.nekomanga.R
 import org.nekomanga.logging.TimberKt
 import timber.log.Timber
 
 object ImageUtil {
-
-    private const val EDGE_OFFSET = 5
-    private const val MARGIN_PERCENTAGE = 0.0275
-    private const val CENTER_OFFSET_PERCENTAGE = 0.01
 
     fun isImage(name: String, openStream: (() -> InputStream)? = null): Boolean {
         val contentType =
@@ -196,237 +184,6 @@ object ImageUtil {
             }
             else -> null
         }
-    }
-
-    fun autoSetBackground(
-        image: Bitmap?,
-        alwaysUseWhite: Boolean,
-        preferBlack: Boolean,
-        context: Context,
-    ): Drawable {
-        val backgroundColor =
-            if (alwaysUseWhite) {
-                Color.WHITE
-            } else {
-                val color = context.getResourceColor(R.attr.readerBackground)
-                if (preferBlack && !color.isWhite) {
-                    Color.BLACK
-                } else {
-                    color
-                }
-            }
-        if (image == null) return ColorDrawable(backgroundColor)
-        if (image.width < 50 || image.height < 50) {
-            return ColorDrawable(backgroundColor)
-        }
-        val top = EDGE_OFFSET
-        val bot = image.height - EDGE_OFFSET
-        val left = (image.width * MARGIN_PERCENTAGE).toInt()
-        val right = image.width - left
-        val midX = image.width / 2
-        val midY = image.height / 2
-        val offsetX = (image.width * CENTER_OFFSET_PERCENTAGE).toInt()
-        val topLeftIsDark = image.getPixel(left, top).isDark
-        val topRightIsDark = image.getPixel(right, top).isDark
-        val midLeftIsDark = image.getPixel(left, midY).isDark
-        val midRightIsDark = image.getPixel(right, midY).isDark
-        val topMidIsDark = image.getPixel(midX, top).isDark
-        val botLeftIsDark = image.getPixel(left, bot).isDark
-        val botRightIsDark = image.getPixel(right, bot).isDark
-
-        var darkBG =
-            (topLeftIsDark &&
-                (botLeftIsDark ||
-                    botRightIsDark ||
-                    topRightIsDark ||
-                    midLeftIsDark ||
-                    topMidIsDark)) ||
-                (topRightIsDark &&
-                    (botRightIsDark || botLeftIsDark || midRightIsDark || topMidIsDark))
-
-        if (
-            !image.getPixel(left, top).isWhite &&
-                pixelIsClose(image.getPixel(left, top), image.getPixel(midX, top)) &&
-                !image.getPixel(right, top).isWhite &&
-                pixelIsClose(image.getPixel(right, top), image.getPixel(right, bot)) &&
-                !image.getPixel(right, bot).isWhite &&
-                pixelIsClose(image.getPixel(right, bot), image.getPixel(midX, bot)) &&
-                !image.getPixel(midX, top).isWhite &&
-                pixelIsClose(image.getPixel(midX, top), image.getPixel(right, top)) &&
-                !image.getPixel(midX, bot).isWhite &&
-                pixelIsClose(image.getPixel(midX, bot), image.getPixel(left, bot)) &&
-                !image.getPixel(left, bot).isWhite &&
-                pixelIsClose(image.getPixel(left, bot), image.getPixel(left, top))
-        ) {
-            return ColorDrawable(image.getPixel(left, top))
-        }
-
-        if (
-            image.getPixel(left, top).isWhite.toInt() +
-                image.getPixel(right, top).isWhite.toInt() +
-                image.getPixel(left, bot).isWhite.toInt() +
-                image.getPixel(right, bot).isWhite.toInt() > 2
-        ) {
-            darkBG = false
-        }
-
-        var blackPixel =
-            when {
-                topLeftIsDark -> image.getPixel(left, top)
-                topRightIsDark -> image.getPixel(right, top)
-                botLeftIsDark -> image.getPixel(left, bot)
-                botRightIsDark -> image.getPixel(right, bot)
-                else -> backgroundColor
-            }
-
-        var overallWhitePixels = 0
-        var overallBlackPixels = 0
-        var topBlackStreak = 0
-        var topWhiteStreak = 0
-        var botBlackStreak = 0
-        var botWhiteStreak = 0
-        outer@ for (x in intArrayOf(left, right, left - offsetX, right + offsetX)) {
-            var whitePixelsStreak = 0
-            var whitePixels = 0
-            var blackPixelsStreak = 0
-            var blackPixels = 0
-            var blackStreak = false
-            var whiteStrak = false
-            val notOffset = x == left || x == right
-            for ((index, y) in (0 until image.height step image.height / 25).withIndex()) {
-                val pixel = image.getPixel(x, y)
-                val pixelOff =
-                    image.getPixel(x + (if (x < image.width / 2) -offsetX else offsetX), y)
-                if (pixel.isWhite) {
-                    whitePixelsStreak++
-                    whitePixels++
-                    if (notOffset) {
-                        overallWhitePixels++
-                    }
-                    if (whitePixelsStreak > 14) {
-                        whiteStrak = true
-                    }
-                    if (whitePixelsStreak > 6 && whitePixelsStreak >= index - 1) {
-                        topWhiteStreak = whitePixelsStreak
-                    }
-                } else {
-                    whitePixelsStreak = 0
-                    if (pixel.isDark && pixelOff.isDark) {
-                        blackPixels++
-                        if (notOffset) {
-                            overallBlackPixels++
-                        }
-                        blackPixelsStreak++
-                        if (blackPixelsStreak >= 14) {
-                            blackStreak = true
-                        }
-                        continue
-                    }
-                }
-                if (blackPixelsStreak > 6 && blackPixelsStreak >= index - 1) {
-                    topBlackStreak = blackPixelsStreak
-                }
-                blackPixelsStreak = 0
-            }
-            if (blackPixelsStreak > 6) {
-                botBlackStreak = blackPixelsStreak
-            } else if (whitePixelsStreak > 6) {
-                botWhiteStreak = whitePixelsStreak
-            }
-            when {
-                blackPixels > 22 -> {
-                    if (x == right || x == right + offsetX) {
-                        blackPixel =
-                            when {
-                                topRightIsDark -> image.getPixel(right, top)
-                                botRightIsDark -> image.getPixel(right, bot)
-                                else -> blackPixel
-                            }
-                    }
-                    darkBG = true
-                    overallWhitePixels = 0
-                    break@outer
-                }
-                blackStreak -> {
-                    darkBG = true
-                    if (x == right || x == right + offsetX) {
-                        blackPixel =
-                            when {
-                                topRightIsDark -> image.getPixel(right, top)
-                                botRightIsDark -> image.getPixel(right, bot)
-                                else -> blackPixel
-                            }
-                    }
-                    if (blackPixels > 18) {
-                        overallWhitePixels = 0
-                        break@outer
-                    }
-                }
-                whiteStrak || whitePixels > 22 -> darkBG = false
-            }
-        }
-
-        val topIsBlackStreak = topBlackStreak > topWhiteStreak
-        val bottomIsBlackStreak = botBlackStreak > botWhiteStreak
-        if (overallWhitePixels > 9 && overallWhitePixels > overallBlackPixels) {
-            darkBG = false
-        }
-        if (topIsBlackStreak && bottomIsBlackStreak) {
-            darkBG = true
-        }
-        val isLandscape =
-            context.resources.configuration?.orientation == Configuration.ORIENTATION_LANDSCAPE
-        if (darkBG) {
-            return if (
-                !isLandscape &&
-                    image.getPixel(left, bot).isWhite &&
-                    image.getPixel(right, bot).isWhite
-            ) {
-                GradientDrawable(
-                    GradientDrawable.Orientation.TOP_BOTTOM,
-                    intArrayOf(blackPixel, blackPixel, backgroundColor, backgroundColor),
-                )
-            } else if (
-                !isLandscape &&
-                    image.getPixel(left, top).isWhite &&
-                    image.getPixel(right, top).isWhite
-            ) {
-                GradientDrawable(
-                    GradientDrawable.Orientation.TOP_BOTTOM,
-                    intArrayOf(backgroundColor, backgroundColor, blackPixel, blackPixel),
-                )
-            } else {
-                ColorDrawable(blackPixel)
-            }
-        }
-        if (
-            !isLandscape &&
-                (topIsBlackStreak ||
-                    (topLeftIsDark &&
-                        topRightIsDark &&
-                        image.getPixel(left - offsetX, top).isDark &&
-                        image.getPixel(right + offsetX, top).isDark &&
-                        (topMidIsDark || overallBlackPixels > 9)))
-        ) {
-            return GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(blackPixel, blackPixel, backgroundColor, backgroundColor),
-            )
-        } else if (
-            !isLandscape &&
-                (bottomIsBlackStreak ||
-                    (botLeftIsDark &&
-                        botRightIsDark &&
-                        image.getPixel(left - offsetX, bot).isDark &&
-                        image.getPixel(right + offsetX, bot).isDark &&
-                        (image.getPixel(midX, bot).isDark || overallBlackPixels > 9)))
-        ) {
-            return GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(backgroundColor, backgroundColor, blackPixel, blackPixel),
-            )
-        }
-        return ColorDrawable(backgroundColor)
     }
 
     /**
@@ -798,148 +555,12 @@ object ImageUtil {
     private val Bitmap.rect: Rect
         get() = Rect(0, 0, width, height)
 
-    private fun pixelIsClose(color1: Int, color2: Int): Boolean {
-        return abs(color1.red - color2.red) < 30 &&
-            abs(color1.green - color2.green) < 30 &&
-            abs(color1.blue - color2.blue) < 30
-    }
-
-    /**
-     * Returns if this bitmap matches what would be (if rightSide param is true) the single left
-     * side page, or the second page to read in an RTL book, first in an LTR book.
-     *
-     * @param rightSide: When true, check if it's a single left side page, else right side
-     * @return An int based on confidence, 0 meaning not padded, 1 meaning barely padded, 2 meaning
-     *   likely padded, 3 meaining definitely padded
-     */
-    fun Bitmap.isPagePadded(rightSide: Boolean): Int {
-        val booleans = listOf(true, false)
-        return when {
-            booleans.any { isSidePadded(!rightSide, checkWhite = it) > 1 } -> 0
-            booleans.any {
-                when (isSidePadded(rightSide, checkWhite = it)) {
-                    2 -> true
-                    1 -> isSideLonger(rightSide, checkWhite = it)
-                    else -> false
-                }
-            } -> 3
-            booleans.any { isSideLonger(rightSide, checkWhite = it) } -> 2
-            booleans.any { isOneSideMorePadded(rightSide, checkWhite = it) } -> 1
-            else -> 0
-        }
-    }
-
-    /**
-     * Returns if one side has a vertical padding and the other side does not, 2 for def, 1 for
-     * maybe, 0 if not at all
-     */
-    private fun Bitmap.isSidePadded(
-        rightSide: Boolean,
-        checkWhite: Boolean,
-        halfCheck: Boolean = false,
-    ): Int {
-        val left = (width * 0.0275).toInt()
-        val right = width - left
-        val paddedSide = if (rightSide) right else left
-        val unPaddedSide = if (!rightSide) right else left
-        val paddedCount =
-            (1 until 50).count {
-                // if all of a side is padded (the left page usually has a white padding on the
-                // right when scanned)
-                getPixel(paddedSide, (height * (it / 50f)).roundToInt()).isWhiteOrDark(checkWhite)
-            }
-        val isNotFullyUnPadded =
-            !(1 until 50).all {
-                // and if all of the other side isn't padded
-                getPixel(unPaddedSide, (height * (it / 50f)).roundToInt()).isWhiteOrDark(checkWhite)
-            }
-        return if (isNotFullyUnPadded) {
-            if (paddedCount == 49) 2 else if (paddedCount >= (if (halfCheck) 25 else 47)) 1 else 0
-        } else {
-            0
-        }
-    }
-
-    /** Returns if one side has a longer streak (of white or black) than the other */
-    private fun Bitmap.isSideLonger(rightSide: Boolean, checkWhite: Boolean): Boolean {
-        if (isSidePadded(rightSide, checkWhite, true) == 0) return false
-        val left = (width * 0.0275).toInt()
-        val right = width - left
-        val step = 70
-        val list = listOf((1 until step), (1 until step).reversed())
-        val streakFunc: (Int) -> Int = { side ->
-            list.maxOf { range ->
-                var count = 0
-                for (it in range) {
-                    val pixel = getPixel(side, (height * (it / step.toFloat())).roundToInt())
-                    if (pixel.isWhiteOrDark(checkWhite)) ++count else return@maxOf count
-                }
-                count
-            }
-        }
-        val paddedSide = if (rightSide) right else left
-        val unPaddedSide = if (!rightSide) right else left
-        return streakFunc(paddedSide) > streakFunc(unPaddedSide)
-    }
-
-    /** Returns if one side is more horizontally padded than the other */
-    private fun Bitmap.isOneSideMorePadded(rightSide: Boolean, checkWhite: Boolean): Boolean {
-        val middle = (height * 0.475).roundToInt()
-        val middle2 = (height * 0.525).roundToInt()
-        val widthFactor = max(1, (width / 400f).roundToInt())
-        val paddedSide: (Int) -> Int = {
-            if (!rightSide) width - it * widthFactor else it * widthFactor
-        }
-        val unPaddedSide: (Int) -> Int = {
-            if (rightSide) width - it * widthFactor else it * widthFactor
-        }
-        return run stop@{
-            (1 until 37).any {
-                if (!getPixel(paddedSide(it), middle).isWhiteOrDark(checkWhite)) return@stop false
-                if (!getPixel(paddedSide(it), middle2).isWhiteOrDark(checkWhite)) return@stop false
-                !getPixel(unPaddedSide(it), middle).isWhiteOrDark(checkWhite) ||
-                    !getPixel(unPaddedSide(it), middle2).isWhiteOrDark(checkWhite)
-            }
-        }
-    }
-
-    private fun Int.isWhiteOrDark(checkWhite: Boolean): Boolean =
-        if (checkWhite) isWhite else isDark
-
-    private val Int.isWhite: Boolean
-        get() = red + blue + green > 740
-
     private val Int.isDark: Boolean
         get() {
             val bgArray = FloatArray(3)
             ColorUtils.colorToHSL(this, bgArray)
             return red < 40 && blue < 40 && green < 40 && alpha > 200 && bgArray[1] <= 0.2f
         }
-
-    fun getPercentOfColor(
-        @ColorInt color: Int,
-        @ColorInt colorFrom: Int,
-        @ColorInt colorTo: Int,
-    ): Float {
-        val reds = arrayOf(Color.red(color), Color.red(colorFrom), Color.red(colorTo))
-        val blues = arrayOf(Color.blue(color), Color.blue(colorFrom), Color.blue(colorTo))
-        val greens = arrayOf(Color.green(color), Color.green(colorFrom), Color.green(colorTo))
-        val alphas = arrayOf(Color.alpha(color), Color.alpha(colorFrom), Color.alpha(colorTo))
-        val rPercent = (reds[0] - reds[1]).toFloat() / (reds[2] - reds[1]).toFloat()
-        val bPercent = (blues[0] - blues[1]).toFloat() / (blues[2] - blues[1]).toFloat()
-        val gPercent = (greens[0] - greens[1]).toFloat() / (greens[2] - greens[1]).toFloat()
-        val aPercent = (alphas[0] - alphas[1]).toFloat() / (alphas[2] - alphas[1]).toFloat()
-        return arrayOf(
-                rPercent.takeIf { reds[2] != reds[1] },
-                bPercent.takeIf { blues[2] != blues[1] },
-                gPercent.takeIf { greens[2] != greens[1] },
-                aPercent.takeIf { alphas[2] != alphas[1] },
-            )
-            .filterNotNull()
-            .average()
-            .toFloat()
-            .takeIf { it in 0f..1f } ?: 0f
-    }
 
     fun canUseHardwareBitmap(bitmap: Bitmap): Boolean =
         canUseHardwareBitmap(bitmap.width, bitmap.height)

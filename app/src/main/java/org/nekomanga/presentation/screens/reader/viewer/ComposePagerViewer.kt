@@ -182,7 +182,6 @@ fun ComposePagerViewer(
                 ReaderTheme.fromPreference(readerTheme).color(themeBackground)
             }
 
-        val currentTransitionState by rememberUpdatedState(transitionState)
         val currentIsNavigating by
             rememberUpdatedState(
                 transitionState is ReaderChapterTransitionState.Loading ||

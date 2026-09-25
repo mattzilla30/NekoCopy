@@ -1,8 +1,5 @@
 package org.nekomanga.presentation.screens
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ZoomInMap
-import androidx.compose.material.icons.filled.ZoomOutMap
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -71,26 +68,6 @@ fun StatsWrapper(
         rememberSaveable(statsState.screenState) {
             statsState.screenState is StatsConstants.ScreenState.Simple
         }
-    val hideAction =
-        rememberSaveable(statsState.screenState) {
-            statsState.screenState is StatsConstants.ScreenState.NoResults ||
-                statsState.screenState is Loading
-        }
-
-    val (actionText, titleText) =
-        rememberSaveable(isSimple) {
-            when (isSimple) {
-                true -> Pair(R.string.view_detailed_statistics, R.string.simple_stats)
-                false -> Pair(R.string.view_simple_statistics, R.string.detailed_stats)
-            }
-        }
-
-    val actionIcon =
-        when (titleText == R.string.simple_stats) {
-            true -> Icons.Default.ZoomInMap
-            false -> Icons.Default.ZoomOutMap
-        }
-
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(state = rememberTopAppBarState())
 

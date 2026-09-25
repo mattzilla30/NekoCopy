@@ -1,10 +1,7 @@
 package org.nekomanga.data.database.mapper
 
 import eu.kanade.tachiyomi.data.database.models.LibraryManga
-import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
-import org.nekomanga.constants.Constants
-import org.nekomanga.constants.MdConstants
 import org.nekomanga.data.database.dao.LibraryDao
 import org.nekomanga.data.database.model.LibraryMangaRaw
 import org.nekomanga.domain.library.ScanlatorFilterOption
@@ -84,8 +81,6 @@ fun LibraryMangaRaw.toLibraryManga(
     }
 }
 
-private val SOURCES = SourceManager.sourceScanlatorNames + MdConstants.name
-
 private fun parseChapterCount(
     countString: String?,
     filteredScanlatorsString: String?,
@@ -130,45 +125,12 @@ private fun parseChapterCount(
                 val currentGroupCount = countStr.toIntOrNull() ?: 0
                 val scanlators = ChapterUtil.getScanlators(scanlator)
 
-                var isFilteredOut = false
-
-                // First check the sources
-                for (source in SOURCES) {
-                    if (
-                        ChapterUtil.filteredBySource(
-                            source,
-                            scanlator == Constants.LOCAL_SOURCE,
-                            filtered,
-                        )
-                    ) {
-                        isFilteredOut = true
-                        break
-                    }
-                }
-
-                if (!isFilteredOut) {
-                    if (
-                        ChapterUtil.filterByScanlator(
-                            scanlators,
-                            uploader,
-                            scanlatorMatchAll,
-                            filtered,
-                        )
-                    ) {
-                        isFilteredOut = true
-                    }
-                }
-
-                // Add blocking logic from preferences
-                if (!isFilteredOut) {
-                    val groupBlocked =
-                        blockedGroups.isNotEmpty() && scanlators.any { it in blockedGroups }
-                    val uploaderBlocked =
-                        blockedUploaders.isNotEmpty() && uploader in blockedUploaders
-                    if (groupBlocked || uploaderBlocked) {
-                        isFilteredOut = true
-                    }
-                }
+                val scanlatorFiltered =
+                    ChapterUtil.filterByScanlator(scanlators, uploader, scanlatorMatchAll, filtered)
+                val groupBlocked =
+                    blockedGroups.isNotEmpty() && scanlators.any { it in blockedGroups }
+                val uploaderBlocked = blockedUploaders.isNotEmpty() && uploader in blockedUploaders
+                val isFilteredOut = scanlatorFiltered || groupBlocked || uploaderBlocked
 
                 if (!isFilteredOut) {
                     validChapterCount += currentGroupCount

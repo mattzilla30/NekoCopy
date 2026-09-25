@@ -100,15 +100,6 @@ class DownloadManager(
         }
     }
 
-    /**
-     * Tells the downloader to stop downloads.
-     *
-     * @param reason an optional reason for being stopped, used to notify the user.
-     */
-    fun stopDownloads(reason: String? = null) {
-        downloader.stop(reason)
-    }
-
     /** Tells the downloader to pause downloads. */
     fun pauseDownloads() {
         downloader.pause()
@@ -217,10 +208,6 @@ class DownloadManager(
         return cache.isChapterDownloaded(chapter, manga, skipCache)
     }
 
-    fun downloadedChapterName(chapter: Chapter): Set<String> {
-        return provider.getValidChapterDirOrFileNames(chapter).toHashSet()
-    }
-
     /**
      * Returns the amount of downloaded chapters for a manga.
      *
@@ -246,11 +233,6 @@ class DownloadManager(
      */
     fun getDownloadCountsById(mangaIds: List<Long>): Map<Long, Int> {
         return cache.getDownloadCounts(mangaIds)
-    }
-
-    /** Returns the list of downloaded file names */
-    fun getAllDownloads(manga: Manga): List<UniFile> {
-        return cache.getAllDownloadFiles(manga)
     }
 
     /**

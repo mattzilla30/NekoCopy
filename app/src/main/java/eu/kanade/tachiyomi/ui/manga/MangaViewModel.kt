@@ -347,7 +347,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                 val persistentChapters = chapters.toList()
                 val missingChapterHolder = persistentChapters.getMissingChapters()
 
-                val allSources = mutableSetOf(MdConstants.name)
                 val allChapterScanlators =
                     persistentChapters
                         .flatMap { ChapterUtil.getScanlators(it.chapter.scanlator) }
@@ -361,13 +360,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                         }
                         .toSet()
 
-                SourceManager.sourceScanlatorNames.forEach { name ->
-                    val removed = allChapterScanlators.remove(name)
-                    if (removed) {
-                        allSources.add(name)
-                    }
-                }
-
                 val allLanguages =
                     persistentChapters
                         .flatMap { ChapterUtil.getLanguages(it.chapter.language) }
@@ -378,7 +370,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                     missingChapters = missingChapterHolder,
                     allScanlators = allChapterScanlators.toSet(),
                     allUploaders = allChapterUploaders,
-                    allSources = allSources.toSet(),
                     allLanguages = allLanguages,
                 )
             }
@@ -471,8 +462,7 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
 
                             if (
                                 (staticChapterData.allScanlators.size +
-                                    staticChapterData.allUploaders.size +
-                                    staticChapterData.allSources.size) <= 1 &&
+                                    staticChapterData.allUploaders.size) <= 1 &&
                                     !effectiveManga.filteredScanlators.isEmpty()
                             ) {
                                 val manga =
@@ -498,7 +488,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                     missingChapters = staticChapterData.missingChapters,
                                     allScanlators = staticChapterData.allScanlators,
                                     allUploaders = staticChapterData.allUploaders,
-                                    allSources = staticChapterData.allSources,
                                     allLanguages = staticChapterData.allLanguages,
                                 )
 
@@ -520,8 +509,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
 
                             val displayFilter = getChapterDisplay(effectiveManga)
                             val sortFilter = getSortFilter(effectiveManga)
-                            val sourceFilter =
-                                getChapterScanlatorFilter(effectiveManga, allChapterInfo.allSources)
                             val scanlatorFilter =
                                 getChapterScanlatorFilter(
                                     effectiveManga,
@@ -536,7 +523,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                             val chapterFilterText =
                                 getFilterText(
                                     displayFilter,
-                                    sourceFilter,
                                     scanlatorFilter,
                                     languageFilter,
                                 )
@@ -545,7 +531,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                 mangaItem = effectiveManga,
                                 dynamicCover = dynamicCover,
                                 chapterDisplay = displayFilter,
-                                chapterSourceFilter = sourceFilter,
                                 chapterScanlatorFilter = scanlatorFilter,
                                 chapterLanguageFilter = languageFilter,
                                 chapterSortFilter = sortFilter,
@@ -616,10 +601,8 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                     chapterFilterText = allInfo.chapterFilterText,
                                     chapterSortFilter = allInfo.chapterSortFilter,
                                     chapterScanlatorFilter = allInfo.chapterScanlatorFilter,
-                                    chapterSourceFilter = allInfo.chapterSourceFilter,
                                     chapterLanguageFilter = allInfo.chapterLanguageFilter,
                                     allChapters = allInfo.allChapterInfo.allChapters,
-                                    allSources = allInfo.allChapterInfo.allSources,
                                     allScanlators = allInfo.allChapterInfo.allScanlators,
                                     allUploaders = allInfo.allChapterInfo.allUploaders,
                                     allLanguages = allInfo.allChapterInfo.allLanguages,
@@ -768,12 +751,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                             dbManga,
                             chapterItems.map { it.chapter.toDbChapter() },
                         )
-                        val localDbChapters = chapterItems.mapNotNull {
-                            if (it.chapter.isLocalSource()) it.chapter.toDbChapter() else null
-                        }
-                        if (localDbChapters.isNotEmpty()) {
-                            chapterRepository.deleteChapters(localDbChapters)
-                        }
                     }
                     updateRemovedDownload(chapterItems)
                 }
@@ -2227,7 +2204,6 @@ private data class AllInfo(
     val isRefreshing: Boolean = false,
     val mangaStatusCompleted: Boolean = false,
     val chapterDisplay: MangaConstants.ChapterDisplay = MangaConstants.ChapterDisplay(),
-    val chapterSourceFilter: MangaConstants.ScanlatorFilter = MangaConstants.ScanlatorFilter(),
     val chapterScanlatorFilter: MangaConstants.ScanlatorFilter = MangaConstants.ScanlatorFilter(),
     val chapterLanguageFilter: MangaConstants.LanguageFilter = MangaConstants.LanguageFilter(),
     val chapterSortFilter: MangaConstants.SortFilter = MangaConstants.SortFilter(),
@@ -2249,6 +2225,5 @@ private data class AllChapterInfo(
     val allChapters: List<ChapterItem> = listOf(),
     val allScanlators: Set<String> = setOf(),
     val allUploaders: Set<String> = setOf(),
-    val allSources: Set<String> = setOf(),
     val allLanguages: Set<String> = setOf(),
 )

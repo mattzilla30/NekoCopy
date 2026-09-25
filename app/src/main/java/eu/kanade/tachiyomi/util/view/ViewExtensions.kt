@@ -71,12 +71,6 @@ data class ViewPaddingState(
     val end: Int,
 )
 
-var View.compatToolTipText: CharSequence?
-    get() = tooltipText
-    set(value) {
-        ViewCompat.setTooltipText(this, value)
-    }
-
 var View.backgroundColor: Int?
     get() = (background as? ColorDrawable)?.color
     set(value) {

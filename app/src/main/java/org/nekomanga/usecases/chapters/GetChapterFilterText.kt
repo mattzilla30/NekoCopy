@@ -8,7 +8,6 @@ import org.nekomanga.R
 class GetChapterFilterText(private val context: Context) {
     operator fun invoke(
         chapterDisplay: MangaConstants.ChapterDisplay,
-        chapterSourceFilter: MangaConstants.ScanlatorFilter,
         chapterScanlatorFilter: MangaConstants.ScanlatorFilter,
         languageFilter: MangaConstants.LanguageFilter,
     ): String {
@@ -25,7 +24,6 @@ class GetChapterFilterText(private val context: Context) {
             if (chapterDisplay.available == ToggleableState.Indeterminate) add(R.string.unavailable)
             if (languageFilter.languages.any { it.disabled }) add(R.string.language)
             if (chapterScanlatorFilter.scanlators.any { it.disabled }) add(R.string.scanlators)
-            if (chapterSourceFilter.scanlators.any { it.disabled }) add(R.string.sources)
         }
 
         return filters.joinToString(", ") { context.getString(it) }

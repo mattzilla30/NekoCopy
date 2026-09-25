@@ -34,7 +34,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.nekomanga.R
 import org.nekomanga.data.database.AppDatabase
-import org.nekomanga.data.database.migration.RemovedMergeSources
+import org.nekomanga.data.database.migration.RemovedChapterSources
 import org.nekomanga.data.database.repository.CategoryRepository
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.HistoryRepository
@@ -288,10 +288,10 @@ class BackupRestorer(val context: Context, val notifier: BackupNotifier) {
 
             backupManga.source = SourceManager.getId(MdLang.ENGLISH.lang)
             val manga = backupManga.getMangaImpl()
-            // Skip chapters from merged sources, which no longer exist.
+            // Skip chapters from merged sources and local files, which Kitty no longer reads.
             val chapters =
                 backupManga.getChaptersImpl().filterNot {
-                    RemovedMergeSources.isMergedChapter(it.scanlator)
+                    RemovedChapterSources.isRemovedChapter(it.scanlator, it.isUnavailable)
                 }
             val categories = backupManga.categories
             val history = backupManga.history

@@ -74,7 +74,4 @@ object StatsConstants {
     }
 
     @Immutable data class StatusDistribution(val status: MangaStatus, val distribution: Int)
-
-    @Immutable
-    data class ContentRatingDistribution(val rating: MangaContentRating, val distribution: Int)
 }

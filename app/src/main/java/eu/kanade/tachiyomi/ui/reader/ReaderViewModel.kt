@@ -740,10 +740,6 @@ constructor(
         }
     }
 
-    fun sendNavigationCommand(command: ReaderNavCommand) {
-        viewModelScope.launch { _navigationCommands.send(command) }
-    }
-
     /**
      * Called every time a page changes on the reader. Used to mark the flag of chapters being read,
      * update tracking services, enqueue downloaded chapter deletion, and updating the active
@@ -1411,30 +1407,6 @@ constructor(
 
     fun setViewerItems(items: List<ReaderUiItem>) {
         mutableState.update { it.copy(viewerItems = items) }
-    }
-
-    fun updateWebtoonActiveIndex(activeIndex: Int) {
-        val items = state.value.viewerItems
-        val preloadAmount = readerPreferences.preloadPageAmount().get()
-        preloadController.onPositionChanged(
-            currentIndex = activeIndex,
-            items = items,
-            preloadAmount = preloadAmount,
-            isRtl = false,
-            isWebtoon = true,
-        )
-    }
-
-    fun updatePagerActiveIndex(activeIndex: Int, isRtl: Boolean) {
-        val items = state.value.viewerItems
-        val preloadAmount = readerPreferences.preloadPageAmount().get()
-        preloadController.onPositionChanged(
-            currentIndex = activeIndex,
-            items = items,
-            preloadAmount = preloadAmount,
-            isRtl = isRtl,
-            isWebtoon = false,
-        )
     }
 
     fun setChapterTitle(title: String) {

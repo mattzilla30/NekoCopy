@@ -33,15 +33,7 @@ interface Category : Serializable {
         return ((mangaSort?.minus('a') ?: 0) % 2) != 1
     }
 
-    val isDragAndDrop
-        get() =
-            (mangaSort == null || mangaSort == LibrarySort.DragAndDrop.categoryValue) && !isDynamic
-
     @StringRes fun sortRes(): Int = LibrarySort.valueOf(mangaSort).stringRes(isDynamic)
-
-    fun changeSortTo(sort: Int) {
-        mangaSort = LibrarySort.valueOf(sort).categoryValue
-    }
 
     companion object {
         fun create(name: String): Category = CategoryImpl().apply { this.name = name }
@@ -50,22 +42,5 @@ interface Category : Serializable {
 
         fun createSystemCategory(context: Context): Category =
             create(context.getString(R.string.default_value)).apply { id = 0 }
-
-        fun createCustom(name: String, libSort: Int, ascending: Boolean): Category =
-            create(name).apply {
-                val librarySort = LibrarySort.valueOf(libSort)
-                changeSortTo(librarySort.mainValue)
-                if (mangaSort != LibrarySort.DragAndDrop.categoryValue && !ascending) {
-                    mangaSort = mangaSort?.plus(1)
-                }
-                isDynamic = true
-            }
-
-        fun createAll(context: Context, libSort: Int, ascending: Boolean): Category =
-            createCustom(context.getString(R.string.all), libSort, ascending).apply {
-                id = -1
-                order = -1
-                isAlone = true
-            }
     }
 }

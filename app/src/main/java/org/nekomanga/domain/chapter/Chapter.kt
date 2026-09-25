@@ -4,11 +4,8 @@ import androidx.compose.runtime.Immutable
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
-import org.nekomanga.constants.Constants
-import org.nekomanga.constants.MdConstants
 
 @Immutable
 data class SimpleChapter(
@@ -38,48 +35,12 @@ data class SimpleChapter(
 ) {
     val isRecognizedNumber = chapterNumber >= 0f
 
-    fun isLocalSource() = this.scanlator == Constants.LOCAL_SOURCE && this.isUnavailable
-
-    fun canDeleteChapter() = !this.isLocalSource() && !this.bookmark && !this.isUnavailable
+    fun canDeleteChapter() = !this.bookmark && !this.isUnavailable
 
     fun getHttpSource(sourceManager: SourceManager): HttpSource = sourceManager.mangaDex
 
     fun scanlatorList(): List<String> {
         return ChapterUtil.getScanlators(this.scanlator)
-    }
-
-    fun commentUrl(threadId: String): String {
-        return MdConstants.forumUrl + threadId
-    }
-
-    fun toSChapter(): SChapter {
-        return SChapter.create().also {
-            it.url = url
-            it.name = name
-            it.date_upload = dateUpload
-            it.chapter_number = chapterNumber
-            it.scanlator = scanlator
-            it.vol = volume
-            it.chapter_txt = chapterText
-            it.chapter_title = chapterTitle
-            it.mangadex_chapter_id = mangaDexChapterId
-            it.old_mangadex_id = oldMangaDexChapterId
-            it.language = language
-            it.uploader = uploader
-        }
-    }
-
-    fun copyFromSChapter(sChapter: SChapter): SimpleChapter {
-        return this.copy(
-            name = sChapter.name,
-            url = sChapter.url,
-            dateUpload = sChapter.date_upload,
-            chapterNumber = sChapter.chapter_number,
-            scanlator = sChapter.scanlator ?: "",
-            uploader = sChapter.uploader ?: "",
-            isUnavailable = sChapter.isUnavailable,
-            volume = sChapter.vol,
-        )
     }
 
     companion object {

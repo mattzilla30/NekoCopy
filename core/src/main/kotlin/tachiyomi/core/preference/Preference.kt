@@ -28,18 +28,6 @@ interface Preference<T> {
             return key.startsWith(PRIVATE_PREFIX)
         }
 
-        fun privateKey(key: String): String {
-            return "${PRIVATE_PREFIX}$key"
-        }
-
-        /**
-         * A preference used for internal app state that isn't really a user preference and
-         * therefore should not be in places like backups.
-         */
-        fun isAppState(key: String): Boolean {
-            return key.startsWith(APP_STATE_PREFIX)
-        }
-
         fun appStateKey(key: String): String {
             return "${APP_STATE_PREFIX}$key"
         }

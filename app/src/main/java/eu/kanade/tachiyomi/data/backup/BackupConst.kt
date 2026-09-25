@@ -10,8 +10,6 @@ object BackupConst {
     const val EXTRA_MODE = "$ID.$NAME.EXTRA_MODE"
     const val EXTRA_TYPE = "$ID.$NAME.EXTRA_TYPE"
 
-    const val BACKUP_TYPE_FULL = 1
-
     // Filter options
     internal const val BACKUP_CATEGORY = 0x1
     internal const val BACKUP_CATEGORY_MASK = 0x1

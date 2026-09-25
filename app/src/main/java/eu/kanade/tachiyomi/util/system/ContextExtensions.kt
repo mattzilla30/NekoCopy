@@ -39,8 +39,6 @@ import org.nekomanga.constants.MdConstants
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.components.UiText
 
-private const val TABLET_UI_MIN_SCREEN_WIDTH_DP = 720
-
 /**
  * Display a toast in this context.
  *

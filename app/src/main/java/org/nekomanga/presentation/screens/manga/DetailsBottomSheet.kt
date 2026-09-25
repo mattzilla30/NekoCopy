@@ -190,7 +190,6 @@ fun DetailsBottomSheet(
                 changeFilter = chapterFilterActions.changeFilter,
                 filter = mangaDetailScreenState.chapters.chapterFilter,
                 scanlatorFilter = mangaDetailScreenState.chapters.chapterScanlatorFilter,
-                sourceFilter = mangaDetailScreenState.chapters.chapterSourceFilter,
                 languageFilter = mangaDetailScreenState.chapters.chapterLanguageFilter,
                 changeScanlatorFilter = chapterFilterActions.changeScanlator,
                 changeLanguageFilter = chapterFilterActions.changeLanguage,

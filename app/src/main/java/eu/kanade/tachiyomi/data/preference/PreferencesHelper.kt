@@ -38,15 +38,9 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
 
     fun getInt(key: String, default: Int) = this.preferenceStore.getInt(key, default)
 
-    fun getStringPref(key: String, default: String = "") =
-        this.preferenceStore.getString(key, default)
-
     fun startingTab() = this.preferenceStore.getInt(Keys.startingTab, 1)
 
     fun lastUsedStartingTab() = this.preferenceStore.getInt("last_used_tab", 1)
-
-    fun hasShownNotifPermission() =
-        this.preferenceStore.getBoolean("has_shown_notification_permission", false)
 
     fun hasShownOnboarding() =
         preferenceStore.getBoolean(Preference.appStateKey("onboarding_complete"), false)
@@ -162,8 +156,6 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
 
     fun feedViewOutlineCards() = preferenceStore.getBoolean("feedViewCardOutlined", false)
 
-    fun lastAppCheck() = this.preferenceStore.getLong("last_app_check", 0)
-
     fun deleteRemovedChapters() = this.preferenceStore.getInt(Keys.deleteRemovedChapters, 0)
 
     fun sideNavIconAlignment() =
@@ -203,10 +195,6 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
             Keys.autoAddTracker,
             setOf(TrackManager.MDLIST.toString()),
         )
-
-    fun setAutoAddTracker(trackersToAutoAdd: Set<String>) {
-        autoAddTracker().set(trackersToAutoAdd)
-    }
 
     fun developerMode() = this.preferenceStore.getBoolean("developer_mode", false)
 }

@@ -6,7 +6,7 @@ import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import okhttp3.Response
 
-/** A basic interface for creating a source. It could be an online source, a local source, etc... */
+/** A source of manga. Kitty has one: MangaDex. */
 interface Source {
 
     /** Id for the source. Must be unique. */

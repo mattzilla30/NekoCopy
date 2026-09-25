@@ -92,24 +92,6 @@ class RestoreHelper(val context: Context) {
         )
     }
 
-    /**
-     * Show an error notification if something happens that prevents the restore from
-     * starting/working
-     */
-    fun showErrorNotification(errorMessage: String) {
-        val resultNotification =
-            NotificationCompat.Builder(context, Notifications.CHANNEL_BACKUP_RESTORE_ERROR)
-                .setContentTitle(context.getString(R.string.restore_error))
-                .setContentText(errorMessage)
-                .setSmallIcon(R.drawable.ic_error_24dp)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setColor(ContextCompat.getColor(context, R.color.colorError))
-        context.notificationManager.notify(
-            Notifications.ID_BACKUP_RESTORE_ERROR,
-            resultNotification.build(),
-        )
-    }
-
     /** Show the result notification with option to show the error log */
     fun showResultNotification(
         path: String?,

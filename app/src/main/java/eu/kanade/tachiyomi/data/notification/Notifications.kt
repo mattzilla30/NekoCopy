@@ -80,7 +80,6 @@ object Notifications {
     const val ID_BACKUP_COMPLETE = -502
     const val ID_RESTORE_COMPLETE = -504
     const val CHANNEL_BACKUP_RESTORE_ERROR = "backup_restore_complete_channel"
-    const val ID_BACKUP_RESTORE_ERROR = -505
 
     /** Notification channel used for crash log file sharing. */
     const val CHANNEL_CRASH_LOGS = "crash_logs_channel"

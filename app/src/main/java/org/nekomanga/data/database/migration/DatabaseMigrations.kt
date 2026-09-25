@@ -9,15 +9,33 @@ object DatabaseMigrations {
      * Merged sources were removed. Delete the chapters they added, with their history, and drop the
      * merge_manga table.
      */
+    /**
+     * Local chapters were downloads kept after MangaDex removed a chapter, or files added by hand.
+     * Kitty reads MangaDex only, so delete those chapter rows and their history. The files stay in
+     * the download folder.
+     */
+    val MIGRATION_47_48 =
+        object : Migration(47, 48) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                val localChapter =
+                    "scanlator = '${RemovedChapterSources.LOCAL_SCANLATOR}' AND unavailable = 1"
+                db.execSQL(
+                    "DELETE FROM history WHERE chapter_id IN " +
+                        "(SELECT id FROM chapters WHERE $localChapter)"
+                )
+                db.execSQL("DELETE FROM chapters WHERE $localChapter")
+            }
+        }
+
     val MIGRATION_46_47 =
         object : Migration(46, 47) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 val mergedChapter =
-                    RemovedMergeSources.names.joinToString(" OR ") {
+                    RemovedChapterSources.mergeSourceNames.joinToString(" OR ") {
                         "scanlator = ? OR scanlator LIKE ?"
                     }
                 val args =
-                    RemovedMergeSources.names
+                    RemovedChapterSources.mergeSourceNames
                         .flatMap { name -> listOf(name, "$name${Constants.SCANLATOR_SEPARATOR}%") }
                         .toTypedArray()
                 db.execSQL(

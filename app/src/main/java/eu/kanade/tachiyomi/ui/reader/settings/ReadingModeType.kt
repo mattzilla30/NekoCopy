@@ -29,11 +29,6 @@ enum class ReadingModeType(
             return current.next()
         }
 
-        fun isPagerType(preference: Int): Boolean {
-            val mode = fromPreference(preference)
-            return mode == LEFT_TO_RIGHT || mode == RIGHT_TO_LEFT || mode == VERTICAL
-        }
-
         fun isWebtoonType(preference: Int): Boolean {
             val mode = fromPreference(preference)
             return mode == WEBTOON

@@ -84,8 +84,5 @@ enum class MangaTag(val uuid: String, val prettyPrint: String) : Parcelable {
     companion object {
 
         fun fromId(id: String): MangaTag = values().first { it.uuid == id }
-
-        fun fromString(value: String): MangaTag =
-            values().first { it.prettyPrint.equals(value, true) }
     }
 }

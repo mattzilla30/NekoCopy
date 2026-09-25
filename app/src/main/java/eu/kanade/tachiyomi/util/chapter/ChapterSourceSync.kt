@@ -5,26 +5,19 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.source.model.SChapter
-import eu.kanade.tachiyomi.source.model.isLocalSource
-import eu.kanade.tachiyomi.source.online.utils.MdUtil
 import java.util.Date
 import java.util.TreeSet
-import org.nekomanga.constants.Constants
 import org.nekomanga.data.database.AppDatabase
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.domain.library.LibraryPreferences
 import org.nekomanga.logging.TimberKt
-import tachiyomi.core.util.storage.DiskUtil
-import tachiyomi.core.util.storage.nameWithoutExtension
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 /**
  * Helper method for syncing the list of chapters from the source with the ones from the database.
  *
- * @param db the database.
- * @param rawSourceChapters a list of chapters from the source.
+ * @param rawSourceChapters the MangaDex chapters for the manga.
  * @param manga the manga of the chapters.
  * @return a pair of new insertions and deletions.
  */
@@ -36,131 +29,8 @@ suspend fun syncChaptersWithSource(
     manga: Manga,
 ): Pair<List<Chapter>, List<Chapter>> {
     val downloadManager: DownloadManager = Injekt.get()
-    val libraryPreferences: LibraryPreferences = Injekt.get()
 
-    // Chapters from db.
-    var dbChapters = chapterRepository.getChaptersForManga(manga.id!!)
-
-    // Dedup unavailable with local prefix
-    val chapterUUIDs =
-        dbChapters
-            .filterNot { it.isLocalSource() }
-            .map { MdUtil.getChapterUUID(it.url) }
-            .toHashSet()
-    dbChapters = dbChapters.mapNotNull { dbChapter ->
-        if (dbChapter.isLocalSource() && dbChapter.name.substringAfterLast(" - ") in chapterUUIDs) {
-            chapterRepository.deleteChapter(dbChapter)
-            return@mapNotNull null
-        }
-        dbChapter
-    }
-
-    val localChapterLookupEnabled = libraryPreferences.enableLocalChapters().get()
-    var finalRawSourceChapters = rawSourceChapters
-
-    // Check for local chapter to add
-    if (localChapterLookupEnabled) {
-
-        TimberKt.d { "local chapter enabled, checking for orphans" }
-
-        val allDownloadsMap =
-            downloadManager.getAllDownloads(manga).associateBy { it.name }.toMutableMap()
-
-        if (allDownloadsMap.isNotEmpty()) {
-            dbChapters.forEach { dbChapter ->
-                if (allDownloadsMap.isNotEmpty()) {
-                    if (
-                        (!dbChapter.isLocalSource() &&
-                            downloadManager.isChapterDownloaded(dbChapter, manga)) ||
-                            (dbChapter.isLocalSource() &&
-                                downloadManager.isChapterDownloaded(dbChapter, manga, true))
-                    ) { // Don't re-add the chapter if it's already in the db
-                        val validName =
-                            downloadManager.downloadedChapterName(dbChapter).firstOrNull {
-                                it in allDownloadsMap
-                            }
-                        if (validName != null) {
-                            allDownloadsMap.remove(validName)
-                        }
-                    } else if (dbChapter.isLocalSource()) { // means its not downloaded currently
-                        chapterRepository.deleteChapter(dbChapter)
-                    }
-                }
-            }
-        }
-
-        val allDownloads = allDownloadsMap.values.toList()
-
-        finalRawSourceChapters =
-            if (allDownloads.isNotEmpty()) {
-                val localSourceChapters =
-                    allDownloads
-                        .mapNotNull { file ->
-                            val chapterName =
-                                file.nameWithoutExtension!!.substringAfter(
-                                    "${Constants.LOCAL_SOURCE}_"
-                                )
-                            if (chapterName.substringAfterLast(" - ") in chapterUUIDs) {
-                                if (file.name!!.startsWith(Constants.LOCAL_SOURCE)) {
-                                    val correctFileName =
-                                        file.name!!.substringAfter("${Constants.LOCAL_SOURCE}_")
-                                    file.renameTo(correctFileName)
-                                }
-                                return@mapNotNull null
-                            }
-                            val dateUploaded = file.lastModified()
-                            val fileNameSuffix =
-                                file.name?.substringAfter("${Constants.LOCAL_SOURCE}_")
-                            val expectedFileName =
-                                DiskUtil.buildValidFilename(
-                                    "${Constants.LOCAL_SOURCE}_${fileNameSuffix}"
-                                )
-                            if (file.name != expectedFileName) {
-                                file.renameTo(expectedFileName)
-                            }
-
-                            SChapter.create().apply {
-                                url = "${Constants.LOCAL_SOURCE}/$file"
-                                name = chapterName
-                                chapter_txt = chapterName
-                                vol =
-                                    if (chapterName[0].isDigit()) ""
-                                    else chapterName.removePrefix("Vol.").takeWhile { it.isDigit() }
-                                scanlator = Constants.LOCAL_SOURCE
-                                date_upload = dateUploaded
-                                isUnavailable = true
-                            }
-                        }
-                        .sortedWith(
-                            compareByDescending<SChapter> { getChapterNum(it) == null }
-                                .thenByDescending { getChapterNum(it) }
-                        )
-                downloadManager.refreshCache()
-                listOf(rawSourceChapters, localSourceChapters)
-                    .mergeSorted(
-                        compareBy<SChapter> { getChapterNum(it) != null }
-                            .thenBy { getChapterNum(it) }
-                    )
-            } else {
-                val localSourceChapters =
-                    dbChapters
-                        .filter {
-                            it.isLocalSource() && downloadManager.isChapterDownloaded(it, manga)
-                        }
-                        .sortedWith(
-                            compareByDescending<Chapter> { getChapterNum(it) == null }
-                                .thenByDescending { getChapterNum(it) }
-                        )
-                        .map { dbChapter -> SChapter.create().apply { copyFrom(dbChapter) } }
-                listOf(rawSourceChapters, localSourceChapters)
-                    .mergeSorted(
-                        compareBy<SChapter> { getChapterNum(it) != null }
-                            .thenBy { getChapterNum(it) }
-                    )
-            }
-    }
-
-    val sourceChapters = finalRawSourceChapters.mapIndexed { i, sChapter ->
+    val sourceChapters = rawSourceChapters.mapIndexed { i, sChapter ->
         Chapter.create().apply {
             copyFrom(sChapter)
             manga_id = manga.id
@@ -168,7 +38,8 @@ suspend fun syncChaptersWithSource(
         }
     }
 
-    dbChapters = chapterRepository.getChaptersForManga(manga.id!!)
+    // Chapters from db.
+    val dbChapters = chapterRepository.getChaptersForManga(manga.id!!)
     val dbChaptersByUrl = dbChapters.associateBy { it.url }
     val sourceChaptersByUrl = sourceChapters.associateBy { it.url }
 
@@ -228,13 +99,7 @@ suspend fun syncChaptersWithSource(
     toAdd.forEach { ChapterRecognition.parseChapterNumber(it, manga) }
 
     // Chapters from the db not in the source.
-    var toDelete = dbChapters.filterNot { dbChapter ->
-        if (dbChapter.isLocalSource()) {
-            downloadManager.isChapterDownloaded(dbChapter, manga, true)
-        } else {
-            sourceChaptersByUrl[dbChapter.url] != null
-        }
-    }
+    var toDelete = dbChapters.filterNot { dbChapter -> sourceChaptersByUrl[dbChapter.url] != null }
 
     val dupes =
         dbChapters

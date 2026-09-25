@@ -36,7 +36,6 @@ fun FilterChapterSheet(
     sortFilter: MangaConstants.SortFilter,
     filter: MangaConstants.ChapterDisplay,
     scanlatorFilter: MangaConstants.ScanlatorFilter,
-    sourceFilter: MangaConstants.ScanlatorFilter,
     languageFilter: MangaConstants.LanguageFilter,
     changeSort: (SortOption?) -> Unit,
     changeFilter: (MangaConstants.ChapterDisplayOptions?) -> Unit,
@@ -56,14 +55,7 @@ fun FilterChapterSheet(
                 setAsGlobal(MangaConstants.SetGlobal.Filter)
             }
 
-            Scanlator(themeColorState = themeColorState, sourceFilter, true, changeScanlatorFilter)
-
-            Scanlator(
-                themeColorState = themeColorState,
-                scanlatorFilter,
-                false,
-                changeScanlatorFilter,
-            )
+            Scanlator(themeColorState = themeColorState, scanlatorFilter, changeScanlatorFilter)
 
             Language(themeColorState = themeColorState, languageFilter, changeLanguageFilter)
         }
@@ -293,7 +285,6 @@ private fun CheckboxLine(
 private fun Scanlator(
     themeColorState: ThemeColorState,
     scanlatorFilter: MangaConstants.ScanlatorFilter,
-    isSourceFilter: Boolean,
     changeScanlatorFilter: (MangaConstants.ScanlatorOption?) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -304,12 +295,7 @@ private fun Scanlator(
         ) {
             Text(
                 modifier = Modifier.padding(vertical = Size.medium),
-                text =
-                    stringResource(
-                        id =
-                            if (isSourceFilter) R.string.filter_source
-                            else R.string.filter_scanlators
-                    ),
+                text = stringResource(id = R.string.filter_scanlators),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )

@@ -233,13 +233,8 @@ private fun ChapterRowContent(
         }
 
     val dropdownItems =
-        remember(
-            chapterItem.chapter.isLocalSource(),
-            chapterItem.chapter.scanlator,
-            chapterItem.chapter.uploader,
-        ) {
+        remember(chapterItem.chapter.scanlator, chapterItem.chapter.uploader) {
             buildChapterDropdownItems(
-                isLocal = chapterItem.chapter.isLocalSource(),
                 scanlator = chapterItem.chapter.scanlator,
                 uploader = chapterItem.chapter.uploader,
                 onWebView = { onWebView(chapterItem) },
@@ -457,7 +452,6 @@ private fun ChapterDownloadIndicator(
 }
 
 private fun buildChapterDropdownItems(
-    isLocal: Boolean,
     scanlator: String,
     uploader: String,
     onWebView: () -> Unit,
@@ -466,14 +460,12 @@ private fun buildChapterDropdownItems(
     blockScanlator: (MangaConstants.BlockType, String) -> Unit,
 ): List<SimpleDropDownItem> {
     return buildList {
-        if (!isLocal) {
-            add(
-                SimpleDropDownItem.Action(
-                    text = UiText.StringResource(R.string.open_in_webview),
-                    onClick = onWebView,
-                )
+        add(
+            SimpleDropDownItem.Action(
+                text = UiText.StringResource(R.string.open_in_webview),
+                onClick = onWebView,
             )
-        }
+        )
 
         add(
             SimpleDropDownItem.Parent(
@@ -509,7 +501,7 @@ private fun buildChapterDropdownItems(
                     )
                 }
 
-        if (scanlatorItems.isNotEmpty() && !isLocal) {
+        if (scanlatorItems.isNotEmpty()) {
             add(
                 SimpleDropDownItem.Parent(
                     text = UiText.StringResource(R.string.block_scanlator),
@@ -518,14 +510,12 @@ private fun buildChapterDropdownItems(
             )
         }
 
-        if (!isLocal) {
-            add(
-                SimpleDropDownItem.Action(
-                    text = UiText.StringResource(R.string.comments),
-                    onClick = onComment,
-                )
+        add(
+            SimpleDropDownItem.Action(
+                text = UiText.StringResource(R.string.comments),
+                onClick = onComment,
             )
-        }
+        )
     }
         .toList()
 }

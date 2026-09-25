@@ -9,14 +9,11 @@ object DeepLinks {
 
     object Intents {
         const val Search = "kitty.Search"
-        const val SearchQuery = "query"
-        const val SearchFilter = "filter"
     }
 
     object Actions {
         const val Library = "eu.kanade.tachiyomi.SHOW_LIBRARY"
         const val RecentlyUpdated = "eu.kanade.tachiyomi.SHOW_RECENTLY_UPDATED"
-        const val RecentlyRead = "eu.kanade.tachiyomi.SHOW_RECENTLY_READ"
         const val Browse = "eu.kanade.tachiyomi.SHOW_BROWSE"
         const val Downloads = "eu.kanade.tachiyomi.SHOW_DOWNLOADS"
         const val Manga = "eu.kanade.tachiyomi.SHOW_MANGA"

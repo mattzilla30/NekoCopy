@@ -33,9 +33,6 @@ data class Download(
 
     var errorMessage: String? = null
 
-    val totalProgress: Int
-        get() = pages?.sumOf(Page::progress) ?: 0
-
     val downloadedImages: Int
         get() = pages?.count { it.status == Page.State.READY } ?: 0
 

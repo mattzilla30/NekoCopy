@@ -46,7 +46,7 @@ import org.nekomanga.data.database.utils.FollowStatusConverter
             MangaSimilarEntity::class,
             UploaderEntity::class,
         ],
-    version = 47,
+    version = 48,
     exportSchema = true,
 )
 @TypeConverters(FollowStatusConverter::class)

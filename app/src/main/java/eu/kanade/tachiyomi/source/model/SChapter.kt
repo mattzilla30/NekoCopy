@@ -4,7 +4,6 @@ import eu.kanade.tachiyomi.data.database.models.ChapterImpl
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.HttpSource
 import java.io.Serializable
-import org.nekomanga.constants.Constants
 
 interface SChapter : Serializable {
 
@@ -34,10 +33,6 @@ interface SChapter : Serializable {
     var mangadex_chapter_id: String
 
     var old_mangadex_id: String?
-
-    fun chapterLog(): String {
-        return "$name - $scanlator"
-    }
 
     fun copyFrom(other: SChapter) {
         name = other.name
@@ -71,8 +66,5 @@ interface SChapter : Serializable {
         }
     }
 }
-
-fun SChapter.isLocalSource() =
-    this.scanlator?.equals(Constants.LOCAL_SOURCE) == true && this.isUnavailable
 
 fun SChapter.getHttpSource(sourceManager: SourceManager): HttpSource = sourceManager.mangaDex

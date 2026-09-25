@@ -37,19 +37,6 @@ object DiskUtil {
         return Hash.md5(key)
     }
 
-    fun getCacheDirSize(context: Context): Long {
-        return File(context.cacheDir, "")
-            .listFiles()!!
-            .mapNotNull {
-                if (it.isFile && (it.name.endsWith(TMP_FILE_SUFFIX))) {
-                    getDirectorySize(it)
-                } else {
-                    null
-                }
-            }
-            .sum()
-    }
-
     fun getDirectorySize(f: File): Long {
         var size: Long = 0
         if (f.isDirectory) {

@@ -126,14 +126,6 @@ object MdConstants {
         const val hiatus = "hiatus"
     }
 
-    object DeepLinkPrefix {
-        const val author = "author:"
-        const val group = "group:"
-        const val list = "list:"
-        const val manga = "manga:"
-        const val error = "error:"
-    }
-
     object SearchParameters {
         const val titleParam = "title"
         const val availableTranslatedLanguage = "availableTranslatedLanguage[]"

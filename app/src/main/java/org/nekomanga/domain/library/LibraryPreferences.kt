@@ -16,14 +16,6 @@ class LibraryPreferences(private val preferenceStore: PreferenceStore) {
 
     fun defaultCategory() = this.preferenceStore.getInt("default_category", -1)
 
-    fun enableLocalChapters() = this.preferenceStore.getBoolean("enable_local_chapters", true)
-
-    fun searchSuggestions() = this.preferenceStore.getString("library_search_suggestion")
-
-    fun showSearchSuggestions() = this.preferenceStore.getBoolean("show_library_search_suggestions")
-
-    fun lastSearchSuggestion() = this.preferenceStore.getLong("last_library_suggestion")
-
     fun libraryRecentSearches() = this.preferenceStore.getString("library_recent_searches", "")
 
     fun updateInterval() = this.preferenceStore.getInt("pref_library_update_interval_key", 24)
@@ -80,33 +72,12 @@ class LibraryPreferences(private val preferenceStore: PreferenceStore) {
     fun collapsedDynamicCategories() =
         this.preferenceStore.getStringSet("collapsed_dynamic_categories")
 
-    fun collapsedDynamicAtBottom() = this.preferenceStore.getBoolean("collapsed_dynamic_at_bottom")
-
-    fun unreadBadgeType() = this.preferenceStore.getInt("unread_badge_type", 2)
-
     fun showUnreadBadge() = this.preferenceStore.getBoolean("display_unread_badge", true)
 
     fun libraryHorizontalCategories() =
         this.preferenceStore.getBoolean("library_horizontal_categories", false)
 
     fun showLibraryButtonBar() = this.preferenceStore.getBoolean("show_library_button_bar", true)
-
-    fun showCategoriesHeaderCount() = this.preferenceStore.getBoolean("display_number_of_items")
-
-    fun showAllCategories() = this.preferenceStore.getBoolean("show_all_categories", true)
-
-    fun showAllCategoriesWhenSearchingSingleCategory() =
-        this.preferenceStore.getBoolean("show_all_categories_when_searching_single_category")
-
-    fun lastUsedCategory() = this.preferenceStore.getInt("last_used_category")
-
-    fun hopperGravity() = this.preferenceStore.getInt("hopper_gravity", 1)
-
-    fun hopperLongPressAction() = this.preferenceStore.getInt("hopper_long_press")
-
-    fun hideHopper() = this.preferenceStore.getBoolean("hide_hopper")
-
-    fun autoHideHopper() = this.preferenceStore.getBoolean("autohide_hopper", true)
 
     fun groupBy() =
         this.preferenceStore.getObjectFromInt(
@@ -125,10 +96,6 @@ class LibraryPreferences(private val preferenceStore: PreferenceStore) {
     fun outlineOnCovers() = this.preferenceStore.getBoolean("outline_on_covers", true)
 
     fun gridSize() = this.preferenceStore.getFloat("grid_size_float", 1f)
-
-    fun uniformGrid() = this.preferenceStore.getBoolean("uniform_grid", true)
-
-    fun staggeredGrid() = this.preferenceStore.getBoolean("use_staggered_grid")
 
     fun showStartReadingButton() = this.preferenceStore.getBoolean("start_reading_button", true)
 

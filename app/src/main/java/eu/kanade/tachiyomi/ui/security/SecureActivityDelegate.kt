@@ -58,12 +58,6 @@ object SecureActivityDelegate {
         }
     }
 
-    fun shouldBeLocked(): Boolean {
-        val lockApp = securityPreferences.useBiometrics().get()
-        if (lockApp && isAppLocked()) return true
-        return false
-    }
-
     private fun isAppLocked(): Boolean {
         return locked &&
             (securityPreferences.lockAfter().get() <= 0 ||
