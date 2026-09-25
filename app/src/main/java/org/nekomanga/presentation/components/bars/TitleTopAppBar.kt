@@ -1,18 +1,12 @@
 package org.nekomanga.presentation.components.bars
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,12 +16,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import jp.wasabeef.gap.Gap
 import org.nekomanga.presentation.components.AutoSizeText
-import org.nekomanga.presentation.components.FlexibleTopBar
-import org.nekomanga.presentation.components.FlexibleTopBarColors
 import org.nekomanga.presentation.components.ToolTipButton
 import org.nekomanga.presentation.components.icons.IncognitoIcon
 import org.nekomanga.presentation.theme.Size
 
+/**
+ * The app's M3 Expressive top app bar: a centered, emphasized title with an optional subtitle. The
+ * incognito badge sits next to the navigation icon.
+ */
 @Composable
 fun TitleTopAppBar(
     color: Color,
@@ -43,85 +39,62 @@ fun TitleTopAppBar(
     scrolledContainerColor: Color = Color.Transparent,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    FlexibleTopBar(
-        scrollBehavior = scrollBehavior,
-        colors =
-            FlexibleTopBarColors(
-                containerColor = color,
-                scrolledContainerColor = scrolledContainerColor,
-            ),
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = Size.small)
-        ) {
-            val titleModifier =
-                if (onTitleClick != null) {
-                    Modifier.clickable(onClick = onTitleClick)
-                } else {
-                    Modifier
-                }
-            Column(
-                modifier =
-                    Modifier.fillMaxWidth(.8f)
-                        .align(Alignment.Center)
-                        .wrapContentSize(Alignment.Center)
-                        .then(titleModifier),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                if (title.isEmpty() && subtitle.isEmpty()) {
-                    // Do nothing
-                } else if (subtitle.isEmpty()) {
-                    // center the text
-                    AutoSizeText(
-                        text = title,
-                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = onColor),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                } else {
-                    AutoSizeText(
-                        text = title,
-                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = onColor),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+    val titleModifier =
+        if (onTitleClick != null) Modifier.clickable(onClick = onTitleClick) else Modifier
 
-                    AutoSizeText(
-                        text = subtitle,
-                        style =
-                            MaterialTheme.typography.titleMedium.copy(
-                                color = onColor.copy(alpha = 0.7f)
-                            ),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+    TopAppBar(
+        title = {
+            if (title.isNotEmpty()) {
+                AutoSizeText(
+                    text = title,
+                    style = MaterialTheme.typography.titleLargeEmphasized.copy(color = onColor),
+                    textAlign = TextAlign.Center,
+                    modifier = titleModifier,
+                )
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth().heightIn(Size.appBarHeight),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-            ) {
-                if (navigationIcon != null)
+        },
+        subtitle = {
+            if (subtitle.isNotEmpty()) {
+                AutoSizeText(
+                    text = subtitle,
+                    style =
+                        MaterialTheme.typography.titleSmall.copy(
+                            color = onColor.copy(alpha = SUBTITLE_ALPHA)
+                        ),
+                    textAlign = TextAlign.Center,
+                    modifier = titleModifier,
+                )
+            }
+        },
+        titleHorizontalAlignment = Alignment.CenterHorizontally,
+        navigationIcon = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (navigationIcon != null) {
                     ToolTipButton(
                         toolTipLabel = navigationIconLabel,
                         icon = navigationIcon,
                         onClick = onNavigationIconClicked,
                         enabledTint = onColor,
                     )
+                }
                 if (incognitoMode) {
                     Gap(Size.smedium)
                     IncognitoIcon()
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth().heightIn(Size.appBarHeight),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End,
-            ) {
-                actions()
-            }
-        }
-    }
+        },
+        actions = actions,
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = color,
+                scrolledContainerColor = scrolledContainerColor,
+                navigationIconContentColor = onColor,
+                titleContentColor = onColor,
+                subtitleContentColor = onColor.copy(alpha = SUBTITLE_ALPHA),
+                actionIconContentColor = onColor,
+            ),
+        scrollBehavior = scrollBehavior,
+    )
 }
+
+private const val SUBTITLE_ALPHA = 0.7f

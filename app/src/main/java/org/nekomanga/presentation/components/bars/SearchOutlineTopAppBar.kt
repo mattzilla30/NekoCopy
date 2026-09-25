@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -28,13 +30,17 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +55,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import jp.wasabeef.gap.Gap
+import kotlinx.coroutines.launch
 import org.nekomanga.R
 import org.nekomanga.presentation.components.FlexibleTopBar
 import org.nekomanga.presentation.components.FlexibleTopBarColors
@@ -83,14 +90,34 @@ fun SearchOutlineTopAppBar(
     val focusRequester = remember { FocusRequester() }
     val haptic = LocalHapticFeedback.current
 
-    var searchText by rememberSaveable { mutableStateOf(initialSearch) }
+    val searchTextState = rememberTextFieldState(initialSearch)
+    val searchText = searchTextState.text.toString()
     var searchEnabled by rememberSaveable { mutableStateOf(initialSearch.isNotEmpty()) }
+    val searchBarState = rememberSearchBarState()
+    val scope = rememberCoroutineScope()
+
+    // Report every query to onSearch exactly once, whether the user typed it or code set it.
+    val currentOnSearch by rememberUpdatedState(onSearch)
+    val reportedQuery = remember { mutableStateOf(searchText) }
+    val setQuery: (String) -> Unit = { query ->
+        searchTextState.setTextAndPlaceCursorAtEnd(query)
+        reportedQuery.value = query
+        currentOnSearch(query)
+    }
+    LaunchedEffect(searchTextState) {
+        snapshotFlow { searchTextState.text.toString() }
+            .collect { query ->
+                if (query != reportedQuery.value) {
+                    reportedQuery.value = query
+                    currentOnSearch(query)
+                }
+            }
+    }
 
     LaunchedEffect(initialSearch) {
         if (initialSearch.isNotEmpty()) {
-            searchText = initialSearch
             searchEnabled = true
-            onSearch(initialSearch)
+            setQuery(initialSearch)
             onSearchLoaded()
         }
     }
@@ -102,17 +129,20 @@ fun SearchOutlineTopAppBar(
     ) {
         Column(Modifier.fillMaxWidth().statusBarsPadding()) {
             SearchBar(
+                state = searchBarState,
                 modifier =
                     Modifier.fillMaxWidth()
                         .padding(horizontal = Size.small)
                         .onFocusChanged {
                             if (it.hasFocus) {
                                 searchEnabled = true
+                            } else {
+                                // The field expands the bar state on focus. This bar never shows
+                                // an expanded view, so collapse it again once focus leaves.
+                                scope.launch { searchBarState.snapTo(0f) }
                             }
                         }
                         .focusRequester(focusRequester),
-                expanded = false,
-                onExpandedChange = {},
                 inputField = {
                     SearchBarDefaults.InputField(
                         modifier =
@@ -120,13 +150,8 @@ fun SearchOutlineTopAppBar(
                                 onSearch(searchText)
                                 onSearchSubmit(searchText)
                             },
-                        query = searchText,
-                        expanded = false,
-                        onExpandedChange = {},
-                        onQueryChange = {
-                            searchText = it
-                            onSearch(it)
-                        },
+                        textFieldState = searchTextState,
+                        searchBarState = searchBarState,
                         onSearch = {
                             onSearch(it)
                             onSearchSubmit(it)
@@ -155,8 +180,7 @@ fun SearchOutlineTopAppBar(
                                         icon = Icons.Filled.SearchOff,
                                         enabledTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         onClick = {
-                                            onSearch("")
-                                            searchText = ""
+                                            setQuery("")
                                             searchEnabled = false
                                             focusManager.clearFocus()
                                             onSearchDisabled()
@@ -188,10 +212,7 @@ fun SearchOutlineTopAppBar(
                                         toolTipLabel = stringResource(id = R.string.clear),
                                         icon = Icons.Filled.Close,
                                         enabledTint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        onClick = {
-                                            onSearch("")
-                                            searchText = ""
-                                        },
+                                        onClick = { setQuery("") },
                                     )
                                 }
                                 if (!searchEnabled) {
@@ -201,7 +222,6 @@ fun SearchOutlineTopAppBar(
                         },
                     )
                 },
-                content = {},
             )
             AnimatedVisibility(
                 visible = searchEnabled && recentSearches.isNotEmpty(),
@@ -268,8 +288,7 @@ fun SearchOutlineTopAppBar(
                                             onRemoveRecentSearch(query)
                                         },
                                         onClick = {
-                                            searchText = query
-                                            onSearch(query)
+                                            setQuery(query)
                                             onSearchSubmit(query)
                                         },
                                     )
@@ -285,10 +304,8 @@ fun SearchOutlineTopAppBar(
                     }
                 }
             }
-            if (underHeaderActions != {}) {
-                Gap(Size.tiny)
-                underHeaderActions()
-            }
+            Gap(Size.tiny)
+            underHeaderActions()
         }
     }
 }
