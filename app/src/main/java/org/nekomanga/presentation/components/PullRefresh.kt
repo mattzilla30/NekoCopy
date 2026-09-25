@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -18,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import org.nekomanga.presentation.extensions.conditional
-import org.nekomanga.presentation.theme.KittyShapes
 import org.nekomanga.presentation.theme.Size
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,11 +66,10 @@ fun PullRefresh(
 }
 
 /**
- * Pull-to-refresh in Kitty's shapes. While pulling, the indicator grows from a cookie into the
- * kitty head. While refreshing, it morphs through the signature shapes. It slides out from under
- * the top app bar.
+ * Pull-to-refresh with the refresh arrows. While pulling, the arrows turn with the pull. While
+ * refreshing, they spin. The indicator slides out from under the top app bar.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KittyPullIndicator(
     state: PullToRefreshState,
@@ -89,12 +85,12 @@ private fun KittyPullIndicator(
         elevation = PullToRefreshDefaults.LoadingIndicatorElevation,
     ) {
         if (isRefreshing) {
-            LoadingIndicator(color = color, polygons = KittyShapes.indeterminateLoading)
+            KittyLoadingIndicator(color = color, size = Size.large)
         } else {
-            LoadingIndicator(
-                progress = { state.distanceFraction.coerceIn(0f, 1f) },
+            RefreshArrows(
+                rotation = state.distanceFraction.coerceIn(0f, 1f) * 270f,
                 color = color,
-                polygons = KittyShapes.determinateLoading,
+                size = Size.large,
             )
         }
     }

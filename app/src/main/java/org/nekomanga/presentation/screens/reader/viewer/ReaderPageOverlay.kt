@@ -70,7 +70,7 @@ fun ReaderPageLoadingOverlay(
                 verticalArrangement = Arrangement.spacedBy(Size.small),
             ) {
                 if (progress > 0) {
-                    KittyContainedLoadingIndicator(progress = { progress / 100f })
+                    KittyContainedLoadingIndicator()
                     Text(
                         text = "$progress%",
                         style = MaterialTheme.typography.labelMedium,

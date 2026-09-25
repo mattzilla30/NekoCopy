@@ -2,7 +2,6 @@ package org.nekomanga.presentation.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.Shapes as MaterialShapeScale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
@@ -63,13 +62,4 @@ object KittyShapes {
             )
             .normalized()
     }
-
-    /** Shapes the indeterminate loading indicator morphs through. */
-    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-    val indeterminateLoading: List<RoundedPolygon> =
-        listOf(Head, MaterialShapes.Cookie9Sided, MaterialShapes.Puffy, MaterialShapes.SoftBurst)
-
-    /** A determinate indicator grows from a round cookie into the kitty head as work finishes. */
-    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-    val determinateLoading: List<RoundedPolygon> = listOf(MaterialShapes.Cookie9Sided, Head)
 }
