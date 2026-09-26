@@ -40,14 +40,10 @@ class StorageManager(private val context: Context, storagePreferences: StoragePr
      */
     private fun createAppDirectories(parent: UniFile, uri: String) {
         try {
-            val backupDir = parent.createDirectory(BACKUP_DIR)
-            backupDir?.createDirectory(AUTOMATIC_DIR)
             val savedDir = parent.createDirectory(SAVED_DIR)
             savedDir?.createDirectory(COVER_DIR)
             savedDir?.createDirectory(PAGES_DIR)
-            val downloadsDir = parent.createDirectory(DOWNLOADS_DIR)
-            DiskUtil.createNoMediaFile(downloadsDir, context)
-            if (backupDir == null || savedDir == null || downloadsDir == null) {
+            if (savedDir == null) {
                 TimberKt.e { "Could not create the app folders in $uri" }
             }
         } catch (e: Exception) {
@@ -59,20 +55,8 @@ class StorageManager(private val context: Context, storagePreferences: StoragePr
         return UniFile.fromUri(context, uri.toUri()).takeIf { it?.exists() == true }
     }
 
-    fun getAutomaticBackupsDirectory(): UniFile? {
-        return getBackupDirectory()?.createDirectory(AUTOMATIC_DIR)
-    }
-
     fun getSavedDir(): UniFile? {
         return baseDir?.createDirectory(SAVED_DIR)
-    }
-
-    fun getDownloadsDirectory(): UniFile? {
-        return baseDir?.createDirectory(DOWNLOADS_DIR)
-    }
-
-    fun getBackupDirectory(): UniFile? {
-        return baseDir?.createDirectory(BACKUP_DIR)
     }
 
     fun getCoverDirectory(): UniFile? {
@@ -101,12 +85,9 @@ class StorageManager(private val context: Context, storagePreferences: StoragePr
     }
 
     companion object {
-        const val BACKUP_DIR = "backup"
-        const val AUTOMATIC_DIR = "automatic"
         const val COVER_DIR = "covers"
         const val PAGES_DIR = "pages"
         const val SAVED_DIR = "saved"
-        const val DOWNLOADS_DIR = "downloads"
         const val CRASH_LOG_DIR = "crash-logs"
     }
 }

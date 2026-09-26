@@ -1,14 +1,9 @@
 package org.nekomanga.presentation.screens.settings.screens
 
 import android.content.Context
-import android.net.Uri
 import android.text.format.Formatter
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -17,38 +12,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import eu.kanade.tachiyomi.data.backup.BackupCreatorJob
-import eu.kanade.tachiyomi.data.backup.BackupRestoreJob
-import eu.kanade.tachiyomi.data.backup.models.Backup
 import eu.kanade.tachiyomi.ui.setting.CacheData
 import eu.kanade.tachiyomi.ui.setting.CacheType
-import eu.kanade.tachiyomi.util.system.MiuiUtil
-import eu.kanade.tachiyomi.util.system.toTimestampString
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.SharedFlow
 import org.nekomanga.R
 import org.nekomanga.domain.storage.StoragePreferences
-import org.nekomanga.presentation.components.ButtonGroup
 import org.nekomanga.presentation.components.UiText
-import org.nekomanga.presentation.components.dialog.CreateBackupDialog
-import org.nekomanga.presentation.components.dialog.RestoreDialog
 import org.nekomanga.presentation.components.storage.storageLocationPicker
 import org.nekomanga.presentation.components.storage.storageLocationText
-import org.nekomanga.presentation.extensions.collectAsState
 import org.nekomanga.presentation.screens.settings.Preference
 import org.nekomanga.presentation.screens.settings.widgets.SearchTerm
 import org.nekomanga.presentation.theme.Size
-import org.nekomanga.usecases.preferences.GetDateFormatUseCase
 import tachiyomi.core.util.storage.DiskUtil
-import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 internal class DataStorageSettingsScreen(
@@ -76,7 +58,6 @@ internal class DataStorageSettingsScreen(
                 subtitle = storageLocationText(storagePreferences.baseStorageDirectory()),
                 onClick = { pickStorageLocation.launch(null) },
             ),
-            backupAndRestoreGroup(context),
             storageGroup(context),
             cacheGroup(context, cacheData, clearCache),
         )
@@ -151,154 +132,6 @@ internal class DataStorageSettingsScreen(
     }
 
     @Composable
-    private fun backupAndRestoreGroup(context: Context): Preference.PreferenceGroup {
-        val lastAutoBackup by storagePreferences.lastAutoBackupTimestamp().collectAsState()
-        val getDateFormatUseCase = remember { Injekt.get<GetDateFormatUseCase>() }
-        val formattedTime =
-            remember(lastAutoBackup) {
-                if (lastAutoBackup == 0L) {
-                    context.getString(R.string.never)
-                } else {
-                    java.util.Date(lastAutoBackup).toTimestampString(getDateFormatUseCase())
-                }
-            }
-        val backupInfoText =
-            stringResource(R.string.backup_info) +
-                "\n\n" +
-                stringResource(R.string.last_auto_backup_info, formattedTime)
-
-        var showCreateBackupDialog by rememberSaveable { mutableStateOf(false) }
-        var showRestoreDialog by rememberSaveable { mutableStateOf(false) }
-        var restoreUri by rememberSaveable { mutableStateOf<Uri?>(null) }
-
-        var pendingBackupFlags: Int? by remember { mutableStateOf(null) }
-
-        val chooseBackupDir =
-            rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.CreateDocument("application/*"),
-                onResult = { uri: Uri? ->
-                    if (uri != null && pendingBackupFlags != null) {
-                        BackupCreatorJob.startNow(context, uri, pendingBackupFlags!!)
-                        pendingBackupFlags = null
-                    }
-                },
-            )
-
-        val chooseRestoreFile =
-            rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.GetContent(),
-                onResult = { uri: Uri? ->
-                    if (uri != null) {
-                        restoreUri = uri
-                        showRestoreDialog = true
-                    }
-                },
-            )
-
-        if (showCreateBackupDialog) {
-            CreateBackupDialog(
-                onDismiss = { showCreateBackupDialog = false },
-                onConfirm = { backupFlags ->
-                    pendingBackupFlags = backupFlags
-                    chooseBackupDir.launch(Backup.getBackupFilename())
-                },
-            )
-        }
-        if (showRestoreDialog) {
-            RestoreDialog(
-                uri = restoreUri!!,
-                onDismiss = { showRestoreDialog = false },
-                onConfirm = {
-                    BackupRestoreJob.start(context, restoreUri!!)
-                    restoreUri == null
-                },
-            )
-        }
-
-        return Preference.PreferenceGroup(
-            title = stringResource(R.string.backup_and_restore),
-            preferenceItems =
-                listOf(
-                    Preference.PreferenceItem.CustomPreference(
-                        title = stringResource(R.string.backup),
-                        content = {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = Size.medium),
-                                horizontalArrangement = Arrangement.Center,
-                            ) {
-                                ButtonGroup(
-                                    items = listOf("create", "restore"),
-                                    selectedItem = "",
-                                    onItemClick = { action ->
-                                        if (action == "create") {
-                                            if (
-                                                MiuiUtil.isMiui() &&
-                                                    MiuiUtil.isMiuiOptimizationDisabled()
-                                            ) {
-                                                context.toast(
-                                                    R.string.restore_miui_warning,
-                                                    Toast.LENGTH_LONG,
-                                                )
-                                            }
-                                            if (!BackupCreatorJob.isManualJobRunning(context)) {
-                                                showCreateBackupDialog = !showCreateBackupDialog
-                                            } else {
-                                                context.toast(R.string.backup_in_progress)
-                                            }
-                                        } else {
-                                            if (
-                                                MiuiUtil.isMiui() &&
-                                                    MiuiUtil.isMiuiOptimizationDisabled()
-                                            ) {
-                                                context.toast(
-                                                    R.string.restore_miui_warning,
-                                                    Toast.LENGTH_LONG,
-                                                )
-                                            }
-                                            if (!BackupRestoreJob.isRunning(context)) {
-                                                chooseRestoreFile.launch("*/*")
-                                            } else {
-                                                context.toast(R.string.restore_in_progress)
-                                            }
-                                        }
-                                    },
-                                ) { action ->
-                                    val text =
-                                        if (action == "create") stringResource(R.string.create)
-                                        else stringResource(R.string.restore)
-                                    Text(
-                                        text = text,
-                                        modifier =
-                                            Modifier.padding(
-                                                horizontal = Size.huge,
-                                                vertical = Size.tiny,
-                                            ),
-                                        fontWeight = FontWeight.Medium,
-                                        style = MaterialTheme.typography.labelLarge,
-                                    )
-                                }
-                            }
-                        },
-                    ),
-                    Preference.PreferenceItem.ListPreference(
-                        pref = storagePreferences.backupInterval(),
-                        title = stringResource(R.string.automatic_backups),
-                        entries =
-                            mapOf(
-                                0 to stringResource(R.string.off),
-                                6 to stringResource(R.string.every_6_hours),
-                                12 to stringResource(R.string.every_12_hours),
-                                24 to stringResource(R.string.daily),
-                                48 to stringResource(R.string.every_2_days),
-                                168 to stringResource(R.string.weekly),
-                            ),
-                    ),
-                    Preference.PreferenceItem.InfoPreference(backupInfoText),
-                ),
-        )
-    }
-
-    @Composable
     private fun cacheGroup(
         context: Context,
         cacheData: CacheData,
@@ -321,11 +154,6 @@ internal class DataStorageSettingsScreen(
                     Preference.PreferenceItem.SwitchPreference(
                         title = stringResource(R.string.auto_clear_chapter_cache),
                         pref = storagePreferences.autoClearChapterCache(),
-                    ),
-                    Preference.PreferenceItem.TextPreference(
-                        title = stringResource(R.string.cover_cache),
-                        subtitle = stringResource(R.string.used_, cacheData.coverCacheSize),
-                        onClick = { clearCache(CacheType.Cover) },
                     ),
                     Preference.PreferenceItem.TextPreference(
                         title = stringResource(R.string.custom_cover_cache),
@@ -366,14 +194,6 @@ internal class DataStorageSettingsScreen(
                     group = stringResource(R.string.storage_usage),
                 ),
                 SearchTerm(
-                    title = stringResource(R.string.backup),
-                    group = stringResource(R.string.backup_and_restore),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.automatic_backups),
-                    group = stringResource(R.string.backup_and_restore),
-                ),
-                SearchTerm(
                     title = stringResource(R.string.parent_cache_folder),
                     group = stringResource(R.string.cache),
                 ),
@@ -383,10 +203,6 @@ internal class DataStorageSettingsScreen(
                 ),
                 SearchTerm(
                     title = stringResource(R.string.auto_clear_chapter_cache),
-                    group = stringResource(R.string.cache),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.cover_cache),
                     group = stringResource(R.string.cache),
                 ),
                 SearchTerm(

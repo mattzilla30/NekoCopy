@@ -1,13 +1,8 @@
 package org.nekomanga.presentation.screens.onboarding
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
-import android.os.PowerManager
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -22,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,10 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.getSystemService
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.nekomanga.R
 import org.nekomanga.presentation.theme.Size
 
@@ -45,7 +35,6 @@ internal class PermissionStep : OnboardingStep {
     @Composable
     override fun Content() {
         val context = LocalContext.current
-        val lifecycleOwner = LocalLifecycleOwner.current
 
         var notificationGranted by remember {
             mutableStateOf(
@@ -56,28 +45,6 @@ internal class PermissionStep : OnboardingStep {
                     true
                 }
             )
-        }
-
-        var batteryGranted by remember {
-            mutableStateOf(
-                context
-                    .getSystemService<PowerManager>()!!
-                    .isIgnoringBatteryOptimizations(context.packageName)
-            )
-        }
-
-        DisposableEffect(lifecycleOwner.lifecycle) {
-            val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_RESUME) {
-                    batteryGranted =
-                        context
-                            .getSystemService<PowerManager>()!!
-                            .isIgnoringBatteryOptimizations(context.packageName)
-                }
-            }
-
-            lifecycleOwner.lifecycle.addObserver(observer)
-            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
         }
 
         Column(modifier = Modifier.padding(vertical = Size.medium)) {
@@ -97,21 +64,6 @@ internal class PermissionStep : OnboardingStep {
                     },
                 )
             }
-
-            PermissionItem(
-                title = stringResource(R.string.onboarding_permission_ignore_battery_opts),
-                subtitle =
-                    stringResource(R.string.onboarding_permission_ignore_battery_opts_description),
-                granted = batteryGranted,
-                onButtonClick = {
-                    @SuppressLint("BatteryLife")
-                    val intent =
-                        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                            data = Uri.parse("package:${context.packageName}")
-                        }
-                    context.startActivity(intent)
-                },
-            )
         }
     }
 

@@ -1,62 +1,34 @@
 package org.nekomanga.presentation.screens.browse
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import org.nekomanga.domain.category.CategoryItem
-import org.nekomanga.presentation.components.sheets.EditCategorySheet
 import org.nekomanga.presentation.components.sheets.FilterBrowseSheet
 
-/** Sealed class that holds the types of bottom sheets the details screen can show */
-@Immutable
-sealed class BrowseBottomSheetScreen {
-    @Immutable
-    data class CategoriesSheet(
-        val addingToLibrary: Boolean = true,
-        val setCategories: (List<CategoryItem>) -> Unit,
-    ) : BrowseBottomSheetScreen()
-
-    object FilterSheet : BrowseBottomSheetScreen()
-}
-
+/** The search filters sheet of the Browse screen. */
 @Composable
-fun BrowseBottomSheet(
-    currentScreen: BrowseBottomSheetScreen,
+fun BrowseFilterSheet(
     browseScreenState: BrowseScreenState,
-    addNewCategory: (String) -> Unit,
     filterActions: FilterActions,
     closeSheet: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    when (currentScreen) {
-        is BrowseBottomSheetScreen.CategoriesSheet ->
-            EditCategorySheet(
-                addingToLibrary = currentScreen.addingToLibrary,
-                categories = browseScreenState.categories,
-                cancelClick = closeSheet,
-                addNewCategory = addNewCategory,
-                confirmClicked = currentScreen.setCategories,
-            )
-        is BrowseBottomSheetScreen.FilterSheet ->
-            FilterBrowseSheet(
-                filters = browseScreenState.filters,
-                savedFilters = browseScreenState.savedFilters,
-                defaultContentRatings = browseScreenState.defaultContentRatings,
-                filterClick = {
-                    keyboardController?.hide()
-                    closeSheet()
-                    filterActions.filterClick()
-                },
-                resetClick = {
-                    keyboardController?.hide()
-                    filterActions.resetClick()
-                },
-                filterChanged = filterActions.filterChanged,
-                saveClick = filterActions.saveFilterClick,
-                deleteFilterClick = filterActions.deleteFilterClick,
-                filterDefaultClick = filterActions.filterDefaultClick,
-                loadFilter = filterActions.loadFilter,
-            )
-    }
+    FilterBrowseSheet(
+        filters = browseScreenState.filters,
+        savedFilters = browseScreenState.savedFilters,
+        defaultContentRatings = browseScreenState.defaultContentRatings,
+        filterClick = {
+            keyboardController?.hide()
+            closeSheet()
+            filterActions.filterClick()
+        },
+        resetClick = {
+            keyboardController?.hide()
+            filterActions.resetClick()
+        },
+        filterChanged = filterActions.filterChanged,
+        saveClick = filterActions.saveFilterClick,
+        deleteFilterClick = filterActions.deleteFilterClick,
+        filterDefaultClick = filterActions.filterDefaultClick,
+        loadFilter = filterActions.loadFilter,
+    )
 }

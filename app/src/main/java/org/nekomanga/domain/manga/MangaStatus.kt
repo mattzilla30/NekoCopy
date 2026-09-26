@@ -17,7 +17,5 @@ enum class MangaStatus(val status: Int, @param:StringRes val statusRes: Int, val
         fun getMangaDexStatus(): List<MangaStatus> {
             return listOf(Ongoing, Completed, Hiatus, Cancelled)
         }
-
-        fun fromStatus(status: Int) = values().firstOrNull { it.status == status } ?: Unknown
     }
 }

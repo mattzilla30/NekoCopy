@@ -6,32 +6,10 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import androidx.annotation.StringRes
-import androidx.core.text.parseAsHtml
 import java.util.Locale
 import org.nekomanga.core.R
 import org.nekomanga.domain.network.ResultError
 import tachiyomi.core.util.system.getResourceColor
-
-/**
- * Replaces the given string to have at most [count] characters using [replacement] at its end. If
- * [replacement] is longer than [count] an exception will be thrown when `length > count`.
- */
-fun String.chop(count: Int, replacement: String = "⋅"): String {
-    return if (length > count) {
-        take(count - replacement.length) + replacement
-    } else {
-        this
-    }
-}
-
-fun String.removeArticles(): String {
-    return when {
-        startsWith("a ", true) -> substring(2)
-        startsWith("an ", true) -> substring(3)
-        startsWith("the ", true) -> substring(4)
-        else -> this
-    }
-}
 
 fun String.capitalizeWords(): String {
     val firstReplace =
@@ -41,11 +19,6 @@ fun String.capitalizeWords(): String {
     return firstReplace.split("-").joinToString("-") {
         it.replaceFirstChar { text -> text.titlecase(Locale.getDefault()) }
     }
-}
-
-/** Case-insensitive natural comparator for strings. */
-fun String.compareToCaseInsensitiveNaturalOrder(other: String): Int {
-    return String.CASE_INSENSITIVE_ORDER.then(naturalOrder()).compare(this, other)
 }
 
 fun String.capitalized(): String {
@@ -84,11 +57,6 @@ fun String.isUUID() =
                 this[idx].let { char -> char in '0'..'9' || char in 'a'..'f' || char in 'A'..'F' }
             }
         }
-
-/** HTML-decode the string */
-fun String.htmlDecode(): String {
-    return this.parseAsHtml().toString()
-}
 
 fun String.toResultError() = ResultError.Generic(errorString = this)
 

@@ -75,7 +75,6 @@ fun AppBarActions(
                 incognitoModeEnabled = mainDropDown.incognitoMode,
                 incognitoModeClick = mainDropDown.incognitoModeClick,
                 settingsClick = mainDropDown.settingsClick,
-                statsClick = mainDropDown.statsClick,
                 aboutClick = mainDropDown.aboutClick,
                 onDismiss = { showMenu = false },
             )
@@ -90,7 +89,6 @@ object AppBar {
         val incognitoMode: Boolean,
         val incognitoModeClick: () -> Unit,
         val settingsClick: () -> Unit,
-        val statsClick: () -> Unit,
         val aboutClick: () -> Unit,
         val menuShowing: (Boolean) -> Unit,
     ) : AppBarAction

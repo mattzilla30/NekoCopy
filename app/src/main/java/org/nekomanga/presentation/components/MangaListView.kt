@@ -1,18 +1,11 @@
 package org.nekomanga.presentation.components
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,8 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import jp.wasabeef.gap.Gap
 import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.listcard.ExpressiveListCard
 import org.nekomanga.presentation.components.listcard.ListCardType
@@ -43,7 +34,6 @@ fun MangaList(
     dynamicCover: Boolean,
     contentPadding: PaddingValues = PaddingValues(),
     onClick: (Long) -> Unit = {},
-    onLongClick: (DisplayManga) -> Unit = {},
     lastPage: Boolean = true,
     loadNextItems: () -> Unit = {},
 ) {
@@ -69,7 +59,6 @@ fun MangaList(
                 shouldOutlineCover = shouldOutlineCover,
                 dynamicCover = dynamicCover,
                 onClick = onClick,
-                onLongClick = onLongClick,
             )
         }
     }
@@ -85,15 +74,9 @@ fun MangaListWithHeader(
     collapsedGroups: Set<Int> = emptySet(),
     onToggleGroupCollapse: (Int) -> Unit = {},
     onClick: (Long) -> Unit = {},
-    onLongClick: (DisplayManga) -> Unit = {},
 ) {
     val filteredGroupedManga =
-        remember(groupedManga) {
-            groupedManga
-                .mapValues { (_, list) -> list.filter { it.isVisible }.toList() }
-                .filterValues { it.isNotEmpty() }
-                .toMap()
-        }
+        remember(groupedManga) { groupedManga.filterValues { it.isNotEmpty() }.toMap() }
 
     LazyColumn(
         modifier = modifier.wrapContentWidth(align = Alignment.CenterHorizontally),
@@ -123,7 +106,6 @@ fun MangaListWithHeader(
                         shouldOutlineCover = shouldOutlineCover,
                         dynamicCover = dynamicCover,
                         onClick = onClick,
-                        onLongClick = onLongClick,
                     )
                 }
             }
@@ -139,7 +121,6 @@ private fun MangaListItem(
     shouldOutlineCover: Boolean,
     dynamicCover: Boolean,
     onClick: (Long) -> Unit,
-    onLongClick: (DisplayManga) -> Unit,
 ) {
     ExpressiveListCard(
         modifier = modifier.padding(horizontal = Size.small),
@@ -150,79 +131,36 @@ private fun MangaListItem(
             shouldOutlineCover = shouldOutlineCover,
             dynamicCover = dynamicCover,
             modifier =
-                Modifier.fillMaxWidth()
-                    .wrapContentHeight()
-                    .combinedClickable(
-                        onClick = { onClick(displayManga.mangaId) },
-                        onLongClick = { onLongClick(displayManga) },
-                    ),
+                Modifier.fillMaxWidth().wrapContentHeight().clickable {
+                    onClick(displayManga.mangaId)
+                },
         )
     }
 }
 
 @Composable
 fun MangaRow(
-    modifier: Modifier = Modifier,
     displayManga: DisplayManga,
     shouldOutlineCover: Boolean,
     dynamicCover: Boolean,
-    isSelected: Boolean = false,
-    showUnreadBadge: Boolean = false,
-    showDownloadBadge: Boolean = false,
-    showStartReadingButton: Boolean = false,
-    onStartReadingClick: () -> Unit = {},
-    unreadCount: Int = 0,
-    downloadCount: Int = 0,
+    modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier) {
-        Row(
-            modifier = Modifier.padding(Size.tiny),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MangaListCover(
-                displayManga = displayManga,
-                shouldOutlineCover = shouldOutlineCover,
-                dynamicCover = dynamicCover,
-            )
-
-            Column(modifier = Modifier.weight(1f).padding(Size.tiny)) {
-                val titleLineCount =
-                    when (displayManga.displayText.isBlank()) {
-                        true -> 2
-                        false -> 1
-                    }
-                MangaListTitle(title = displayManga.getTitle(), maxLines = titleLineCount)
-                MangaListSubtitle(
-                    text = displayManga.displayText,
-                    textRes = displayManga.displayTextRes,
-                )
-            }
-            if ((showUnreadBadge && unreadCount > 0) || (showDownloadBadge && downloadCount > 0)) {
-                Gap(Size.tiny)
-                DownloadUnreadBadge(
-                    offset = Size.none,
-                    outline = shouldOutlineCover,
-                    showUnread = showUnreadBadge,
-                    showDownloads = showDownloadBadge,
-                    unreadCount = unreadCount,
-                    downloadCount = downloadCount,
-                )
-            }
-            if (showStartReadingButton) {
-                Gap(Size.tiny)
-                StartReadingButton(onStartReadingClick = onStartReadingClick)
-            }
-        }
-        AnimatedVisibility(
-            visible = isSelected,
-            modifier = Modifier.matchParentSize(),
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            Box(
-                modifier =
-                    Modifier.fillMaxSize()
-                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f))
+    Row(
+        modifier = modifier.padding(Size.tiny),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MangaCover.Square.invoke(
+            artwork = displayManga.currentArtwork,
+            shouldOutlineCover = shouldOutlineCover,
+            dynamicCover = dynamicCover,
+            modifier = Modifier.size(Size.huge).padding(Size.tiny),
+        )
+        Column(modifier = Modifier.weight(1f).padding(Size.tiny)) {
+            val titleLineCount = if (displayManga.displayText.isBlank()) 2 else 1
+            MangaListTitle(title = displayManga.getTitle(), maxLines = titleLineCount)
+            MangaListSubtitle(
+                text = displayManga.displayText,
+                textRes = displayManga.displayTextRes,
             )
         }
     }
@@ -256,26 +194,5 @@ private fun MangaListSubtitle(text: String, @StringRes textRes: Int?) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-    }
-}
-
-@Composable
-private fun RowScope.MangaListCover(
-    displayManga: DisplayManga,
-    shouldOutlineCover: Boolean,
-    dynamicCover: Boolean,
-) {
-    Box(modifier = Modifier.align(alignment = Alignment.CenterVertically)) {
-        MangaCover.Square.invoke(
-            artwork = displayManga.currentArtwork,
-            shouldOutlineCover = shouldOutlineCover,
-            dynamicCover = dynamicCover,
-            modifier = Modifier.size(Size.huge).padding(Size.tiny),
-        )
-
-        if (displayManga.inLibrary) {
-            val offset = (-2).dp
-            InLibraryIcon(offset, shouldOutlineCover)
-        }
     }
 }

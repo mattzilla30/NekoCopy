@@ -8,19 +8,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import eu.kanade.tachiyomi.jobs.follows.StatusSyncJob
 import eu.kanade.tachiyomi.source.online.utils.MdLang
 import eu.kanade.tachiyomi.ui.setting.MangaDexSettingsViewModel
-import eu.kanade.tachiyomi.util.system.openInBrowser
-import eu.kanade.tachiyomi.util.system.openInFirefox
 import eu.kanade.tachiyomi.util.system.toast
-import org.nekomanga.BuildConfig
 import org.nekomanga.R
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.domain.site.MangaDexPreferences
 import org.nekomanga.presentation.components.dialog.ConfirmationDialog
-import org.nekomanga.presentation.components.dialog.LogoutDialog
-import org.nekomanga.presentation.components.dialog.PullMangaDexFollowDialog
 import org.nekomanga.presentation.screens.settings.Preference
 import org.nekomanga.presentation.screens.settings.widgets.SearchTerm
 import org.nekomanga.presentation.screens.settings.widgets.TriStateListDialog
@@ -31,7 +25,6 @@ internal class MangaDexSettingsScreen(
     val mangaDexPreferences: MangaDexPreferences,
     val mangaDexSettingsState: MangaDexSettingsViewModel.MangaDexSettingsState,
     val deleteSavedFilters: () -> Unit,
-    val logout: () -> Unit,
 ) : SearchableSettings(onNavigationIconClick, incognitoMode) {
 
     override fun getTitleRes(): Int = R.string.site_specific_settings
@@ -49,7 +42,6 @@ internal class MangaDexSettingsScreen(
                     mangaDexSettingsState.blockedUploaders,
                 ),
                 imageGroup(mangaDexPreferences),
-                libraryGroup(context, mangaDexPreferences),
             )
             .toList()
     }
@@ -75,37 +67,10 @@ internal class MangaDexSettingsScreen(
             )
         }
 
-        var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
-
-        if (showLogoutDialog) {
-            LogoutDialog(
-                sourceName = stringResource(R.string.site_specific_settings),
-                onDismiss = { showLogoutDialog = false },
-                onConfirm = logout,
-            )
-        }
-
-        val loginText =
-            when (mangaDexSettingsState.isLoggedIn) {
-                true -> stringResource(R.string.sign_out)
-                false -> stringResource(R.string.sign_in)
-            }
-
         return Preference.PreferenceGroup(
             title = stringResource(R.string.general),
             preferenceItems =
                 listOf(
-                    Preference.PreferenceItem.SitePreference(
-                        title = loginText,
-                        isLoggedIn = mangaDexSettingsState.isLoggedIn,
-                        login = {
-                            when (BuildConfig.DEBUG) {
-                                true -> context.openInFirefox(mangaDexSettingsState.loginUrl)
-                                false -> context.openInBrowser(mangaDexSettingsState.loginUrl)
-                            }
-                        },
-                        logout = { showLogoutDialog = true },
-                    ),
                     Preference.PreferenceItem.SwitchPreference(
                         title = stringResource(R.string.show_content_rating_filter_in_search),
                         pref = mangaDexPreferences.showContentRatingFilter(),
@@ -229,11 +194,6 @@ internal class MangaDexSettingsScreen(
                                 }
                             },
                         ),
-                        Preference.PreferenceItem.SwitchPreference(
-                            pref = mangaDexPreferences.readingSync(),
-                            title = stringResource(R.string.reading_sync),
-                            subtitle = stringResource(R.string.reading_sync_summary),
-                        ),
                     )
                     .toList(),
         )
@@ -268,57 +228,6 @@ internal class MangaDexSettingsScreen(
                 ),
         )
     }
-
-    @Composable
-    fun libraryGroup(
-        context: Context,
-        mangaDexPreferences: MangaDexPreferences,
-    ): Preference.PreferenceGroup {
-        var pullFollowsFromMangaDexToLibrary by rememberSaveable { mutableStateOf(false) }
-        // var pushFollowsFromLibraryToMangaDex by rememberSaveable { mutableStateOf(false) }
-
-        if (pullFollowsFromMangaDexToLibrary) {
-            PullMangaDexFollowDialog(
-                onDismiss = { pullFollowsFromMangaDexToLibrary = false },
-                onConfirm = { selectedIndicies ->
-                    mangaDexPreferences.mangaDexPullToLibraryIndices().set(selectedIndicies)
-                    StatusSyncJob.startNow(context, StatusSyncJob.followsFromDex)
-                },
-            )
-        }
-
-        return Preference.PreferenceGroup(
-            title = stringResource(R.string.library),
-            preferenceItems =
-                listOf(
-                    Preference.PreferenceItem.ListPreference(
-                        title = stringResource(R.string.auto_add_to_mangadex_library),
-                        entries =
-                            mapOf(
-                                0 to stringResource(R.string.disabled),
-                                1 to stringResource(R.string.follows_plan_to_read),
-                                2 to stringResource(R.string.follows_on_hold),
-                                3 to stringResource(R.string.follows_reading),
-                            ),
-                        pref = mangaDexPreferences.autoAddToMangaDexLibrary(),
-                    ),
-                    Preference.PreferenceItem.TextPreference(
-                        title = stringResource(R.string.pull_follows_to_library),
-                        subtitle = stringResource(R.string.pull_follows_to_library_summary),
-                        onClick = { pullFollowsFromMangaDexToLibrary = true },
-                    ),
-                    Preference.PreferenceItem.TextPreference(
-                        title = stringResource(R.string.push_favorites_to_mangadex),
-                        subtitle = stringResource(R.string.push_favorites_to_mangadex_summary),
-                        onClick = {
-                            StatusSyncJob.startNow(context, StatusSyncJob.entireLibraryToDex)
-                        },
-                    ),
-                ),
-        )
-    }
-
-    // image group
 
     companion object : SearchTermProvider {
         @Composable
@@ -358,11 +267,6 @@ internal class MangaDexSettingsScreen(
                     group = stringResource(R.string.chapter_group),
                 ),
                 SearchTerm(
-                    title = stringResource(R.string.reading_sync),
-                    subtitle = stringResource(R.string.reading_sync_summary),
-                    group = stringResource(R.string.chapter_group),
-                ),
-                SearchTerm(
                     title = stringResource(R.string.data_saver),
                     subtitle = stringResource(R.string.data_saver_summary),
                     group = stringResource(R.string.image_group),
@@ -375,20 +279,6 @@ internal class MangaDexSettingsScreen(
                 SearchTerm(
                     title = stringResource(R.string.cover_quality),
                     group = stringResource(R.string.image_group),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.auto_add_to_mangadex_library),
-                    group = stringResource(R.string.library),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.pull_follows_to_library),
-                    subtitle = stringResource(R.string.pull_follows_to_library_summary),
-                    group = stringResource(R.string.library),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.push_favorites_to_mangadex),
-                    subtitle = stringResource(R.string.push_favorites_to_mangadex_summary),
-                    group = stringResource(R.string.library),
                 ),
             )
         }

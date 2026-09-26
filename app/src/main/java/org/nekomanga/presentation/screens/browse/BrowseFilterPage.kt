@@ -15,25 +15,20 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import org.nekomanga.R
-import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.MangaGrid
 import org.nekomanga.presentation.components.UiText
-import org.nekomanga.presentation.functions.numberOfColumns
 import org.nekomanga.presentation.screens.EmptyScreen
 import org.nekomanga.presentation.theme.Size
 
 @Composable
 fun BrowseFilterPage(
     displayMangaHolder: DisplayMangaHolder,
-    isComfortableGrid: Boolean,
     outlineCovers: Boolean,
     dynamicCovers: Boolean,
-    rawColumnCount: Float,
     pageLoading: Boolean,
     lastPage: Boolean,
     contentPadding: PaddingValues = PaddingValues(),
     onClick: (Long) -> Unit,
-    onLongClick: (DisplayManga) -> Unit,
     loadNextPage: () -> Unit,
 ) {
     if (displayMangaHolder.allDisplayManga.isEmpty()) {
@@ -48,10 +43,7 @@ fun BrowseFilterPage(
                 shouldOutlineCover = outlineCovers,
                 dynamicCover = dynamicCovers,
                 contentPadding = contentPadding,
-                columns = numberOfColumns(rawValue = rawColumnCount),
-                isComfortable = isComfortableGrid,
                 onClick = onClick,
-                onLongClick = onLongClick,
                 lastPage = lastPage,
                 loadNextItems = loadNextPage,
             )

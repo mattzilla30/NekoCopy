@@ -97,7 +97,6 @@ fun AboutScreen(
     AboutWrapper(
         aboutScreenState = screenState,
         windowSizeClass = windowSizeClass,
-        onVersionClicked = { aboutViewModel.onVersionClicked() },
         onVersionLongClicked = { context ->
             aboutViewModel.onVersionLongClicked()
             val deviceInfo = CrashLogUtil(context).getDebugInfo()
@@ -115,7 +114,6 @@ fun AboutScreen(
 private fun AboutWrapper(
     aboutScreenState: AboutScreenState,
     windowSizeClass: WindowSizeClass,
-    onVersionClicked: () -> Unit,
     onVersionLongClicked: (Context) -> Unit,
     onClickLicenses: () -> Unit,
     onBackPressed: () -> Unit,
@@ -144,7 +142,6 @@ private fun AboutWrapper(
         val cards: LazyListScope.() -> Unit = {
             aboutCards(
                 version = version,
-                onVersionClick = onVersionClicked,
                 onVersionLongClick = { onVersionLongClicked(context) },
                 onWhatsNewClick = { uriHandler.openUri(LATEST_COMMIT_URL) },
                 onLicensesClick = onClickLicenses,
@@ -209,7 +206,6 @@ private fun AboutWrapper(
 /** The version, what's new and licenses cards, shared by the phone and tablet layouts. */
 private fun LazyListScope.aboutCards(
     version: String,
-    onVersionClick: () -> Unit,
     onVersionLongClick: () -> Unit,
     onWhatsNewClick: () -> Unit,
     onLicensesClick: () -> Unit,
@@ -219,7 +215,7 @@ private fun LazyListScope.aboutCards(
             TextPreferenceWidget(
                 title = stringResource(R.string.version),
                 subtitle = version,
-                onPreferenceClick = onVersionClick,
+                onPreferenceClick = onVersionLongClick,
                 onPreferenceLongClick = onVersionLongClick,
             )
         }

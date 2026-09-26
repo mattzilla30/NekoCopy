@@ -14,8 +14,6 @@ class CalculateChapterFilterUseCase {
                 currentFilter.copy(showAll = false, unread = option.displayState)
             MangaConstants.ChapterDisplayType.Bookmarked ->
                 currentFilter.copy(showAll = false, bookmarked = option.displayState)
-            MangaConstants.ChapterDisplayType.Downloaded ->
-                currentFilter.copy(showAll = false, downloaded = option.displayState)
             MangaConstants.ChapterDisplayType.HideTitles ->
                 currentFilter.copy(hideChapterTitles = option.displayState)
             MangaConstants.ChapterDisplayType.Available ->

@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.util.chapter
 import androidx.room.withTransaction
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.source.model.SChapter
 import java.util.Date
 import java.util.TreeSet
@@ -11,7 +10,6 @@ import org.nekomanga.data.database.AppDatabase
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.MangaRepository
 import org.nekomanga.logging.TimberKt
-import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 /**
@@ -28,8 +26,6 @@ suspend fun syncChaptersWithSource(
     rawSourceChapters: List<SChapter>,
     manga: Manga,
 ): Pair<List<Chapter>, List<Chapter>> {
-    val downloadManager: DownloadManager = Injekt.get()
-
     val sourceChapters = rawSourceChapters.mapIndexed { i, sChapter ->
         Chapter.create().apply {
             copyFrom(sChapter)
@@ -70,12 +66,6 @@ suspend fun syncChaptersWithSource(
         } else {
             ChapterRecognition.parseChapterNumber(sourceChapter, manga)
             if (shouldUpdateDbChapter(dbChapter, sourceChapter)) {
-                if (
-                    dbChapter.name != sourceChapter.name &&
-                        downloadManager.isChapterDownloaded(dbChapter, manga)
-                ) {
-                    downloadManager.renameChapter(manga, dbChapter, sourceChapter)
-                }
                 dbChapter.scanlator = sourceChapter.scanlator
                 dbChapter.uploader = sourceChapter.uploader
                 dbChapter.name = sourceChapter.name

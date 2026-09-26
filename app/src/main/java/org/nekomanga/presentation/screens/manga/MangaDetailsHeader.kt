@@ -46,12 +46,8 @@ fun MangaDetailsHeader(
     mangaDetailScreenState: MangaConstants.MangaDetailScreenState,
     isInitialized: Boolean,
     windowSizeClass: WindowSizeClass,
-    isLoggedIntoTrackers: Boolean,
     themeColorState: ThemeColorState,
     generatePalette: (Drawable) -> Unit,
-    toggleFavorite: () -> Unit,
-    onCategoriesClick: () -> Unit,
-    onTrackingClick: () -> Unit,
     onArtworkClick: () -> Unit,
     onSimilarClick: () -> Unit,
     onLinksClick: () -> Unit,
@@ -64,10 +60,7 @@ fun MangaDetailsHeader(
         LocalRippleConfiguration provides themeColorState.rippleConfiguration,
         LocalTextSelectionColors provides themeColorState.textSelectionColors,
     ) {
-        var isDescriptionManuallyExpanded by
-            rememberSaveable(mangaDetailScreenState.manga.inLibrary) {
-                mutableStateOf(!mangaDetailScreenState.manga.inLibrary)
-            }
+        var isDescriptionManuallyExpanded by rememberSaveable { mutableStateOf(true) }
 
         val isTablet = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
         val isDescriptionExpanded = isTablet || isDescriptionManuallyExpanded
@@ -125,17 +118,11 @@ fun MangaDetailsHeader(
                             ButtonBlock(
                                 hideButtonText = mangaDetailScreenState.general.hideButtonText,
                                 isInitialized = mangaDetailScreenState.manga.initialized,
-                                inLibrary = mangaDetailScreenState.manga.inLibrary,
-                                loggedIntoTrackers = isLoggedIntoTrackers,
-                                trackServiceCount = mangaDetailScreenState.track.trackServiceCount,
                                 themeColorState = themeColorState,
-                                toggleFavorite = toggleFavorite,
-                                trackingClick = onTrackingClick,
                                 artworkClick = onArtworkClick,
                                 similarClick = onSimilarClick,
                                 linksClick = onLinksClick,
                                 shareClick = onShareClick,
-                                moveCategories = onCategoriesClick,
                             )
                         }
                     }

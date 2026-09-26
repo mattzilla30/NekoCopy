@@ -65,9 +65,7 @@ class ChapterItemSortTest {
                         smartOrder = 1,
                         uploader = "1",
                         isUnavailable = false,
-                    ),
-                downloadState = mockk(),
-                downloadProgress = 0,
+                    )
             )
 
         val chapter2 =
@@ -97,9 +95,7 @@ class ChapterItemSortTest {
                         smartOrder = 2,
                         uploader = "1",
                         isUnavailable = false,
-                    ),
-                downloadState = mockk(),
-                downloadProgress = 0,
+                    )
             )
 
         val chapter3 =
@@ -128,9 +124,7 @@ class ChapterItemSortTest {
                         smartOrder = 3,
                         uploader = "1",
                         isUnavailable = true,
-                    ),
-                downloadState = mockk(),
-                downloadProgress = 0,
+                    )
             )
 
         val chapter4 =
@@ -159,9 +153,7 @@ class ChapterItemSortTest {
                         smartOrder = 4,
                         uploader = "1",
                         isUnavailable = false,
-                    ),
-                downloadState = mockk(),
-                downloadProgress = 0,
+                    )
             )
 
         val chapters = listOf(chapter1, chapter2, chapter3, chapter4)

@@ -5,6 +5,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import org.nekomanga.constants.Constants
 
 object DatabaseMigrations {
+    /** Kitty dropped the library, its categories and trackers. */
+    val MIGRATION_48_49 =
+        object : Migration(48, 49) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS `track`")
+                db.execSQL("DROP TABLE IF EXISTS `manga_categories`")
+                db.execSQL("DROP TABLE IF EXISTS `categories`")
+                db.execSQL("UPDATE manga SET favorite = 0")
+            }
+        }
+
     /**
      * Merged sources were removed. Delete the chapters they added, with their history, and drop the
      * merge_manga table.

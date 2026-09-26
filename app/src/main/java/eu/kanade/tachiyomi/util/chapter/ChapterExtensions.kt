@@ -1,8 +1,6 @@
 package eu.kanade.tachiyomi.util.chapter
 
 import eu.kanade.tachiyomi.data.database.models.Chapter
-import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import kotlin.math.floor
 import org.nekomanga.constants.Constants
 import org.nekomanga.domain.chapter.ChapterItem
@@ -56,14 +54,6 @@ fun List<ChapterItem>.getMissingChapters(): MissingChapterHolder {
     )
 }
 
-fun ChapterItem.isAvailable(): Boolean {
-    return !this.chapter.isUnavailable || this.isDownloaded
-}
+fun ChapterItem.isAvailable(): Boolean = !chapter.isUnavailable
 
-fun Chapter.isAvailable(downloadManager: DownloadManager, manga: Manga): Boolean {
-    return !this.isUnavailable || downloadManager.isChapterDownloaded(this, manga)
-}
-
-fun Chapter.isAvailable(isDownloaded: Boolean): Boolean {
-    return isDownloaded || !this.isUnavailable
-}
+fun Chapter.isAvailable(): Boolean = !isUnavailable

@@ -2,7 +2,6 @@ package org.nekomanga.usecases.manga
 
 import eu.kanade.tachiyomi.data.database.models.Chapter as DbChapter
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.chapter.getChapterNum
 import eu.kanade.tachiyomi.util.chapter.getMissingChapters
@@ -16,7 +15,6 @@ import org.nekomanga.logging.TimberKt
 class UpdateMangaStatusAndMissingChapterCount(
     private val mangaRepository: MangaRepository,
     private val chapterRepository: ChapterRepository,
-    private val downloadManager: DownloadManager,
 ) {
     suspend operator fun invoke(manga: Manga) {
         // This can fail due to a race condition
@@ -61,7 +59,7 @@ class UpdateMangaStatusAndMissingChapterCount(
             manga.last_chapter_number != null &&
             chapters.any { chapter ->
                 val volumeNum = getVolumeNum(chapter)
-                chapter.isAvailable(downloadManager, manga) &&
+                chapter.isAvailable() &&
                     getChapterNum(chapter)?.toInt() == manga.last_chapter_number &&
                     (volumeNum == manga.last_volume_number ||
                         volumeNum == null ||

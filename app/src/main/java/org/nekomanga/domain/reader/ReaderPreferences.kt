@@ -137,12 +137,6 @@ class ReaderPreferences(private val preferenceStore: PreferenceStore) {
 
     fun preloadPageAmount() = this.preferenceStore.getInt("preload_size", 6)
 
-    fun splitTallImagesDownload() =
-        this.preferenceStore.getBoolean(
-            "split_tall_images_download",
-            this.preferenceStore.getBoolean("split_tall_images").get(),
-        )
-
     fun splitTallImagesReader() =
         this.preferenceStore.getBoolean(
             "split_tall_images_reader",

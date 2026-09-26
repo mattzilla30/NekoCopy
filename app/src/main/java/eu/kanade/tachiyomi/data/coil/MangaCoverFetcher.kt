@@ -50,7 +50,6 @@ class MangaCoverFetcher(
 
     private val isMainCover = artwork.cover.isBlank()
     private val mangaId = artwork.mangaId
-    private val inLibrary = isMainCover && artwork.inLibrary
 
     private val diskCacheKey: String? by lazy { ArtworkKeyer().key(artwork, options) }
 
@@ -90,11 +89,9 @@ class MangaCoverFetcher(
                 return fileLoader(customCoverFile)
             }
         }
-        val coverFile = coverCache.getCoverFile(url, inLibrary)
+        val coverFile = coverCache.getCoverFile(url)
         if (!shouldFetchRemotely && coverFile.exists() && options.diskCachePolicy.readEnabled) {
-            if (!inLibrary) {
-                coverFile.setLastModified(Date().time)
-            }
+            coverFile.setLastModified(Date().time)
 
             return fileLoader(coverFile)
         }
@@ -327,7 +324,6 @@ class MangaCoverFactory(private val diskCacheLazy: Lazy<DiskCache>) : Fetcher.Fa
                 Artwork(
                     originalCover = data.thumbnail_url.orEmpty(),
                     mangaId = data.id!!,
-                    inLibrary = data.favorite,
                 ),
             sourceLazy = lazy { sourceManager.mangaDex },
             options = options,

@@ -40,7 +40,6 @@ class DisplayRepository(
             is DisplayScreenType.List -> getListPage(displayScreenType.listUUID)
             is DisplayScreenType.RecentlyAdded -> getRecentlyAddedPage(page)
             is DisplayScreenType.PopularNewTitles -> getPopularNewTitles(page)
-            is DisplayScreenType.FeedUpdates -> getFeedUpdatesPage(page)
             is DisplayScreenType.Tag -> getTagPage(displayScreenType.title.str, page)
             is DisplayScreenType.AuthorByName -> getAuthorPage(displayScreenType.title.str)
             is DisplayScreenType.AuthorWithUuid ->
@@ -110,29 +109,6 @@ class DisplayRepository(
                     displayManga = displayMangaList.toList(),
                 )
             }
-    }
-
-    private suspend fun getFeedUpdatesPage(page: Int): Result<DisplayPageResult, ResultError> {
-        val blockedGroupUUIDs =
-            getBlockedScanlatorGroupUUIDs(mangaDexPreferences, scanlatorGroupRepository, mangaDex)
-        val blockedUploaderUUIDs =
-            getBlockedUploaderUUIDs(mangaDexPreferences, uploaderRepository, mangaDex)
-
-        return mangaDex
-            .feedUpdates(page, blockedGroupUUIDs, blockedUploaderUUIDs)
-            .mapBoth(
-                success = { mangaListPage ->
-                    val displayMangaList =
-                        mangaListPage.sourceManga.toDisplayManga(mangaRepository, mangaDex.id)
-                    Ok(
-                        DisplayPageResult(
-                            hasNextPage = mangaListPage.hasNextPage,
-                            displayManga = displayMangaList.toList(),
-                        )
-                    )
-                },
-                failure = { Err(it) },
-            )
     }
 
     private suspend fun getLatestChapterPage(page: Int): Result<DisplayPageResult, ResultError> {

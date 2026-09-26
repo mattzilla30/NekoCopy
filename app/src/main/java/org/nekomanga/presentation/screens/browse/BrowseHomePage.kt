@@ -1,8 +1,7 @@
 package org.nekomanga.presentation.screens.browse
 
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -34,8 +33,6 @@ import eu.kanade.tachiyomi.ui.source.latest.SerializableDisplayScreenType
 import eu.kanade.tachiyomi.ui.source.latest.toSerializable
 import jp.wasabeef.gap.Gap
 import org.nekomanga.R
-import org.nekomanga.domain.manga.DisplayManga
-import org.nekomanga.presentation.components.InLibraryBadge
 import org.nekomanga.presentation.components.MangaCover
 import org.nekomanga.presentation.components.MangaGridSubtitle
 import org.nekomanga.presentation.components.MangaGridTitle
@@ -49,7 +46,6 @@ fun BrowseHomePage(
     dynamicCovers: Boolean,
     useVividColorHeaders: Boolean,
     onClick: (Long) -> Unit,
-    onLongClick: (DisplayManga) -> Unit,
     titleClick: (SerializableDisplayScreenType) -> Unit,
     randomClick: () -> Unit,
     contentPadding: PaddingValues = PaddingValues(),
@@ -72,7 +68,7 @@ fun BrowseHomePage(
             key = { homePageManga -> homePageManga.displayScreenType.hashCode() },
         ) { homePageManga ->
             val headerText = homePageManga.displayScreenType.title.asString()
-            val mangaList = homePageManga.displayManga.filter { it.isVisible }
+            val mangaList = homePageManga.displayManga
 
             if (mangaList.isNotEmpty()) {
                 TextButton(
@@ -104,33 +100,22 @@ fun BrowseHomePage(
                     horizontalArrangement = Arrangement.spacedBy(Size.small),
                     contentPadding = PaddingValues(horizontal = Size.small),
                 ) {
-                    // Bolt ⚡ perf: Reuse pre-filtered mangaList to avoid duplicate filtering.
                     items(items = mangaList, key = { displayManga -> displayManga.mangaId }) {
                         displayManga ->
-                        Box {
-                            Box(
-                                modifier =
-                                    Modifier.clip(RoundedCornerShape(Shapes.coverRadius))
-                                        .combinedClickable(
-                                            onClick = { onClick(displayManga.mangaId) },
-                                            onLongClick = { onLongClick(displayManga) },
-                                        )
-                            ) {
-                                Column(modifier = Modifier.width(coverSize)) {
-                                    MangaCover.Square(
-                                        artwork = displayManga.currentArtwork,
-                                        shouldOutlineCover = shouldOutlineCover,
-                                        dynamicCover = dynamicCovers,
-                                        modifier = Modifier.requiredHeight(coverSize),
-                                    )
-                                    MangaGridTitle(title = displayManga.getTitle())
-                                    MangaGridSubtitle(subtitleText = displayManga.displayText)
-                                }
-                            }
-
-                            if (displayManga.inLibrary) {
-                                InLibraryBadge(shouldOutlineCover)
-                            }
+                        Column(
+                            modifier =
+                                Modifier.width(coverSize)
+                                    .clip(RoundedCornerShape(Shapes.coverRadius))
+                                    .clickable { onClick(displayManga.mangaId) }
+                        ) {
+                            MangaCover.Square(
+                                artwork = displayManga.currentArtwork,
+                                shouldOutlineCover = shouldOutlineCover,
+                                dynamicCover = dynamicCovers,
+                                modifier = Modifier.requiredHeight(coverSize),
+                            )
+                            MangaGridTitle(title = displayManga.getTitle())
+                            MangaGridSubtitle(subtitleText = displayManga.displayText)
                         }
                     }
                 }

@@ -8,21 +8,6 @@ object DeviceUtil {
 
     val isMiui by lazy { getSystemProperty("ro.miui.ui.version.name")?.isNotEmpty() ?: false }
 
-    @SuppressLint("PrivateApi")
-    fun isMiuiOptimizationDisabled(): Boolean {
-        val sysProp = getSystemProperty("persist.sys.miui_optimization")
-        if (sysProp == "0" || sysProp == "false") {
-            return true
-        }
-
-        return try {
-            Class.forName("android.miui.AppOpsUtils").getDeclaredMethod("isXOptMode").invoke(null)
-                as Boolean
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     val isSamsung by lazy { Build.MANUFACTURER.equals("samsung", ignoreCase = true) }
 
     val invalidDefaultBrowsers =

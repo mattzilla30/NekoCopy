@@ -51,9 +51,9 @@ private fun MangaCoverPreview(
 private class ArtworkProvider : PreviewParameterProvider<Themed<Artwork>> {
     override val values: Sequence<Themed<Artwork>> =
         sequenceOf(
-                Artwork(cover = "dummy", mangaId = 1L, inLibrary = true, active = true),
-                Artwork(cover = "", mangaId = 2L, inLibrary = false, active = false),
-                Artwork(cover = "dummy", mangaId = 3L, inLibrary = true, active = false),
+                Artwork(cover = "dummy", mangaId = 1L, active = true),
+                Artwork(cover = "", mangaId = 2L, active = false),
+                Artwork(cover = "dummy", mangaId = 3L, active = false),
             )
             .withThemes()
 }

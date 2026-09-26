@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Application Colors -->
-    <color name="iconOutline">#E07B24</color>
     <color name="read_chapter">@color/material_on_background_disabled</color>
 
     <color name="navigation_menu">#CC95818D</color>

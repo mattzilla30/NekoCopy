@@ -17,9 +17,6 @@ object PreferenceKeys {
 
     const val catalogueAsList = "pref_display_catalogue_as_list"
 
-    const val catalogueShowLibrary = "pref_display_catalogue_already_in_library"
-    const val catalogueDisplayMode = "catalogue_display_mode"
-
     const val removeAfterReadSlots = "remove_after_read_slots"
 
     const val deleteRemovedChapters = "delete_removed_chapters"
@@ -35,12 +32,4 @@ object PreferenceKeys {
     const val openChapterInShortcuts = "open_chapter_shortcuts"
 
     const val shouldAutoUpdate = "should_auto_update"
-
-    fun trackUsername(syncId: Int) = "pref_mangasync_username_$syncId"
-
-    fun trackPassword(syncId: Int) = "pref_mangasync_password_$syncId"
-
-    fun trackToken(syncId: Int) = "track_token_$syncId"
-
-    const val autoAddTracker = "auto_add_tracker"
 }

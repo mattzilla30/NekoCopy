@@ -32,19 +32,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.ui.reader.domain.ResolveChapterTransitionUiModelUseCase
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
-import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import org.nekomanga.R
-import org.nekomanga.domain.manga.MangaItem
 import org.nekomanga.presentation.theme.NekoTheme
 import org.nekomanga.presentation.theme.Size
 
@@ -156,31 +151,9 @@ fun ReaderTransitionPage(
  * it leads to.
  */
 @Composable
-fun rememberChapterTransitionUiModel(
-    transition: ChapterTransition,
-    manga: MangaItem?,
-    downloadManager: DownloadManager,
-): ChapterTransitionUiModel {
-    val resolver =
-        remember(downloadManager) { ResolveChapterTransitionUiModelUseCase(downloadManager) }
+fun rememberChapterTransitionUiModel(transition: ChapterTransition): ChapterTransitionUiModel {
     val targetState = transition.to?.stateFlow?.collectAsStateWithLifecycle()?.value
-
-    return remember(transition, manga, resolver, targetState) {
-        val baseModel = resolver(transition, manga)
-        val preloadState =
-            when (targetState) {
-                is ReaderChapter.State.Loading -> ChapterTransitionUiModel.PreloadState.Loading
-                is ReaderChapter.State.Error ->
-                    ChapterTransitionUiModel.PreloadState.Error(targetState.error.message ?: "")
-                else -> ChapterTransitionUiModel.PreloadState.Ready
-            }
-        when (baseModel) {
-            is ChapterTransitionUiModel.Prev ->
-                baseModel.copy(toChapter = baseModel.toChapter?.copy(preloadState = preloadState))
-            is ChapterTransitionUiModel.Next ->
-                baseModel.copy(toChapter = baseModel.toChapter?.copy(preloadState = preloadState))
-        }
-    }
+    return remember(transition, targetState) { ChapterTransitionUiModel.from(transition) }
 }
 
 @Composable
@@ -205,10 +178,6 @@ private fun PrevChapterTransitionContent(uiModel: ChapterTransitionUiModel.Prev)
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f, fill = false),
                 )
-                if (prevChapter.isDownloaded != uiModel.isFromDownloaded) {
-                    Spacer(modifier = Modifier.width(Size.small))
-                    DownloadStatusIcon(isDownloaded = prevChapter.isDownloaded)
-                }
             }
 
             Spacer(modifier = Modifier.height(Size.mediumLarge))
@@ -277,10 +246,6 @@ private fun NextChapterTransitionContent(uiModel: ChapterTransitionUiModel.Next)
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f, fill = false),
                 )
-                if (nextChapter.isDownloaded != uiModel.isFromDownloaded) {
-                    Spacer(modifier = Modifier.width(Size.small))
-                    DownloadStatusIcon(isDownloaded = nextChapter.isDownloaded)
-                }
             }
         }
     } else {
@@ -293,19 +258,6 @@ private fun NextChapterTransitionContent(uiModel: ChapterTransitionUiModel.Next)
             modifier = Modifier.padding(vertical = Size.smedium),
         )
     }
-}
-
-@Composable
-private fun DownloadStatusIcon(isDownloaded: Boolean) {
-    Icon(
-        painter =
-            painterResource(
-                if (isDownloaded) R.drawable.ic_file_download_24dp else R.drawable.ic_cloud_24dp
-            ),
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.size(Size.large - Size.extraTiny),
-    )
 }
 
 @Composable
@@ -379,12 +331,10 @@ private fun PrevTransitionPreview() {
             uiModel =
                 ChapterTransitionUiModel.Prev(
                     fromChapterName = "Chapter 2",
-                    isFromDownloaded = true,
                     toChapter =
                         ChapterTransitionUiModel.TargetChapterInfo(
                             chapterId = 1L,
                             name = "Chapter 1",
-                            isDownloaded = false,
                         ),
                     missingChaptersCount = 0,
                 ),
@@ -401,12 +351,10 @@ private fun NextTransitionPreview() {
             uiModel =
                 ChapterTransitionUiModel.Next(
                     fromChapterName = "Chapter 1",
-                    isFromDownloaded = true,
                     toChapter =
                         ChapterTransitionUiModel.TargetChapterInfo(
                             chapterId = 2L,
                             name = "Chapter 2",
-                            isDownloaded = true,
                         ),
                     missingChaptersCount = 0,
                 ),
@@ -423,12 +371,10 @@ private fun MissingChaptersWarningPreview() {
             uiModel =
                 ChapterTransitionUiModel.Next(
                     fromChapterName = "Chapter 1",
-                    isFromDownloaded = false,
                     toChapter =
                         ChapterTransitionUiModel.TargetChapterInfo(
                             chapterId = 5L,
                             name = "Chapter 5",
-                            isDownloaded = false,
                         ),
                     missingChaptersCount = 3,
                 ),

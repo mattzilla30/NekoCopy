@@ -17,7 +17,7 @@ import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.withUIContext
 import org.nekomanga.R
-import org.nekomanga.domain.storage.StoragePreferences
+import org.nekomanga.domain.storage.StorageManager
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.extensions.collectAsState
 import tachiyomi.core.preference.Preference
@@ -74,12 +74,12 @@ fun storageLocationPicker(
 
 /**
  * Some document providers hand out a tree the app cannot create folders in, the Downloads shortcut
- * of a few file managers among them. Saving such a location leaves every download failing with an
- * invalid location error, so probe it with the folder the app needs first.
+ * of a few file managers among them. Probe the location with the folder that holds saved pages and
+ * covers before keeping it.
  */
 internal fun UniFile.canHostAppDirectories(): Boolean {
     return try {
-        createDirectory(StoragePreferences.DOWNLOADS_DIR) != null
+        createDirectory(StorageManager.SAVED_DIR) != null
     } catch (e: Exception) {
         TimberKt.e(e) { "Error creating a folder in $uri" }
         false

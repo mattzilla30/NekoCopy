@@ -2,8 +2,6 @@ package eu.kanade.tachiyomi.ui.reader.loader
 
 import android.content.Context
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.getHttpSource
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
@@ -19,8 +17,6 @@ import org.nekomanga.logging.TimberKt
 /** Loader used to retrieve the [PageLoader] for a given chapter. */
 class ChapterLoader(
     private val context: Context,
-    private val downloadManager: DownloadManager,
-    private val downloadProvider: DownloadProvider,
     private val manga: Manga,
     private val sourceManager: SourceManager,
 ) {
@@ -89,12 +85,6 @@ class ChapterLoader(
     }
 
     /** Returns the page loader to use for this [chapter]. */
-    private fun getPageLoader(chapter: ReaderChapter): PageLoader {
-        val isDownloaded = downloadManager.isChapterDownloaded(chapter.chapter, manga, true)
-        val source = chapter.chapter.getHttpSource(sourceManager)
-        return when {
-            isDownloaded -> DownloadPageLoader(chapter, manga, downloadManager, downloadProvider)
-            else -> HttpPageLoader(chapter, source)
-        }
-    }
+    private fun getPageLoader(chapter: ReaderChapter): PageLoader =
+        HttpPageLoader(chapter, chapter.chapter.getHttpSource(sourceManager))
 }

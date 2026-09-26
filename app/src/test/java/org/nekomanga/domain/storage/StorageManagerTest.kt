@@ -81,7 +81,7 @@ class StorageManagerTest {
             withTimeout(TIMEOUT_MILLIS) { changes.receive() }
         }
 
-        assertNotNull(storageManager.getDownloadsDirectory())
+        assertNotNull(storageManager.getSavedDir())
     }
 
     /**

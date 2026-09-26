@@ -1,8 +1,5 @@
 package org.nekomanga.constants
 
-import android.util.Base64
-import androidx.core.net.toUri
-import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
 object MdConstants {
@@ -23,52 +20,19 @@ object MdConstants {
         const val manga = "/manga"
         const val list = "/list"
         const val statistics = "/statistics"
-        const val createThread = "/forums/thread"
         const val chapter = "/chapter"
         const val updates = "/user/follows/manga/feed"
         const val cover = "/cover"
         const val group = "/group"
         const val user = "/user"
         const val author = "/author"
-        const val userFollows = "/user/follows/manga"
-        const val readingStatusForAllManga = "/manga/status"
         const val rating = "/rating"
         const val atHomeServer = "/at-home/server"
 
-        const val baseAuthUrl = "https://auth.mangadex.org"
         private const val auth = "/realms/mangadex/protocol/openid-connect"
         const val login = "$auth/auth"
         const val logout = "$auth/logout"
         const val token = "$auth/token"
-    }
-
-    object Login {
-        val redirectUri =
-            if (BuildConfig.DEBUG) "neko://mangadex-auth-debug" else "neko://mangadex-auth"
-        const val clientId = "neko"
-        const val authorizationCode = "authorization_code"
-        const val refreshToken = "refresh_token"
-
-        fun authUrl(codeVerifier: String): String {
-            val bytes = codeVerifier.toByteArray()
-            val messageDigest = MessageDigest.getInstance("SHA-256")
-            messageDigest.update(bytes)
-            val digest = messageDigest.digest()
-            val encoding = Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
-            val codeChallenge = Base64.encodeToString(digest, encoding)
-
-            return Api.baseAuthUrl +
-                Api.login
-                    .toUri()
-                    .buildUpon()
-                    .appendQueryParameter("client_id", clientId)
-                    .appendQueryParameter("response_type", "code")
-                    .appendQueryParameter("redirect_uri", redirectUri)
-                    .appendQueryParameter("code_challenge", codeChallenge)
-                    .appendQueryParameter("code_challenge_method", "S256")
-                    .build()
-                    .toString()
-        }
     }
 
     object Limits {

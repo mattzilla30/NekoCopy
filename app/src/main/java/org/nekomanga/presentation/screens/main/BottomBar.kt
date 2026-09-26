@@ -1,5 +1,6 @@
 package org.nekomanga.presentation.screens.main
 
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
@@ -11,8 +12,6 @@ import eu.kanade.tachiyomi.ui.main.NavigationItem
 @Composable
 fun BottomBar(
     items: List<NavigationItem>,
-    libraryUpdating: Boolean,
-    downloaderRunning: Boolean,
     selectedItemIndex: Int,
     onNavigate: (NavKey) -> Unit,
 ) {
@@ -25,9 +24,7 @@ fun BottomBar(
                 selected = selected,
                 onClick = { onNavigate(item.screen) },
                 icon = {
-                    PulsingIcon(
-                        isPulsing =
-                            ((index == 0 && libraryUpdating) || (index == 1 && downloaderRunning)),
+                    Icon(
                         imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
                         contentDescription = null,
                     )

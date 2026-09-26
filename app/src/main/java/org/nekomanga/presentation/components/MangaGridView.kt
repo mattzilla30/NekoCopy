@@ -1,13 +1,7 @@
 package org.nekomanga.presentation.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,21 +18,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
-import org.nekomanga.R
 import org.nekomanga.domain.manga.DisplayManga
+import org.nekomanga.presentation.functions.gridColumns
 import org.nekomanga.presentation.theme.Shapes
 import org.nekomanga.presentation.theme.Size
 
@@ -47,20 +37,18 @@ fun MangaGridWithHeader(
     groupedManga: Map<Int, List<DisplayManga>>,
     shouldOutlineCover: Boolean,
     dynamicCover: Boolean,
-    columns: Int,
     modifier: Modifier = Modifier,
-    isComfortable: Boolean = true,
+    columns: Int = gridColumns(),
     contentPadding: PaddingValues = PaddingValues(),
     collapsedGroups: Set<Int> = emptySet(),
     onToggleGroupCollapse: (Int) -> Unit = {},
     onClick: (Long) -> Unit = {},
-    onLongClick: (DisplayManga) -> Unit = {},
 ) {
-    // Optimize: Filter visible items and chunk them, removing empty groups
+    // Chunk each group into grid rows, dropping empty groups.
     val chunkedGroupedManga =
         remember(groupedManga, columns) {
             groupedManga
-                .mapValues { (_, list) -> list.filter { it.isVisible }.chunked(columns) }
+                .mapValues { (_, list) -> list.chunked(columns) }
                 .filterValues { it.isNotEmpty() }
                 .toMap()
         }
@@ -96,9 +84,7 @@ fun MangaGridWithHeader(
                                 displayManga = displayManga,
                                 shouldOutlineCover = shouldOutlineCover,
                                 dynamicCover = dynamicCover,
-                                isComfortable = isComfortable,
                                 onClick = onClick,
-                                onLongClick = onLongClick,
                             )
                         }
                     }
@@ -113,11 +99,9 @@ fun MangaGrid(
     mangaList: List<DisplayManga>,
     shouldOutlineCover: Boolean,
     dynamicCover: Boolean,
-    columns: Int,
+    columns: Int = gridColumns(),
     contentPadding: PaddingValues = PaddingValues(),
-    isComfortable: Boolean = true,
     onClick: (Long) -> Unit = {},
-    onLongClick: (DisplayManga) -> Unit = {},
     lastPage: Boolean = true,
     loadNextItems: () -> Unit = {},
 ) {
@@ -144,9 +128,7 @@ fun MangaGrid(
                 displayManga = displayManga,
                 shouldOutlineCover = shouldOutlineCover,
                 dynamicCover = dynamicCover,
-                isComfortable = isComfortable,
                 onClick = onClick,
-                onLongClick = onLongClick,
             )
         }
     }
@@ -154,206 +136,48 @@ fun MangaGrid(
 
 @Composable
 fun MangaGridItem(
-    modifier: Modifier = Modifier,
     displayManga: DisplayManga,
     shouldOutlineCover: Boolean,
     dynamicCover: Boolean,
-    showUnreadBadge: Boolean = false,
-    showDownloadBadge: Boolean = false,
-    unreadCount: Int = 0,
-    downloadCount: Int = 0,
-    isComfortable: Boolean = true,
-    isSelected: Boolean = false,
-    showStartReadingButton: Boolean = false,
-    onStartReadingClick: () -> Unit = {},
-    // Optimize: Use stable function references to allow skipping recomposition
+    modifier: Modifier = Modifier,
     onClick: (Long) -> Unit = {},
-    onLongClick: (DisplayManga) -> Unit = {},
 ) {
     val subtitleText =
         when (displayManga.displayTextRes) {
             null -> displayManga.displayText
             else -> stringResource(displayManga.displayTextRes)
         }
-
     val title = displayManga.getTitle()
-    val inLibraryText = stringResource(id = R.string.in_library)
-    val unreadText = stringResource(id = R.string.unread)
-    val downloadedText = stringResource(id = R.string.downloaded)
     val contentDescription =
-        remember(
-            title,
-            subtitleText,
-            displayManga.inLibrary,
-            unreadCount,
-            downloadCount,
-            inLibraryText,
-            unreadText,
-            downloadedText,
-        ) {
-            buildList {
-                    add(title)
-                    if (subtitleText.isNotBlank()) add(subtitleText)
-                    if (displayManga.inLibrary) add(inLibraryText)
-                    if (showUnreadBadge && unreadCount > 0) add("$unreadCount $unreadText")
-                    if (showDownloadBadge && downloadCount > 0)
-                        add("$downloadCount $downloadedText")
-                }
-                .joinToString(", ")
+        remember(title, subtitleText) {
+            listOf(title, subtitleText).filter { it.isNotBlank() }.joinToString(", ")
         }
 
-    Box(modifier = modifier) {
-        Box(modifier = Modifier.padding(start = Size.extraTiny, top = Size.extraTiny)) {
-            Box(
-                modifier =
-                    Modifier.clip(RoundedCornerShape(Shapes.coverRadius))
-                        .combinedClickable(
-                            onClick = { onClick(displayManga.mangaId) },
-                            onLongClick = { onLongClick(displayManga) },
-                        )
-                        .padding(Size.extraTiny)
-                        .semantics { this.contentDescription = contentDescription }
-            ) {
-                if (isComfortable) {
-                    Column {
-                        ComfortableGridItem(
-                            manga = displayManga,
-                            subtitleText = subtitleText,
-                            shouldOutlineCover = shouldOutlineCover,
-                            dynamicCover = dynamicCover,
-                        )
-                    }
-                } else {
-                    Box {
-                        CompactGridItem(
-                            manga = displayManga,
-                            subtitleText = subtitleText,
-                            shouldOutlineCover = shouldOutlineCover,
-                            dynamicCover = dynamicCover,
-                        )
-                    }
-                }
-                if (showStartReadingButton) {
-                    StartReadingButton(
-                        modifier = Modifier.align(Alignment.TopEnd),
-                        onStartReadingClick = onStartReadingClick,
-                    )
-                }
-            }
-
-            AnimatedVisibility(
-                visible = isSelected,
-                modifier = Modifier.matchParentSize(),
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                Box(
-                    modifier =
-                        Modifier.fillMaxSize()
-                            .clip(RoundedCornerShape(Shapes.coverRadius))
-                            .background(
-                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-                            )
-                )
-            }
-        }
-
-        if (displayManga.inLibrary) {
-            Box(modifier = Modifier.clearAndSetSemantics {}) {
-                InLibraryBadge(shouldOutlineCover, offset = Size.none)
-            }
-        }
-        if ((showUnreadBadge && unreadCount > 0) || (showDownloadBadge && downloadCount > 0)) {
-            Box(modifier = Modifier.clearAndSetSemantics {}) {
-                DownloadUnreadBadge(
-                    outline = shouldOutlineCover,
-                    showUnread = showUnreadBadge,
-                    unreadCount = unreadCount,
-                    showDownloads = showDownloadBadge,
-                    downloadCount = downloadCount,
-                    offset = Size.none,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ComfortableGridItem(
-    modifier: Modifier = Modifier,
-    manga: DisplayManga,
-    subtitleText: String,
-    shouldOutlineCover: Boolean,
-    dynamicCover: Boolean,
-) {
-    MangaCover.Book.invoke(
-        artwork = manga.currentArtwork,
-        shouldOutlineCover = shouldOutlineCover,
-        dynamicCover = dynamicCover,
-        modifier = modifier,
-    )
-    MangaGridTitle(title = manga.getTitle(), hasSubtitle = subtitleText.isNotBlank())
-
-    MangaGridSubtitle(subtitleText = subtitleText)
-}
-
-@Composable
-fun BoxScope.CompactGridItem(
-    manga: DisplayManga,
-    subtitleText: String,
-    shouldOutlineCover: Boolean,
-    dynamicCover: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    MangaCover.Book.invoke(
-        artwork = manga.currentArtwork,
-        shouldOutlineCover = shouldOutlineCover,
-        dynamicCover = dynamicCover,
-        modifier = modifier,
-    )
-
-    Box(
+    Column(
         modifier =
-            Modifier.background(
-                    brush =
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(NekoColors.veryLowContrast),
-                                    Color.Black.copy(NekoColors.highAlphaLowContrast),
-                                )
-                        ),
-                    shape =
-                        RoundedCornerShape(
-                            bottomStart = Shapes.coverRadius,
-                            bottomEnd = Shapes.coverRadius,
-                        ),
-                )
-                .matchParentSize()
+            modifier
+                .padding(start = Size.extraTiny, top = Size.extraTiny)
+                .clip(RoundedCornerShape(Shapes.coverRadius))
+                .clickable { onClick(displayManga.mangaId) }
+                .padding(Size.extraTiny)
+                .semantics { this.contentDescription = contentDescription }
     ) {
-        Column(modifier = Modifier.fillMaxWidth().align(Alignment.BottomStart)) {
-            MangaGridTitle(
-                title = manga.getTitle(),
-                hasSubtitle = subtitleText.isNotBlank(),
-                isComfortable = false,
-            )
-            MangaGridSubtitle(subtitleText = subtitleText, isComfortable = false)
-        }
+        MangaCover.Book.invoke(
+            artwork = displayManga.currentArtwork,
+            shouldOutlineCover = shouldOutlineCover,
+            dynamicCover = dynamicCover,
+        )
+        MangaGridTitle(title = title, hasSubtitle = subtitleText.isNotBlank())
+        MangaGridSubtitle(subtitleText = subtitleText)
     }
 }
 
 @Composable
-fun MangaGridTitle(
-    title: String,
-    maxLines: Int = 3,
-    isComfortable: Boolean = true,
-    hasSubtitle: Boolean = false,
-) {
+fun MangaGridTitle(title: String, maxLines: Int = 3, hasSubtitle: Boolean = false) {
     Text(
         text = title,
         style = MaterialTheme.typography.bodyMedium,
-        color = if (isComfortable) MaterialTheme.colorScheme.onSurface else Color.White,
+        color = MaterialTheme.colorScheme.onSurface,
         fontWeight = FontWeight.Medium,
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
@@ -368,16 +192,13 @@ fun MangaGridTitle(
 }
 
 @Composable
-fun MangaGridSubtitle(subtitleText: String, isComfortable: Boolean = true) {
+fun MangaGridSubtitle(subtitleText: String) {
     if (subtitleText.isNotBlank()) {
         Text(
             text = subtitleText,
             style = MaterialTheme.typography.bodySmall,
             maxLines = 1,
-            color =
-                if (isComfortable) MaterialTheme.colorScheme.onSurface
-                else Color.White.copy(alpha = NekoColors.mediumAlphaLowContrast),
-            fontWeight = if (isComfortable) FontWeight.Normal else FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
             overflow = TextOverflow.Ellipsis,
             modifier =
                 Modifier.padding(

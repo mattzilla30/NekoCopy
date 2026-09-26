@@ -1,4 +1,4 @@
-package org.nekomanga.domain.library
+package org.nekomanga.domain.chapter
 
 enum class ScanlatorFilterOption(val value: Int) {
     ALL(0),

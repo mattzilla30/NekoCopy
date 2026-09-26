@@ -9,10 +9,6 @@ import android.text.format.Formatter
 import androidx.core.content.ContextCompat
 import com.hippo.unifile.UniFile
 import java.io.File
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import org.nekomanga.constants.Constants.TMP_FILE_SUFFIX
 import tachiyomi.core.util.lang.Hash
 
@@ -88,16 +84,6 @@ object DiskUtil {
             stat.blockCountLong * stat.blockSizeLong
         } catch (_: Exception) {
             -1L
-        }
-    }
-
-    /** Don't display downloaded chapters in gallery apps creating `.nomedia`. */
-    fun createNoMediaFile(dir: UniFile?, context: Context?) {
-        if (dir != null && dir.exists()) {
-            val nomedia = dir.findFile(NOMEDIA_FILE)
-            if (nomedia == null && dir.createFile(NOMEDIA_FILE) != null) {
-                context?.let { scanMedia(it, dir.uri) }
-            }
         }
     }
 
@@ -187,33 +173,4 @@ object DiskUtil {
             directory.listFiles()?.asSequence()?.forEach { it.delete() }
         }
     }
-
-    fun observeDiskSpace(
-        directory: File,
-        context: Context,
-        isTmpFileLookup: Boolean = false,
-    ): Flow<String> = flow {
-        while (true) {
-            if (isTmpFileLookup) {
-                val tmpFiles =
-                    File(context.cacheDir, "")
-                        .listFiles()!!
-                        .mapNotNull {
-                            if (it.isFile && (it.name.endsWith(TMP_FILE_SUFFIX))) {
-                                getDirectorySize(it)
-                            } else {
-                                null
-                            }
-                        }
-                        .sum()
-                emit(readableDiskSize(context, tmpFiles))
-            } else {
-
-                emit(readableDiskSize(context, directory))
-            }
-            delay(3.seconds)
-        }
-    }
-
-    const val NOMEDIA_FILE = ".nomedia"
 }

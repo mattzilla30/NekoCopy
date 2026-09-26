@@ -5,7 +5,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import org.nekomanga.R
-import org.nekomanga.domain.track.TrackServiceItem
 import tachiyomi.core.preference.Preference as PreferenceData
 
 sealed class Preference {
@@ -138,33 +137,6 @@ sealed class Preference {
             override val enabled: Boolean = true,
             override val onValueChanged: suspend (newValue: String) -> Boolean = { true },
         ) : PreferenceItem<String>()
-
-        /** A [PreferenceItem] for individual tracker. */
-        data class TrackerPreference(
-            val tracker: TrackServiceItem,
-            override val title: String,
-            override val subtitle: String?,
-            val isLoggedIn: Boolean,
-            val login: () -> Unit,
-            val logout: () -> Unit,
-        ) : PreferenceItem<String>() {
-            override val enabled: Boolean = true
-            override val icon: ImageVector? = null
-            override val onValueChanged: suspend (newValue: String) -> Boolean = { true }
-        }
-
-        /** A [PreferenceItem] for non tracker site login/logouts. */
-        data class SitePreference(
-            override val title: String,
-            override val subtitle: String? = null,
-            val isLoggedIn: Boolean,
-            val login: () -> Unit,
-            val logout: () -> Unit,
-        ) : PreferenceItem<String>() {
-            override val enabled: Boolean = true
-            override val icon: ImageVector? = null
-            override val onValueChanged: suspend (newValue: String) -> Boolean = { true }
-        }
 
         data class InfoPreference(override val title: String) : PreferenceItem<String>() {
             override val enabled: Boolean = true

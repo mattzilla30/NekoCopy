@@ -1,54 +1,16 @@
 package eu.kanade.tachiyomi.util.manga
 
 import androidx.annotation.StringRes
-import eu.kanade.tachiyomi.data.database.models.LibraryManga
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.source.online.utils.MdLang
 import eu.kanade.tachiyomi.util.lang.capitalizeWords
-import kotlin.math.roundToInt
 import org.nekomanga.constants.MdConstants
-import org.nekomanga.data.database.repository.CategoryRepository
 import org.nekomanga.data.database.repository.MangaRepository
 import org.nekomanga.domain.manga.Artwork
 import org.nekomanga.domain.manga.DisplayManga
-import org.nekomanga.domain.manga.LibraryMangaItem
-import org.nekomanga.domain.manga.SimpleManga
 import org.nekomanga.domain.manga.SourceManga
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.screens.browse.HomePageManga
-import org.nekomanga.presentation.screens.browse.LibraryEntryVisibility
-import org.nekomanga.presentation.screens.library.filter.FilterMangaType
-
-suspend fun Manga.shouldDownloadNewChapters(
-    categoryRepository: CategoryRepository,
-    prefs: PreferencesHelper,
-): Boolean {
-    if (!favorite) return false
-
-    // Boolean to determine if user wants to automatically download new chapters.
-    val downloadNewChapters = prefs.downloadNewChapters().get()
-    if (!downloadNewChapters) return false
-
-    val includedCategories = prefs.downloadNewChaptersInCategories().get().map(String::toInt)
-    val excludedCategories = prefs.excludeCategoriesInDownloadNew().get().map(String::toInt)
-    if (includedCategories.isEmpty() && excludedCategories.isEmpty()) return true
-
-    // Get all categories, else default category (0)
-    val categoriesForManga =
-        categoryRepository
-            .getCategoriesForManga(this@shouldDownloadNewChapters.id!!)
-            .mapNotNull { it.id }
-            .takeUnless { it.isEmpty() } ?: listOf(0)
-
-    if (categoriesForManga.any { it in excludedCategories }) return false
-
-    // Included category not selected
-    if (includedCategories.isEmpty()) return true
-
-    return categoriesForManga.any { it in includedCategories }
-}
 
 /** Takes a SourceManga and converts to a display manga */
 suspend fun SourceManga.toDisplayManga(
@@ -130,121 +92,16 @@ fun Manga.toDisplayManga(
         url = this.url,
         originalTitle = this.title,
         userTitle = this.user_title ?: "",
-        inLibrary = this.favorite,
         displayText = displayText.replace("_", " ").capitalizeWords(),
         displayTextRes = displayTextRes,
         currentArtwork =
             Artwork(
                 cover = this.user_cover ?: "",
                 dynamicCover = this.dynamic_cover ?: "",
-                inLibrary = this.favorite,
                 mangaId = this.id!!,
                 originalCover = this.thumbnail_url ?: MdConstants.noCoverUrl,
             ),
     )
-}
-
-fun LibraryMangaItem.toLibraryManga(): LibraryManga {
-    return LibraryManga().apply {
-        this.unread = this@toLibraryManga.unreadCount
-        this.read = this@toLibraryManga.readCount
-        this.category = this@toLibraryManga.category
-        this.bookmarkCount = this@toLibraryManga.bookmarkCount
-        this.unavailableCount = this@toLibraryManga.unavailableCount
-        this.id = this@toLibraryManga.displayManga.mangaId
-        this.url = this@toLibraryManga.displayManga.url
-        this.title = this@toLibraryManga.displayManga.getTitle()
-        this.favorite = true
-        this.initialized = true
-    }
-}
-
-fun LibraryManga.toLibraryMangaItem(): LibraryMangaItem {
-
-    val displayManga = this.toDisplayManga()
-
-    this.availableCount
-
-    val mangaRating = this.rating?.toDoubleOrNull() ?: (-1).toDouble()
-
-    val seriesType =
-        when (lang_flag) {
-            "ko" -> FilterMangaType.Manhwa
-            "zh",
-            "zh-hk" -> FilterMangaType.Manhua
-            else -> FilterMangaType.Manga
-        }
-
-    val unknownList = listOf("Unknown")
-
-    val genreList =
-        this.genre
-            ?.split(",")
-            ?.filter { !it.contains("content rating:", true) }
-            ?.mapNotNull {
-                val tag = it.trim().capitalizeWords()
-                tag.ifBlank { null }
-            } ?: unknownList
-
-    val authorList =
-        when (this.author.isNullOrBlank() && this.artist.isNullOrBlank()) {
-            true -> unknownList
-            false -> {
-                listOfNotNull(
-                        author.takeUnless { it.isNullOrBlank() },
-                        artist.takeUnless { it.isNullOrBlank() },
-                    )
-                    .map {
-                        it.split(",", "/", " x ", " - ", ignoreCase = true).mapNotNull { name ->
-                            val author = name.trim()
-                            author.ifBlank { null }
-                        }
-                    }
-                    .flatten()
-                    .distinct()
-            }
-        }
-    val contentRating = getContentRating() ?: "Unknown"
-
-    val language = MdLang.fromIsoCode(lang_flag ?: "###")?.prettyPrint ?: "Unknown"
-
-    val status =
-        when (status) {
-            SManga.LICENSED -> "Licensed"
-            SManga.ONGOING -> "Ongoing"
-            SManga.COMPLETED -> "Completed"
-            SManga.PUBLICATION_COMPLETE -> "Publication Completed"
-            SManga.CANCELLED -> "Cancelled"
-            SManga.HIATUS -> "Hiatus"
-            else -> "Unknown"
-        }
-
-    return LibraryMangaItem(
-        displayManga = displayManga.copy(inLibrary = false),
-        userCover = this.user_cover,
-        dynamicCover = this.dynamic_cover,
-        url = MdConstants.baseUrl + this.url + "/" + this.getSlug(),
-        rating = ((mangaRating * 100).roundToInt() / 100.0),
-        addedToLibraryDate = this.date_added,
-        latestChapterDate = this.last_update,
-        unreadCount = this.unread,
-        readCount = this.read,
-        category = this.category,
-        altTitles = this.getAltTitles(),
-        genre = genreList,
-        author = authorList,
-        contentRating = listOf(contentRating),
-        hasMissingChapters = !this.missing_chapters.isNullOrBlank(),
-        language = listOf(language),
-        status = listOf(status),
-        seriesType = seriesType,
-        bookmarkCount = this.bookmarkCount,
-        unavailableCount = this.unavailableCount,
-    )
-}
-
-fun Manga.toSimpleManga(): SimpleManga {
-    return SimpleManga(id = this.id!!, title = this.displayTitle())
 }
 
 fun SManga.getSlug(): String {
@@ -297,7 +154,6 @@ suspend fun List<DisplayManga>.resyncDisplayManga(
             true -> null
             else ->
                 displayManga.copy(
-                    inLibrary = dbManga.favorite,
                     originalTitle = dbManga.title,
                     userTitle = dbManga.user_title ?: "",
                     currentArtwork =
@@ -312,40 +168,4 @@ suspend fun List<DisplayManga>.resyncDisplayManga(
 
 fun List<DisplayManga>.unique(): List<DisplayManga> {
     return this.distinctBy { it.url }
-}
-
-/** Updates the visibility of HomePageManga display manga */
-@JvmName("updateHomePageMangaVisibility")
-fun List<HomePageManga>.updateVisibility(prefs: PreferencesHelper): List<HomePageManga> {
-    return this.map { homePageManga ->
-            homePageManga.copy(
-                displayManga = homePageManga.displayManga.updateVisibility(prefs).toList()
-            )
-        }
-        .toList()
-}
-
-/**
- * Marks display manga as visible when show library entries is enabled, otherwise hides library
- * entries
- */
-fun List<DisplayManga>.updateVisibility(prefs: PreferencesHelper): List<DisplayManga> {
-    return this.map { displayManga ->
-        when (prefs.browseDisplayMode().get()) {
-            LibraryEntryVisibility.SHOW_IN_LIBRARY ->
-                displayManga.copy(isVisible = displayManga.inLibrary)
-            LibraryEntryVisibility.SHOW_NOT_IN_LIBRARY ->
-                displayManga.copy(isVisible = !displayManga.inLibrary)
-            else -> displayManga.copy(isVisible = true)
-        }
-    }
-}
-
-/** Filters out library manga if enabled */
-fun List<DisplayManga>.filterVisibility(prefs: PreferencesHelper): List<DisplayManga> {
-    return when (prefs.browseDisplayMode().get() % 3) {
-        LibraryEntryVisibility.SHOW_IN_LIBRARY -> this.filter { it.inLibrary }
-        LibraryEntryVisibility.SHOW_NOT_IN_LIBRARY -> this.filter { !it.inLibrary }
-        else -> this
-    }
 }

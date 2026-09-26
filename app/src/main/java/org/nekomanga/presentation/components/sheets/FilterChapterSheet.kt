@@ -201,16 +201,6 @@ private fun Filter(
             themeColorState = themeColorState,
             state =
                 MangaConstants.ChapterDisplayOptions(
-                    displayType = MangaConstants.ChapterDisplayType.Downloaded,
-                    displayState = filter.downloaded,
-                ),
-            text = stringResource(id = R.string.show_downloaded_chapters),
-            changeFilter = changeFilter,
-        )
-        FilterLine(
-            themeColorState = themeColorState,
-            state =
-                MangaConstants.ChapterDisplayOptions(
                     displayType = MangaConstants.ChapterDisplayType.Bookmarked,
                     displayState = filter.bookmarked,
                 ),

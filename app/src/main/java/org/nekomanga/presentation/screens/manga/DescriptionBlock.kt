@@ -38,7 +38,6 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,9 +57,6 @@ import org.nekomanga.presentation.Chip
 import org.nekomanga.presentation.components.MarkdownRender
 import org.nekomanga.presentation.components.NekoColors
 import org.nekomanga.presentation.components.SimpleMarkdownFlavourDescriptor
-import org.nekomanga.presentation.components.UiText
-import org.nekomanga.presentation.components.dropdown.SimpleDropDownItem
-import org.nekomanga.presentation.components.dropdown.SimpleDropdownMenu
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.extensions.surfaceColorAtElevationCustomColor
 import org.nekomanga.presentation.theme.Size
@@ -123,7 +119,6 @@ fun DescriptionBlock(
                 altTitleClick = descriptionActions.altTitleClick,
                 resetClick = descriptionActions.altTitleResetClick,
                 genreSearch = descriptionActions.genreSearch,
-                genreLibrarySearch = descriptionActions.genreSearchLibrary,
             )
             Gap(Size.medium)
         }
@@ -169,7 +164,6 @@ fun DescriptionBlock(
                 altTitleClick = descriptionActions.altTitleClick,
                 resetClick = descriptionActions.altTitleResetClick,
                 genreSearch = descriptionActions.genreSearch,
-                genreLibrarySearch = descriptionActions.genreSearchLibrary,
             )
             Gap(Size.medium)
             MoreLessButton(
@@ -233,7 +227,6 @@ private fun AltTitlesAndGenres(
     altTitleClick: (String) -> Unit,
     resetClick: () -> Unit,
     genreSearch: (String) -> Unit,
-    genreLibrarySearch: (String) -> Unit,
 ) {
     val tagColor =
         MaterialTheme.colorScheme.surfaceColorAtElevationCustomColor(
@@ -258,7 +251,6 @@ private fun AltTitlesAndGenres(
         tagColor = tagColor,
         themeColorState = themeColorState,
         genreSearch = genreSearch,
-        genreLibrarySearch = genreLibrarySearch,
     )
 }
 
@@ -373,11 +365,8 @@ private fun Genres(
     tagColor: Color,
     themeColorState: ThemeColorState,
     genreSearch: (String) -> Unit,
-    genreLibrarySearch: (String) -> Unit,
 ) {
     if (genres.isEmpty()) return
-
-    var selectedGenre by remember { mutableStateOf<String?>(null) }
 
     Column {
         Text(
@@ -396,30 +385,9 @@ private fun Genres(
                 Chip(
                     label = genre,
                     containerColor = tagColor,
-                    modifier = Modifier.clickable { selectedGenre = genre },
+                    modifier = Modifier.clickable { genreSearch(genre) },
                 )
             }
-        }
-
-        selectedGenre?.let { genre ->
-            SimpleDropdownMenu(
-                expanded = true,
-                onDismiss = { selectedGenre = null },
-                themeColorState = themeColorState,
-                dropDownItems =
-                    listOf(
-                        SimpleDropDownItem.Action(text = UiText.StringResource(R.string.search)) {
-                            genreSearch(genre)
-                            selectedGenre = null
-                        },
-                        SimpleDropDownItem.Action(
-                            text = UiText.StringResource(R.string.search_library)
-                        ) {
-                            genreLibrarySearch(genre)
-                            selectedGenre = null
-                        },
-                    ),
-            )
         }
     }
 }

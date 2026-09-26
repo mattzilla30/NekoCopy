@@ -9,9 +9,6 @@ class MangaDetailsPreferences(private val preferenceStore: PreferenceStore) {
     fun filterChapterByRead() =
         this.preferenceStore.getInt("default_chapter_filter_by_read", Manga.SHOW_ALL)
 
-    fun filterChapterByDownloaded() =
-        this.preferenceStore.getInt("default_chapter_filter_by_downloaded", Manga.SHOW_ALL)
-
     fun filterChapterByBookmarked() =
         this.preferenceStore.getInt("default_chapter_filter_by_bookmarked", Manga.SHOW_ALL)
 

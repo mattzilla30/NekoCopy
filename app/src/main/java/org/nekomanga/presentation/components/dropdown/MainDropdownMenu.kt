@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.DropdownMenuItem as MaterialDropdownMenuItem
 import androidx.compose.material3.Icon
@@ -31,7 +30,6 @@ fun MainDropdownMenu(
     incognitoModeEnabled: Boolean,
     incognitoModeClick: () -> Unit,
     settingsClick: () -> Unit,
-    statsClick: () -> Unit,
     aboutClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -56,11 +54,6 @@ fun MainDropdownMenu(
                     title = UiText.StringResource(R.string.settings),
                     icon = Icons.Outlined.Settings,
                     onClick = settingsClick,
-                ),
-                DropdownMenuItem(
-                    title = UiText.StringResource(R.string.stats),
-                    icon = Icons.Outlined.QueryStats,
-                    onClick = statsClick,
                 ),
                 DropdownMenuItem(
                     title = UiText.StringResource(R.string.about),

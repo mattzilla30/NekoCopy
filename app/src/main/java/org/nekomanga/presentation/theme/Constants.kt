@@ -6,8 +6,6 @@ import androidx.compose.ui.unit.dp
 object Shapes {
     /** Expressive "large" corner, used on covers and cards. */
     val coverRadius = 20.dp
-    /** Expressive "extra large" corner, used on sheets and dialogs. */
-    val sheetRadius = 34.dp
     /** Expressive "extra small" corner, used on inner segments of grouped lists. */
     val segmentRadius = 6.dp
 }

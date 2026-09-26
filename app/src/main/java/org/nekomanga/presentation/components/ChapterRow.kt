@@ -17,9 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.BookmarkRemove
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Lock
@@ -47,7 +44,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.online.utils.MdLang
 import eu.kanade.tachiyomi.ui.manga.MangaConstants
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
@@ -80,7 +76,6 @@ fun ChapterRow(
     onRead: (ChapterItem) -> Unit,
     onWebView: (ChapterItem) -> Unit,
     onComment: (String) -> Unit,
-    onDownload: (List<ChapterItem>, MangaConstants.DownloadAction) -> Unit,
     blockScanlator: (MangaConstants.BlockType, String) -> Unit,
     markPrevious: (ChapterItem, Boolean) -> Unit,
 ) {
@@ -99,7 +94,6 @@ fun ChapterRow(
                 background = swipeActionBackgroundColor,
                 onBookmark = onBookmark,
                 onRead = onRead,
-                onDownload = onDownload,
             )
         val leftSwipeAction =
             chapterSwipeAction(
@@ -109,7 +103,6 @@ fun ChapterRow(
                 background = swipeActionBackgroundColor,
                 onBookmark = onBookmark,
                 onRead = onRead,
-                onDownload = onDownload,
             )
 
         // The app theme forces LTR, so swiping right reveals the start actions.
@@ -124,7 +117,6 @@ fun ChapterRow(
                 onClick = onClick,
                 onWebView = onWebView,
                 onComment = onComment,
-                onDownload = onDownload,
                 markPrevious = markPrevious,
                 blockScanlator = blockScanlator,
             )
@@ -141,7 +133,6 @@ private fun chapterSwipeAction(
     background: Color,
     onBookmark: (ChapterItem) -> Unit,
     onRead: (ChapterItem) -> Unit,
-    onDownload: (List<ChapterItem>, MangaConstants.DownloadAction) -> Unit,
 ): SwipeAction? {
     val (icon, textRes, onSwipe) =
         when (action) {
@@ -159,31 +150,6 @@ private fun chapterSwipeAction(
                         Icons.Default.BookmarkRemove to R.string.remove_bookmark
                     else Icons.Default.BookmarkAdd to R.string.add_bookmark
                 Triple(bookmarkIcon, bookmarkTextRes) { onBookmark(chapterItem) }
-            }
-            MangaConstants.ChapterSwipeAction.Download -> {
-                when (chapterItem.downloadState) {
-                    Download.State.DOWNLOADED ->
-                        Triple(Icons.Default.Delete, R.string.remove) {
-                            onDownload(listOf(chapterItem), MangaConstants.DownloadAction.Remove)
-                        }
-                    Download.State.QUEUE,
-                    Download.State.DOWNLOADING,
-                    Download.State.ERROR ->
-                        Triple(Icons.Default.Cancel, R.string.cancel) {
-                            onDownload(listOf(chapterItem), MangaConstants.DownloadAction.Cancel)
-                        }
-                    Download.State.NOT_DOWNLOADED -> {
-                        val isLocked =
-                            chapterItem.chapter.isUnavailable ||
-                                MdConstants.UnsupportedOfficialGroupList.contains(
-                                    chapterItem.chapter.scanlator
-                                )
-                        if (isLocked) return null
-                        Triple(Icons.Default.Download, R.string.download) {
-                            onDownload(listOf(chapterItem), MangaConstants.DownloadAction.Download)
-                        }
-                    }
-                }
             }
         }
 
@@ -208,7 +174,6 @@ private fun ChapterRowContent(
     onClick: (ChapterItem) -> Unit,
     onWebView: (ChapterItem) -> Unit,
     onComment: (String) -> Unit,
-    onDownload: (List<ChapterItem>, MangaConstants.DownloadAction) -> Unit,
     markPrevious: (ChapterItem, Boolean) -> Unit,
     blockScanlator: (MangaConstants.BlockType, String) -> Unit,
 ) {
@@ -327,12 +292,9 @@ private fun ChapterRowContent(
                 textColor = secondaryTextColor,
             )
         }
-        ChapterDownloadIndicator(
+        ChapterLockIcon(
             isUnavailable = chapterItem.chapter.isUnavailable,
             scanlator = chapterItem.chapter.scanlator,
-            downloadState = chapterItem.downloadState,
-            downloadProgress = chapterItem.downloadProgress,
-            onDownload = { action -> onDownload(listOf(chapterItem), action) },
             themeColorState = themeColorState,
         )
     }
@@ -418,36 +380,20 @@ private fun LanguageIcon(language: String, textColor: Color) {
     }
 }
 
+/** A lock for chapters that can only be read on the publisher's site. */
 @Composable
-private fun ChapterDownloadIndicator(
+private fun ChapterLockIcon(
     isUnavailable: Boolean,
     scanlator: String,
-    downloadState: Download.State,
-    downloadProgress: Int,
-    onDownload: (MangaConstants.DownloadAction) -> Unit,
     themeColorState: ThemeColorState,
 ) {
-    val isLocked = isUnavailable || MdConstants.UnsupportedOfficialGroupList.contains(scanlator)
-    val isDownloaded = downloadState == Download.State.DOWNLOADED
-
-    when {
-        isLocked && !isDownloaded -> {
-            Icon(
-                imageVector = Icons.Outlined.Lock,
-                contentDescription = stringResource(id = R.string.unavailable),
-                modifier = Modifier.padding(Size.extraTiny).size(Size.extraLarge),
-                tint = themeColorState.primaryColor,
-            )
-        }
-        else -> {
-            DownloadButton(
-                themeColorState = themeColorState,
-                modifier = Modifier,
-                downloadState = downloadState,
-                downloadProgress = downloadProgress,
-                onClick = onDownload,
-            )
-        }
+    if (isUnavailable || MdConstants.UnsupportedOfficialGroupList.contains(scanlator)) {
+        Icon(
+            imageVector = Icons.Outlined.Lock,
+            contentDescription = stringResource(id = R.string.unavailable),
+            modifier = Modifier.padding(Size.extraTiny).size(Size.extraLarge),
+            tint = themeColorState.primaryColor,
+        )
     }
 }
 

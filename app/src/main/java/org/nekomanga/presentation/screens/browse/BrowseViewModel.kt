@@ -7,7 +7,6 @@ import com.github.michaelbull.result.onOk
 import eu.kanade.tachiyomi.data.database.models.BrowseFilterImpl
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.ui.source.latest.DisplayScreenType
-import eu.kanade.tachiyomi.util.category.CategoryUtil
 import eu.kanade.tachiyomi.util.manga.resyncDisplayManga
 import eu.kanade.tachiyomi.util.manga.resyncHomePageManga
 import eu.kanade.tachiyomi.util.manga.unique
@@ -25,19 +24,15 @@ import org.nekomanga.core.preferences.observeAndUpdate
 import org.nekomanga.core.security.SecurityPreferences
 import org.nekomanga.data.database.repository.BrowseFilterRepository
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.details.MangaDetailsPreferences
 import org.nekomanga.domain.filter.DexFilters
 import org.nekomanga.domain.filter.Filter
 import org.nekomanga.domain.filter.QueryType
-import org.nekomanga.domain.library.LibraryPreferences
 import org.nekomanga.domain.manga.MangaContentRating
 import org.nekomanga.domain.network.ResultError
 import org.nekomanga.domain.network.message
 import org.nekomanga.domain.site.MangaDexPreferences
 import org.nekomanga.presentation.components.UiText
-import org.nekomanga.presentation.screens.library.LibraryDisplayMode
-import org.nekomanga.usecases.category.CategoryUseCases
 import org.nekomanga.usecases.filter.CalculateDexFilterUseCase
 import org.nekomanga.usecases.manga.MangaUseCases
 import org.nekomanga.util.paging.DefaultPaginator
@@ -48,12 +43,9 @@ import uy.kohesive.injekt.injectLazy
 class BrowseViewModel : ViewModel() {
     private val browseRepository: BrowseRepository = Injekt.get()
     val preferences: PreferencesHelper = Injekt.get()
-    private val libraryPreferences: LibraryPreferences = Injekt.get()
     private val mangaDetailsPreferences: MangaDetailsPreferences = Injekt.get()
     private val mangaDexPreferences: MangaDexPreferences = Injekt.get()
     val securityPreferences: SecurityPreferences = Injekt.get()
-
-    private val categoryUseCases: CategoryUseCases by injectLazy()
 
     val browseFilterRepository: BrowseFilterRepository = Injekt.get()
 
@@ -65,11 +57,8 @@ class BrowseViewModel : ViewModel() {
     private val _browseScreenState =
         MutableStateFlow(
             BrowseScreenState(
-                outlineCovers = libraryPreferences.outlineOnCovers().get(),
+                outlineCovers = preferences.outlineOnCovers().get(),
                 dynamicCovers = mangaDetailsPreferences.dynamicCovers().get(),
-                isComfortableGrid =
-                    libraryPreferences.layout().get() != LibraryDisplayMode.CompactGrid,
-                rawColumnCount = libraryPreferences.gridSize().get(),
                 filters = createInitialDexFilter(""),
                 defaultContentRatings = mangaDexPreferences.visibleContentRatings().get().toSet(),
                 screenType = BrowseScreenType.Homepage,
@@ -172,27 +161,12 @@ class BrowseViewModel : ViewModel() {
         updateBrowseFilters(_browseScreenState.value.firstLoad)
         _browseScreenState.update { it.copy(firstLoad = false) }
 
-        viewModelScope.launchIO {
-            val categories = categoryUseCases.getCategories.get()
-
-            _browseScreenState.update {
-                it.copy(
-                    categories = categories,
-                    promptForCategories =
-                        CategoryUtil.shouldShowCategoryPrompt(libraryPreferences, categories),
-                )
-            }
-        }
         preferences.useVividColorHeaders().changes().observeAndUpdate(viewModelScope) { enabled ->
             _browseScreenState.update { it.copy(useVividColorHeaders = enabled) }
         }
 
         securityPreferences.incognitoMode().changes().observeAndUpdate(viewModelScope) {
             _browseScreenState.update { state -> state.copy(incognitoMode = it) }
-        }
-
-        browseRepository.loginHelper.isLoggedInFlow().observeAndUpdate(viewModelScope) {
-            _browseScreenState.update { state -> state.copy(isLoggedIn = it) }
         }
     }
 
@@ -221,52 +195,6 @@ class BrowseViewModel : ViewModel() {
                         )
                     }
                 }
-        }
-    }
-
-    private fun getFollows(forceUpdate: Boolean) {
-        viewModelScope.launchIO {
-            if (!isOnline()) return@launchIO
-            if (
-                forceUpdate ||
-                    _browseScreenState.value.displayMangaHolder.resultType !=
-                        BrowseScreenType.Follows
-            ) {
-                _browseScreenState.update { state -> state.copy(initialLoading = true) }
-                browseRepository
-                    .getFollows()
-                    .onErr {
-                        _browseScreenState.update { state ->
-                            state.copy(error = UiText.String(it.message()), initialLoading = false)
-                        }
-                    }
-                    .onOk {
-                        val groupedManga =
-                            it.groupBy { manga -> manga.displayTextRes!! }
-                                .map { entry ->
-                                    entry.key to
-                                        entry.value
-                                            .map { manga -> manga.copy(displayTextRes = null) }
-                                            .toList()
-                                }
-                                .toMap()
-                                .toMap()
-
-                        _browseScreenState.update { state ->
-                            state.copy(
-                                displayMangaHolder =
-                                    DisplayMangaHolder(
-                                        resultType = BrowseScreenType.Follows,
-                                        allDisplayManga =
-                                            it.distinctBy { manga -> manga.url }.toList(),
-                                        filteredDisplayManga = it.toList(),
-                                        groupedDisplayManga = groupedManga,
-                                    ),
-                                initialLoading = false,
-                            )
-                        }
-                    }
-            }
         }
     }
 
@@ -366,78 +294,6 @@ class BrowseViewModel : ViewModel() {
         }
     }
 
-    fun toggleFavorite(mangaId: Long, categoryItems: List<CategoryItem>) {
-        viewModelScope.launchIO {
-            val isFavorite =
-                mangaUseCases.toggleMangaFavorite(
-                    mangaId = mangaId,
-                    categoryItems = categoryItems,
-                    categoriesProvider = { _browseScreenState.value.categories },
-                ) ?: return@launchIO
-
-            updateDisplayManga(mangaId, isFavorite)
-        }
-    }
-
-    private fun updateDisplayManga(mangaId: Long, favorite: Boolean) {
-        viewModelScope.launchIO {
-            _browseScreenState.update {
-                val updatedHomePage =
-                    it.homePageManga
-                        .map { homePageManga ->
-                            val list = homePageManga.displayManga
-                            val index = list.indexOfFirst { manga -> manga.mangaId == mangaId }
-                            if (index == -1) homePageManga
-                            else
-                                homePageManga.copy(
-                                    displayManga =
-                                        buildList {
-                                            addAll(list)
-                                            set(
-                                                index,
-                                                list[index].copy(inLibrary = favorite),
-                                            )
-                                        }
-                                )
-                        }
-                        .toList()
-                val list = it.displayMangaHolder.allDisplayManga
-                val index = list.indexOfFirst { it.mangaId == mangaId }
-                if (index == -1) it.copy(homePageManga = updatedHomePage)
-                else {
-                    val tempList = buildList {
-                        addAll(list)
-                        set(index, list[index].copy(inLibrary = favorite))
-                    }
-                    it.copy(
-                        homePageManga = updatedHomePage,
-                        displayMangaHolder =
-                            it.displayMangaHolder.copy(
-                                allDisplayManga = tempList,
-                                filteredDisplayManga = tempList,
-                                groupedDisplayManga =
-                                    it.displayMangaHolder.groupedDisplayManga.mapValues { (_, list)
-                                        ->
-                                        val index = list.indexOfFirst { manga ->
-                                            manga.mangaId == mangaId
-                                        }
-                                        if (index == -1) list
-                                        else
-                                            buildList {
-                                                addAll(list)
-                                                set(
-                                                    index,
-                                                    list[index].copy(inLibrary = favorite),
-                                                )
-                                            }
-                                    },
-                            ),
-                    )
-                }
-            }
-        }
-    }
-
     fun saveFilter(name: String) {
         viewModelScope.launchIO {
             val browseFilter =
@@ -494,18 +350,9 @@ class BrowseViewModel : ViewModel() {
         }
     }
 
-    /** Add New Category */
-    fun addNewCategory(newCategory: String) {
-        viewModelScope.launchIO {
-            categoryUseCases.modifyCategory.addNewCategory(newCategory)
-            _browseScreenState.update { it.copy(categories = categoryUseCases.getCategories.get()) }
-        }
-    }
-
-    fun changeScreenType(browseScreenType: BrowseScreenType, forceUpdate: Boolean = false) {
+    fun changeScreenType(browseScreenType: BrowseScreenType) {
         viewModelScope.launchIO {
             when (browseScreenType) {
-                BrowseScreenType.Follows -> getFollows(forceUpdate)
                 BrowseScreenType.Filter -> getSearchPage()
                 else -> Unit
             }
@@ -546,11 +393,6 @@ class BrowseViewModel : ViewModel() {
                             it.displayMangaHolder.copy(
                                 allDisplayManga = allDisplayManga.toList(),
                                 filteredDisplayManga = allDisplayManga.toList(),
-                                groupedDisplayManga =
-                                    it.displayMangaHolder.groupedDisplayManga.mapValues { (_, list)
-                                        ->
-                                        list.resyncDisplayManga(mangaRepository).toList()
-                                    },
                             )
                     )
                 }

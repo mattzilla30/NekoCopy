@@ -19,8 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -31,18 +29,14 @@ import eu.kanade.tachiyomi.ui.source.latest.SerializableDisplayScreenType
 import eu.kanade.tachiyomi.ui.source.latest.toSerializable
 import kotlinx.coroutines.flow.StateFlow
 import org.nekomanga.R
-import org.nekomanga.domain.category.CategoryItem
-import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.AppBar
 import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.scaffold.RootScaffold
 import org.nekomanga.presentation.components.sheets.Sheet
 import org.nekomanga.presentation.components.sheets.rememberSheetHost
-import org.nekomanga.presentation.screens.browse.BrowseBottomSheet
-import org.nekomanga.presentation.screens.browse.BrowseBottomSheetScreen
 import org.nekomanga.presentation.screens.browse.BrowseFilterPage
-import org.nekomanga.presentation.screens.browse.BrowseFollowsPage
+import org.nekomanga.presentation.screens.browse.BrowseFilterSheet
 import org.nekomanga.presentation.screens.browse.BrowseHomePage
 import org.nekomanga.presentation.screens.browse.BrowseScreenState
 import org.nekomanga.presentation.screens.browse.BrowseScreenTopBar
@@ -114,8 +108,6 @@ fun BrowseScreen(
                 filterDefaultClick = browseViewModel::markFilterAsDefault,
                 loadFilter = browseViewModel::loadFilter,
             ),
-        addNewCategory = browseViewModel::addNewCategory,
-        toggleFavorite = browseViewModel::toggleFavorite,
         loadNextPage = browseViewModel::loadNextItems,
         retryClick = browseViewModel::retry,
         otherClick = browseViewModel::otherClick,
@@ -133,8 +125,6 @@ private fun BrowseWrapper(
     mainDropdownShowing: Boolean,
     windowSizeClass: WindowSizeClass,
     openManga: (Long) -> Unit,
-    addNewCategory: (String) -> Unit,
-    toggleFavorite: (Long, List<CategoryItem>) -> Unit,
     loadNextPage: () -> Unit,
     retryClick: () -> Unit,
     otherClick: (String) -> Unit,
@@ -146,22 +136,20 @@ private fun BrowseWrapper(
 
     val browseScreenState by browseScreenFlow.collectAsState()
 
-    val sheets = rememberSheetHost<BrowseBottomSheetScreen>()
+    val sheets = rememberSheetHost<Unit>()
 
     val browseScreenType = browseScreenState.screenType
 
-    // Back from search results or follows returns to the home page.
+    // Back from search results returns to the home page.
     BackHandler(enabled = browseScreenType != BrowseScreenType.Homepage) {
         changeScreenType(BrowseScreenType.Homepage)
     }
 
-    sheets.Sheet { sheet ->
-        BrowseBottomSheet(
-            currentScreen = sheet,
+    sheets.Sheet {
+        BrowseFilterSheet(
             browseScreenState = browseScreenState,
-            addNewCategory = addNewCategory,
-            closeSheet = sheets::close,
             filterActions = filterActions,
+            closeSheet = sheets::close,
         )
     }
 
@@ -177,17 +165,8 @@ private fun BrowseWrapper(
                 browseScreenState = browseScreenState,
                 scrollBehavior = scrollBehavior,
                 mainDropDown = mainDropdown,
-                searchClick = { sheets.open(BrowseBottomSheetScreen.FilterSheet) },
+                searchClick = { sheets.open(Unit) },
                 homeClick = { changeScreenType(BrowseScreenType.Homepage) },
-                followsClick = {
-                    changeScreenType(
-                        if (browseScreenType == BrowseScreenType.Follows) {
-                            BrowseScreenType.Homepage
-                        } else {
-                            BrowseScreenType.Follows
-                        }
-                    )
-                },
             )
         },
     ) { innerPadding ->
@@ -203,23 +182,6 @@ private fun BrowseWrapper(
 
         val recyclerContentPadding =
             PaddingValues(top = innerPadding.calculateTopPadding(), bottom = Size.small)
-
-        val haptic = LocalHapticFeedback.current
-        fun mangaLongClick(displayManga: DisplayManga) {
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            if (!displayManga.inLibrary && browseScreenState.promptForCategories) {
-                sheets.open(
-                    BrowseBottomSheetScreen.CategoriesSheet(
-                        setCategories = { selectedCategories ->
-                            sheets.close()
-                            toggleFavorite(displayManga.mangaId, selectedCategories)
-                        }
-                    )
-                )
-            } else {
-                toggleFavorite(displayManga.mangaId, emptyList())
-            }
-        }
 
         Box(modifier = Modifier.fillMaxSize().padding(contentPadding)) {
             if (browseScreenState.initialLoading) {
@@ -248,35 +210,18 @@ private fun BrowseWrapper(
                                 titleClick = homeScreenTitleClick,
                                 randomClick = randomClick,
                                 onClick = { id -> openManga(id) },
-                                onLongClick = ::mangaLongClick,
                                 contentPadding = recyclerContentPadding,
                             )
-
-                        BrowseScreenType.Follows -> {
-                            BrowseFollowsPage(
-                                displayMangaHolder = browseScreenState.displayMangaHolder,
-                                isComfortableGrid = browseScreenState.isComfortableGrid,
-                                outlineCovers = browseScreenState.outlineCovers,
-                                dynamicCovers = browseScreenState.dynamicCovers,
-                                rawColumnCount = browseScreenState.rawColumnCount,
-                                contentPadding = recyclerContentPadding,
-                                onClick = openManga,
-                                onLongClick = ::mangaLongClick,
-                            )
-                        }
 
                         BrowseScreenType.Filter -> {
                             BrowseFilterPage(
                                 displayMangaHolder = browseScreenState.displayMangaHolder,
-                                isComfortableGrid = browseScreenState.isComfortableGrid,
                                 outlineCovers = browseScreenState.outlineCovers,
                                 dynamicCovers = browseScreenState.dynamicCovers,
-                                rawColumnCount = browseScreenState.rawColumnCount,
                                 pageLoading = browseScreenState.pageLoading,
                                 lastPage = browseScreenState.endReached,
                                 contentPadding = recyclerContentPadding,
                                 onClick = openManga,
-                                onLongClick = ::mangaLongClick,
                                 loadNextPage = loadNextPage,
                             )
                         }

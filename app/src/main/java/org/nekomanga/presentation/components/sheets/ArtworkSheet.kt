@@ -63,7 +63,6 @@ import org.nekomanga.presentation.theme.Size
 fun ArtworkSheet(
     themeColorState: ThemeColorState,
     alternativeArtwork: List<Artwork>,
-    inLibrary: Boolean,
     saveClick: (Artwork) -> Unit,
     setClick: (Artwork) -> Unit,
     shareClick: (Artwork) -> Unit,
@@ -125,7 +124,6 @@ fun ArtworkSheet(
                 Column(verticalArrangement = Arrangement.Bottom) {
                     Gap(Size.tiny)
                     ActionButtons(
-                        inLibrary = inLibrary,
                         themeColorState = themeColorState,
                         onSave = { currentImage?.let(saveClick) },
                         onSet = { currentImage?.let(setClick) },
@@ -157,7 +155,6 @@ fun ArtworkSheet(
 
 @Composable
 private fun ActionButtons(
-    inLibrary: Boolean,
     themeColorState: ThemeColorState,
     onSave: () -> Unit,
     onSet: () -> Unit,
@@ -174,20 +171,18 @@ private fun ActionButtons(
             modifier = Modifier.weight(1f),
             onClick = onSave,
         )
-        if (inLibrary) {
-            ArtworkButton(
-                text = stringResource(id = R.string.set),
-                color = themeColorState.primaryColor,
-                modifier = Modifier.weight(1f),
-                onClick = onSet,
-            )
-            ArtworkButton(
-                text = stringResource(id = R.string.reset),
-                color = themeColorState.primaryColor,
-                modifier = Modifier.weight(1f),
-                onClick = onReset,
-            )
-        }
+        ArtworkButton(
+            text = stringResource(id = R.string.set),
+            color = themeColorState.primaryColor,
+            modifier = Modifier.weight(1f),
+            onClick = onSet,
+        )
+        ArtworkButton(
+            text = stringResource(id = R.string.reset),
+            color = themeColorState.primaryColor,
+            modifier = Modifier.weight(1f),
+            onClick = onReset,
+        )
         ArtworkButton(
             text = stringResource(id = R.string.share),
             color = themeColorState.primaryColor,

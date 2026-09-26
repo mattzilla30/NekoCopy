@@ -6,6 +6,9 @@ import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
+/** Columns for the manga grids at the default cover size. */
+@Composable fun gridColumns(): Int = numberOfColumns(rawValue = 1f)
+
 /** Calculates the number of columns from the raw value saved in the preferences */
 @Composable
 fun numberOfColumns(rawValue: Float, forText: Boolean = false, useHeight: Boolean = false): Int {

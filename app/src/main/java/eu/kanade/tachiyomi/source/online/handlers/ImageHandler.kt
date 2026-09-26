@@ -50,7 +50,7 @@ class ImageHandler {
 
     private val tag = "||ImageHandler"
 
-    suspend fun getImage(page: Page, isLogged: Boolean): Response {
+    suspend fun getImage(page: Page): Response {
         return withIOContext {
             return@withIOContext when {
                 isExternal(page, "mangaplus") || isExternal(page, "jumpg-assets") -> {
@@ -69,7 +69,7 @@ class ImageHandler {
                 isExternal(page, "manga-up") ->
                     getImageResponse(mangaUpHandler.client, mangaUpHandler.headers, page)
                 else -> {
-                    val request = imageRequest(page, isLogged)
+                    val request = imageRequest(page)
                     requestImage(request, page)
                 }
             }
@@ -118,7 +118,7 @@ class ImageHandler {
         }
     }
 
-    private suspend fun imageRequest(page: Page, isLogged: Boolean): Request {
+    private suspend fun imageRequest(page: Page): Request {
         val data = page.url.split(",")
         val currentTime = Date().time
 
@@ -130,7 +130,7 @@ class ImageHandler {
             ) {
                 true -> data[0]
                 false -> {
-                    TimberKt.d { "$tag Time has expired get new at home url isLogged $isLogged" }
+                    TimberKt.d { "$tag Time has expired get new at home url" }
                     updateTokenTracker(page.mangaDexChapterId, currentTime)
 
                     networkServices.atHomeService

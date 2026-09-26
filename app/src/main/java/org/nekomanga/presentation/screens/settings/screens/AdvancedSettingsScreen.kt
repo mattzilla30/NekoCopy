@@ -1,10 +1,8 @@
 package org.nekomanga.presentation.screens.settings.screens
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.PowerManager
 import android.provider.Settings
 import android.webkit.WebStorage
 import android.webkit.WebView
@@ -23,19 +21,15 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.system.getActivity
 import eu.kanade.tachiyomi.util.system.launchIO
-import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
 import java.io.File
 import kotlinx.coroutines.flow.SharedFlow
 import org.nekomanga.R
-import org.nekomanga.constants.Constants.DONT_KILL_MY_APP_URL
 import org.nekomanga.core.network.NetworkPreferences
 import org.nekomanga.domain.reader.ReaderPreferences
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.components.UiText
-import org.nekomanga.presentation.components.dialog.CleanDownloadsDialog
 import org.nekomanga.presentation.components.dialog.ClearDatabaseDialog
-import org.nekomanga.presentation.components.dialog.ConfirmationDialog
 import org.nekomanga.presentation.screens.settings.Preference
 import org.nekomanga.presentation.screens.settings.widgets.SearchTerm
 import tachiyomi.core.network.PREF_DOH_360
@@ -59,16 +53,12 @@ internal class AdvancedSettingsScreen(
     val readerPreferences: ReaderPreferences,
     val toastEvent: SharedFlow<UiText>,
     val clearNetworkCookies: () -> Unit,
-    val cleanupDownloads: (Boolean, Boolean) -> Unit,
-    val reindexDownloads: () -> Unit,
     val clearDatabase: (Boolean) -> Unit,
-    val dedupeCategories: () -> Unit,
     onNavigationIconClick: (() -> Unit)?,
 ) : SearchableSettings(onNavigationIconClick, incognitoMode) {
 
     override fun getTitleRes(): Int = R.string.advanced
 
-    @SuppressLint("BatteryLife")
     @Composable
     override fun getPreferences(): List<Preference> {
         val context = LocalContext.current
@@ -94,46 +84,10 @@ internal class AdvancedSettingsScreen(
                     true
                 },
             ),
-            backgroundActivityGroup(context),
             systemGroup(context),
             networkGroup(context, clearNetworkCookies),
-            dataGroup(cleanupDownloads, clearDatabase, reindexDownloads, dedupeCategories),
+            dataGroup(clearDatabase),
             getReaderGroup(readerPreferences),
-        )
-    }
-
-    @Composable
-    fun backgroundActivityGroup(context: Context): Preference.PreferenceGroup {
-        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager?
-
-        return Preference.PreferenceGroup(
-            title = stringResource(R.string.background_activity),
-            preferenceItems =
-                listOf(
-                    Preference.PreferenceItem.TextPreference(
-                        title = stringResource(R.string.disable_battery_optimization),
-                        subtitle = stringResource(R.string.disable_if_issues_with_updating),
-                        enabled = powerManager != null,
-                        onClick = {
-                            val packageName: String = context.packageName
-                            if (!powerManager!!.isIgnoringBatteryOptimizations(packageName)) {
-                                val intent =
-                                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                                        .apply {
-                                            data = Uri.fromParts("package", packageName, null)
-                                        }
-                                context.startActivity(intent)
-                            } else {
-                                context.toast(R.string.battery_optimization_disabled)
-                            }
-                        },
-                    ),
-                    Preference.PreferenceItem.TextPreference(
-                        title = stringResource(R.string.dont_kill_my_app),
-                        subtitle = stringResource(R.string.about_dont_kill_my_app),
-                        onClick = { context.openInBrowser(DONT_KILL_MY_APP_URL) },
-                    ),
-                ),
         )
     }
 
@@ -247,23 +201,8 @@ internal class AdvancedSettingsScreen(
     }
 
     @Composable
-    fun dataGroup(
-        cleanupDownloads: (Boolean, Boolean) -> Unit,
-        clearDatabase: (Boolean) -> Unit,
-        reindexDownloads: () -> Unit,
-        dedupeCategories: () -> Unit,
-    ): Preference.PreferenceGroup {
-
-        var showCleanDownloadsDialog by rememberSaveable { mutableStateOf(false) }
+    fun dataGroup(clearDatabase: (Boolean) -> Unit): Preference.PreferenceGroup {
         var showClearDatabaseDialog by rememberSaveable { mutableStateOf(false) }
-        var showDedupeCategoriesDialog by rememberSaveable { mutableStateOf(false) }
-
-        if (showCleanDownloadsDialog) {
-            CleanDownloadsDialog(
-                onDismiss = { showCleanDownloadsDialog = false },
-                onConfirm = cleanupDownloads,
-            )
-        }
 
         if (showClearDatabaseDialog) {
             ClearDatabaseDialog(
@@ -272,39 +211,15 @@ internal class AdvancedSettingsScreen(
             )
         }
 
-        if (showDedupeCategoriesDialog) {
-            ConfirmationDialog(
-                title = stringResource(R.string.dedupe_categories),
-                body = stringResource(R.string.dedupe_categories_confirmation),
-                onDismiss = { showDedupeCategoriesDialog = false },
-                onConfirm = { dedupeCategories() },
-            )
-        }
-
         return Preference.PreferenceGroup(
             title = stringResource(R.string.data_management),
             preferenceItems =
                 listOf(
                     Preference.PreferenceItem.TextPreference(
-                        title = stringResource(R.string.reindex_downloads),
-                        subtitle = stringResource(R.string.reindex_downloads_summary),
-                        onClick = reindexDownloads,
-                    ),
-                    Preference.PreferenceItem.TextPreference(
-                        title = stringResource(R.string.clean_up_downloaded_chapters),
-                        subtitle = stringResource(R.string.delete_unused_chapters),
-                        onClick = { showCleanDownloadsDialog = true },
-                    ),
-                    Preference.PreferenceItem.TextPreference(
                         title = stringResource(R.string.clear_database),
                         subtitle = stringResource(R.string.clear_database_summary),
                         onClick = { showClearDatabaseDialog = true },
-                    ),
-                    Preference.PreferenceItem.TextPreference(
-                        title = stringResource(R.string.dedupe_categories),
-                        subtitle = stringResource(R.string.dedupe_categories_summary),
-                        onClick = { showDedupeCategoriesDialog = true },
-                    ),
+                    )
                 ),
         )
     }
@@ -320,16 +235,6 @@ internal class AdvancedSettingsScreen(
                 SearchTerm(
                     title = stringResource(R.string.verbose_logging),
                     subtitle = stringResource(R.string.verbose_logging_summary),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.disable_battery_optimization),
-                    subtitle = stringResource(R.string.disable_if_issues_with_updating),
-                    group = stringResource(R.string.background_activity),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.dont_kill_my_app),
-                    subtitle = stringResource(R.string.about_dont_kill_my_app),
-                    group = stringResource(R.string.background_activity),
                 ),
                 SearchTerm(
                     title = stringResource(R.string.supported_links),
@@ -349,23 +254,8 @@ internal class AdvancedSettingsScreen(
                     group = stringResource(R.string.network),
                 ),
                 SearchTerm(
-                    title = stringResource(R.string.reindex_downloads),
-                    subtitle = stringResource(R.string.reindex_downloads_summary),
-                    group = stringResource(R.string.data_management),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.clean_up_downloaded_chapters),
-                    subtitle = stringResource(R.string.delete_unused_chapters),
-                    group = stringResource(R.string.data_management),
-                ),
-                SearchTerm(
                     title = stringResource(R.string.clear_database),
                     subtitle = stringResource(R.string.clear_database_summary),
-                    group = stringResource(R.string.data_management),
-                ),
-                SearchTerm(
-                    title = stringResource(R.string.dedupe_categories),
-                    subtitle = stringResource(R.string.dedupe_categories_summary),
                     group = stringResource(R.string.data_management),
                 ),
                 SearchTerm(

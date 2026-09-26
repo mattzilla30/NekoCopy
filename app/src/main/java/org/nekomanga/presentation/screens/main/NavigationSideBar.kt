@@ -31,8 +31,6 @@ import org.nekomanga.presentation.theme.Size
 fun NavigationSideBar(
     items: List<NavigationItem>,
     sideNavAlignment: SideNavAlignment,
-    libraryUpdating: Boolean,
-    downloaderRunning: Boolean,
     selectedItemIndex: Int,
     onNavigate: (NavKey) -> Unit,
 ) {
@@ -77,9 +75,7 @@ fun NavigationSideBar(
                 selected = selected,
                 onClick = { onNavigate(item.screen) },
                 icon = {
-                    PulsingIcon(
-                        isPulsing =
-                            ((index == 0 && libraryUpdating) || (index == 1 && downloaderRunning)),
+                    Icon(
                         imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
                         contentDescription = null,
                     )

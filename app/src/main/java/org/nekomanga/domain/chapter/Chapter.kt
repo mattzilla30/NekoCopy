@@ -2,7 +2,6 @@ package org.nekomanga.domain.chapter
 
 import androidx.compose.runtime.Immutable
 import eu.kanade.tachiyomi.data.database.models.Chapter
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
@@ -34,8 +33,6 @@ data class SimpleChapter(
     val lastRead: Long = 0L,
 ) {
     val isRecognizedNumber = chapterNumber >= 0f
-
-    fun canDeleteChapter() = !this.bookmark && !this.isUnavailable
 
     fun getHttpSource(sourceManager: SourceManager): HttpSource = sourceManager.mangaDex
 
@@ -97,15 +94,7 @@ data class SimpleChapter(
             it.old_mangadex_id = oldMangaDexChapterId
         }
 
-    fun toChapterItem(
-        downloadState: Download.State = Download.State.NOT_DOWNLOADED,
-        downloadProgress: Int = 0,
-    ): ChapterItem =
-        ChapterItem(
-            chapter = this,
-            downloadState = downloadState,
-            downloadProgress = downloadProgress,
-        )
+    fun toChapterItem(): ChapterItem = ChapterItem(chapter = this)
 }
 
 fun Chapter.toSimpleChapter(lastRead: Long = 0L): SimpleChapter? {
@@ -137,17 +126,4 @@ fun Chapter.toSimpleChapter(lastRead: Long = 0L): SimpleChapter? {
     )
 }
 
-fun SimpleChapter.toChapterItem(): ChapterItem {
-    return ChapterItem(chapter = this)
-}
-
-@Immutable
-data class ChapterItem(
-    val chapter: SimpleChapter,
-    val downloadState: Download.State = Download.State.NOT_DOWNLOADED,
-    val downloadProgress: Int = -1,
-) {
-    val isDownloaded = downloadState == Download.State.DOWNLOADED
-
-    val isNotDownloaded = downloadState == Download.State.NOT_DOWNLOADED
-}
+@Immutable data class ChapterItem(val chapter: SimpleChapter)

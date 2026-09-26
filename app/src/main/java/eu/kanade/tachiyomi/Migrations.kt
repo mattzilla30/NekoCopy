@@ -1,10 +1,10 @@
 package eu.kanade.tachiyomi
 
+import android.app.job.JobScheduler
+import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import androidx.work.WorkManager
-import eu.kanade.tachiyomi.data.backup.BackupCreatorJob
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
+import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import org.nekomanga.BuildConfig
@@ -18,27 +18,47 @@ object Migrations {
      * @return true if a migration is performed, false otherwise.
      */
     fun upgrade(preferences: PreferencesHelper): Boolean {
-        val context = preferences.context
+        val oldVersion = preferences.lastVersionCode().get()
+        if (oldVersion >= BuildConfig.VERSION_CODE) return false
+        preferences.lastVersionCode().set(BuildConfig.VERSION_CODE)
+        clearRemovedFeatures(preferences.context)
+        return true
+    }
+
+    /** Clears what removed features left behind on existing installs. */
+    private fun clearRemovedFeatures(context: Context) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        // Clear preferences left behind by removed features on existing installs.
         prefs.edit {
             remove("notify_on_install_complete")
             remove(PreferenceKeys.shouldAutoUpdate)
             // Merged sources were removed.
             remove("pref_filter_merged_key")
             remove("suwayomi_login_mode")
+            // Sign-in and trackers were removed, so drop their credentials.
+            prefs.all.keys
+                .filter { key -> REMOVED_CREDENTIAL_PREFIXES.any { key.startsWith(it) } }
+                .forEach(::remove)
         }
-        WorkManager.getInstance(context).cancelAllWorkByTag("UpdateChecker")
-        val oldVersion = preferences.lastVersionCode().get()
-        if (oldVersion < BuildConfig.VERSION_CODE) {
-            preferences.lastVersionCode().set(BuildConfig.VERSION_CODE)
-
-            // Always set up background tasks to ensure they're running
-            LibraryUpdateJob.setupTask(context)
-            BackupCreatorJob.setupTask(context, 12)
-
-            return true
-        }
-        return false
+        // Library updates, backups, downloads and tracker syncs ran as scheduled jobs. Kitty
+        // schedules no jobs now, so cancel every job left from an older version and drop the
+        // job database the scheduler kept.
+        context.getSystemService(JobScheduler::class.java)?.cancelAll()
+        context.deleteDatabase("androidx.work.workdb")
+        // Library covers were kept in their own folder.
+        CoverCache(context).deleteLibraryCovers()
     }
+
+    private val REMOVED_CREDENTIAL_PREFIXES =
+        listOf(
+            "mangadex_session_token",
+            "mangadex_refresh_token",
+            "mangadex_refresh_token_time",
+            "mangadex_code_verifier",
+            "mangadex_username",
+            "track_token_",
+            "track_token_expired_",
+            "pref_mangasync_username_",
+            "pref_mangasync_password_",
+            "mangabaka_code_verifier",
+        )
 }

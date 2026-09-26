@@ -5,7 +5,6 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
 import com.skydoves.sandwich.ApiResponse
-import eu.kanade.tachiyomi.network.services.MangaDexAuthorizedUserService
 import eu.kanade.tachiyomi.network.services.MangaDexService
 import eu.kanade.tachiyomi.network.services.NetworkServices
 import eu.kanade.tachiyomi.source.model.MangaListPage
@@ -155,30 +154,6 @@ class LatestChapterHandler : ChapterFeedHandler("latest chapters") {
         blockedUploaders: List<String>,
     ) =
         service.latestChapters(
-            limit,
-            offset,
-            languages,
-            contentRatings,
-            blockedGroups,
-            blockedUploaders,
-        )
-}
-
-/** New chapters for the manga the logged in user follows. */
-class FeedUpdatesHandler : ChapterFeedHandler("feed updates") {
-    private val authService: MangaDexAuthorizedUserService by lazy {
-        Injekt.get<NetworkServices>().authService
-    }
-
-    override suspend fun fetchChapters(
-        limit: Int,
-        offset: Int,
-        languages: List<String>,
-        contentRatings: List<String>,
-        blockedGroups: List<String>,
-        blockedUploaders: List<String>,
-    ) =
-        authService.feedUpdates(
             limit,
             offset,
             languages,

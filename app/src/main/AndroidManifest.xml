@@ -6,19 +6,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
-    <!-- For background jobs -->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-
-
-    <!-- Install App automatically -->
-    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
-
-
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -88,62 +75,6 @@
         <activity
             android:name="eu.kanade.tachiyomi.ui.security.BiometricActivity"
             android:exported="false" />
-        <activity
-            android:name="eu.kanade.tachiyomi.ui.setting.logins.MyAnimeListLoginActivity"
-            android:label="MyAnimeList"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="neko" />
-                <data android:host="myanimelist-auth" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="eu.kanade.tachiyomi.ui.setting.logins.AnilistLoginActivity"
-            android:label="Anilist"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="neko" />
-                <data android:host="anilist-auth" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="eu.kanade.tachiyomi.ui.setting.logins.MangaBakaLoginActivity"
-            android:label="MangaBaka"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="neko" />
-                <data android:host="mangabaka-auth" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="eu.kanade.tachiyomi.ui.setting.logins.MangaDexLoginActivity"
-            android:label="MangaDexLogin"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="neko" />
-                <data android:host="${mangadexAuthRedirectUri}" />
-            </intent-filter>
-        </activity>
         <!--
          This activity should not be exported as it is intended to be used only internally
          by the global exception handler. Exporting it would allow other apps to trigger
@@ -283,12 +214,6 @@
         <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
-
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false"
-            tools:node="merge" />
 
     </application>
 

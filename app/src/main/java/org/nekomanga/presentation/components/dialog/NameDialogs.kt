@@ -18,33 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import eu.kanade.tachiyomi.data.database.models.BrowseFilterImpl
 import org.nekomanga.R
-import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.presentation.components.theme.ThemeColorState
-import org.nekomanga.presentation.components.theme.defaultThemeColorState
 import org.nekomanga.presentation.extensions.runOnEnterKeyPressed
-
-@Composable
-fun AddEditCategoryDialog(
-    themeColorState: ThemeColorState = defaultThemeColorState(),
-    categorySelected: String = "",
-    currentCategories: List<CategoryItem>,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit,
-) {
-    NameDialog(
-        title =
-            stringResource(
-                if (categorySelected.isBlank()) R.string.new_category else R.string.edit_category
-            ),
-        label = null,
-        nameTakenError = stringResource(R.string.category_with_name_exists),
-        initialName = categorySelected,
-        isTaken = { name -> currentCategories.any { it.name.equals(name, true) } },
-        themeColorState = themeColorState,
-        onDismiss = onDismiss,
-        onConfirm = onConfirm,
-    )
-}
 
 @Composable
 fun SaveFilterDialog(

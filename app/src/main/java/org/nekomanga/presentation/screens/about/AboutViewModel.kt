@@ -37,33 +37,6 @@ class AboutViewModel : ViewModel() {
         return getFormattedBuildTimeUseCase(BuildConfig.BUILD_TIME)
     }
 
-    private var versionClickCount = 0
-    private var lastVersionClickTime = 0L
-
-    fun onVersionClicked() {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastVersionClickTime > DEV_MODE_CLICK_TIMEOUT_MS) {
-            versionClickCount = 0
-        }
-        lastVersionClickTime = currentTime
-        versionClickCount++
-
-        if (versionClickCount == DEV_MODE_CLICK_COUNT) {
-            versionClickCount = 0
-            val newValue = !preferences.developerMode().get()
-            preferences.developerMode().set(newValue)
-            viewModelScope.launch {
-                appSnackbarManager.showSnackbar(
-                    SnackbarState(
-                        messageRes =
-                            if (newValue) R.string.developer_mode_enabled
-                            else R.string.developer_mode_disabled
-                    )
-                )
-            }
-        }
-    }
-
     fun onVersionLongClicked() {
         viewModelScope.launch {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -75,10 +48,5 @@ class AboutViewModel : ViewModel() {
                 )
             }
         }
-    }
-
-    companion object {
-        private const val DEV_MODE_CLICK_COUNT = 7
-        private const val DEV_MODE_CLICK_TIMEOUT_MS = 500L
     }
 }

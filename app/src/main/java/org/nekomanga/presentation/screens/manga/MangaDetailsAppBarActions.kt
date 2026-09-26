@@ -21,80 +21,6 @@ fun MangaDetailsAppBarActions(
         actions =
             listOf(
                 AppBar.OverflowAction(
-                    title = UiText.StringResource(R.string.create_manga_folder),
-                    onClick = { chapterActions.createMangaFolder() },
-                ),
-                AppBar.OverflowAction(
-                    title = UiText.StringResource(R.string.download),
-                    children =
-                        listOf(
-                            AppBar.OverflowAction(
-                                title = UiText.StringResource(R.string.next_unread),
-                                children =
-                                    listOf(
-                                        AppBar.OverflowAction(
-                                            title = UiText.StringResource(R.string.next_1_unread),
-                                            onClick = {
-                                                chapterActions.download(
-                                                    emptyList(),
-                                                    MangaConstants.DownloadAction
-                                                        .DownloadNextUnread(1),
-                                                )
-                                            },
-                                        ),
-                                        AppBar.OverflowAction(
-                                            title = UiText.StringResource(R.string.next_5_unread),
-                                            onClick = {
-                                                chapterActions.download(
-                                                    emptyList(),
-                                                    MangaConstants.DownloadAction
-                                                        .DownloadNextUnread(5),
-                                                )
-                                            },
-                                        ),
-                                        AppBar.OverflowAction(
-                                            title = UiText.StringResource(R.string.next_10_unread),
-                                            onClick = {
-                                                chapterActions.download(
-                                                    emptyList(),
-                                                    MangaConstants.DownloadAction
-                                                        .DownloadNextUnread(10),
-                                                )
-                                            },
-                                        ),
-                                        AppBar.OverflowAction(
-                                            title = UiText.StringResource(R.string.next_20_unread),
-                                            onClick = {
-                                                chapterActions.download(
-                                                    emptyList(),
-                                                    MangaConstants.DownloadAction
-                                                        .DownloadNextUnread(20),
-                                                )
-                                            },
-                                        ),
-                                    ),
-                            ),
-                            AppBar.OverflowAction(
-                                title = UiText.StringResource(R.string.unread),
-                                onClick = {
-                                    chapterActions.download(
-                                        emptyList(),
-                                        MangaConstants.DownloadAction.DownloadUnread,
-                                    )
-                                },
-                            ),
-                            AppBar.OverflowAction(
-                                title = UiText.StringResource(R.string.all),
-                                onClick = {
-                                    chapterActions.download(
-                                        emptyList(),
-                                        MangaConstants.DownloadAction.DownloadAll,
-                                    )
-                                },
-                            ),
-                        ),
-                ),
-                AppBar.OverflowAction(
                     title = UiText.StringResource(R.string.mark_all_as),
                     children =
                         listOf(
@@ -111,31 +37,7 @@ fun MangaDetailsAppBarActions(
                                 },
                             ),
                         ),
-                ),
-                AppBar.OverflowAction(
-                    title = UiText.StringResource(R.string.remove_downloads),
-                    children =
-                        listOf(
-                            AppBar.OverflowAction(
-                                title = UiText.StringResource(R.string.all),
-                                onClick = {
-                                    chapterActions.download(
-                                        emptyList(),
-                                        MangaConstants.DownloadAction.RemoveAll,
-                                    )
-                                },
-                            ),
-                            AppBar.OverflowAction(
-                                title = UiText.StringResource(R.string.read),
-                                onClick = {
-                                    chapterActions.download(
-                                        emptyList(),
-                                        MangaConstants.DownloadAction.RemoveRead,
-                                    )
-                                },
-                            ),
-                        ),
-                ),
+                )
             ),
     )
 }

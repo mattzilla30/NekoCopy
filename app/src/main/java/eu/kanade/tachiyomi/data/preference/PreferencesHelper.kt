@@ -3,14 +3,12 @@ package eu.kanade.tachiyomi.data.preference
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
-import eu.kanade.tachiyomi.data.track.TrackManager
-import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.ui.main.states.SideNavAlignment
 import eu.kanade.tachiyomi.ui.main.states.SideNavMode
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
-import org.nekomanga.constants.MdConstants
+import org.nekomanga.domain.chapter.ScanlatorFilterOption
 import org.nekomanga.presentation.screens.feed.FeedHistoryGroup
 import org.nekomanga.presentation.theme.Themes
 import tachiyomi.core.preference.Preference
@@ -67,47 +65,9 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
     fun showNavigationOverlayNewUserWebtoon() =
         this.preferenceStore.getBoolean(Keys.showNavigationOverlayNewUserWebtoon, true)
 
-    fun autoUpdateTrack() = this.preferenceStore.getBoolean("pref_auto_update_manga_sync_key", true)
-
-    fun trackMarkedAsRead() = this.preferenceStore.getBoolean("track_marked_as_read", false)
-
-    fun syncChaptersWithTracker() =
-        this.preferenceStore.getBoolean("sync_chapters_with_tracker", false)
-
     fun lastVersionCode() = this.preferenceStore.getInt("last_version_code", 0)
 
     fun browseAsList() = this.preferenceStore.getBoolean(Keys.catalogueAsList, false)
-
-    fun browseShowLibrary() = this.preferenceStore.getBoolean(Keys.catalogueShowLibrary, true)
-
-    fun browseDisplayMode() =
-        this.preferenceStore.getInt(
-            Keys.catalogueDisplayMode,
-            if (browseShowLibrary().get()) 0 else 2,
-        )
-
-    fun trackUsername(sync: TrackService) =
-        this.preferenceStore.getString(Keys.trackUsername(sync.id))
-
-    fun trackPassword(sync: TrackService) =
-        this.preferenceStore.getString(Keys.trackPassword(sync.id))
-
-    fun setTrackCredentials(sync: TrackService, username: String, password: String) {
-        this.preferenceStore.getString(Keys.trackUsername(sync.id)).set(username)
-        this.preferenceStore.getString(Keys.trackPassword(sync.id)).set(password)
-        this.preferenceStore.getBoolean("track_token_expired_${sync.id}").set(false)
-    }
-
-    fun trackToken(sync: TrackService) = this.preferenceStore.getString(Keys.trackToken(sync.id))
-
-    fun trackAuthExpired(tracker: TrackService) =
-        preferenceStore.getBoolean("track_token_expired_${tracker.id}", false)
-
-    fun anilistScoreType() = this.preferenceStore.getString("anilist_score_type", "POINT_10")
-
-    fun mangabakaScoreType() = this.preferenceStore.getString("mangabaka_score_type", "STEP_1")
-
-    fun mangabakaCodeVerifier() = this.preferenceStore.getString("mangabaka_code_verifier", "")
 
     fun dateFormat(
         format: String = this.preferenceStore.getString(Keys.dateFormat, "").get()
@@ -121,30 +81,7 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
 
     fun openLinksInBrowser() = this.preferenceStore.getBoolean(Keys.openLinksInBrowser, false)
 
-    fun downloadOnlyOverUnmetered() =
-        this.preferenceStore.getBoolean("pref_download_only_over_wifi_key", true)
-
     fun removeAfterReadSlots() = this.preferenceStore.getInt(Keys.removeAfterReadSlots, -1)
-
-    fun removeAfterMarkedAsRead() =
-        this.preferenceStore.getBoolean("pref_remove_after_marked_as_read_key", false)
-
-    fun saveChaptersAsCBZ() = this.preferenceStore.getBoolean("save_chapter_as_cbz", true)
-
-    fun downloadNewChapters() = this.preferenceStore.getBoolean("download_new")
-
-    fun downloadNewChaptersInCategories() =
-        this.preferenceStore.getStringSet("download_new_categories")
-
-    fun excludeCategoriesInDownloadNew() =
-        this.preferenceStore.getStringSet("download_new_categories_exclude")
-
-    fun autoDownloadWhileReading() = this.preferenceStore.getInt("auto_download_while_reading", 0)
-
-    fun swipeRefreshFeedScreen() =
-        this.preferenceStore.getBoolean("swipe_refresh_feed_screen_enabled", true)
-
-    fun sortFetchedTime() = this.preferenceStore.getBoolean("sort_fetched_time", false)
 
     fun groupChaptersUpdates() = this.preferenceStore.getBoolean(Keys.groupChaptersUpdates, false)
 
@@ -176,22 +113,13 @@ class PreferencesHelper(val context: Context, val preferenceStore: PreferenceSto
             deserializer = SideNavMode::fromInt,
         )
 
-    fun autoTrackContentRatingSelections() =
-        this.preferenceStore.getStringSet(
-            "auto_track_content_rating_options",
-            setOf(
-                MdConstants.ContentRating.safe,
-                MdConstants.ContentRating.suggestive,
-                MdConstants.ContentRating.erotica,
-                MdConstants.ContentRating.pornographic,
-            ),
-        )
+    fun outlineOnCovers() = this.preferenceStore.getBoolean("outline_on_covers", true)
 
-    fun autoAddTracker() =
-        this.preferenceStore.getStringSet(
-            Keys.autoAddTracker,
-            setOf(TrackManager.MDLIST.toString()),
+    fun chapterScanlatorFilterOption() =
+        this.preferenceStore.getObjectFromInt(
+            key = "chapter_scanlator_filter_option",
+            defaultValue = ScanlatorFilterOption.ANY,
+            serializer = { it.value },
+            deserializer = { i -> ScanlatorFilterOption.fromInt(i) },
         )
-
-    fun developerMode() = this.preferenceStore.getBoolean("developer_mode", false)
 }

@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,13 +26,12 @@ import androidx.compose.ui.unit.dp
 import org.nekomanga.R
 import org.nekomanga.presentation.components.AppBar
 import org.nekomanga.presentation.components.AppBarActions
-import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.functions.getTopAppBarColor
 import org.nekomanga.presentation.theme.Size
 
 /**
- * The Browse top bar: a search bar that opens the search filters, then Follows (when logged in) and
- * the main menu. Away from the home page, the search bar's back arrow returns to it.
+ * The Browse top bar: a search bar that opens the search filters, then the main menu. Away from the
+ * home page, the search bar's back arrow returns to it.
  */
 @Composable
 fun BrowseScreenTopBar(
@@ -43,7 +40,6 @@ fun BrowseScreenTopBar(
     mainDropDown: AppBar.MainDropdown,
     searchClick: () -> Unit,
     homeClick: () -> Unit,
-    followsClick: () -> Unit,
 ) {
     val (color, _, _) = getTopAppBarColor(true, false)
     val screenType = browseScreenState.screenType
@@ -54,7 +50,6 @@ fun BrowseScreenTopBar(
             BrowseSearchBar(
                 text =
                     when (screenType) {
-                        BrowseScreenType.Follows -> stringResource(R.string.follows)
                         BrowseScreenType.Filter ->
                             browseScreenState.filters.query.text.ifBlank {
                                 stringResource(R.string.search_results)
@@ -66,28 +61,7 @@ fun BrowseScreenTopBar(
                 homeClick = homeClick,
             )
         },
-        actions = {
-            AppBarActions(
-                actions =
-                    buildList {
-                        if (browseScreenState.isLoggedIn) {
-                            add(
-                                AppBar.Action(
-                                    title = UiText.StringResource(R.string.follows),
-                                    icon =
-                                        if (screenType == BrowseScreenType.Follows) {
-                                            Icons.Filled.Bookmarks
-                                        } else {
-                                            Icons.Outlined.Bookmarks
-                                        },
-                                    onClick = followsClick,
-                                )
-                            )
-                        }
-                        add(mainDropDown)
-                    }
-            )
-        },
+        actions = { AppBarActions(actions = listOf(mainDropDown)) },
         colors =
             TopAppBarDefaults.topAppBarColors(
                 containerColor = color,

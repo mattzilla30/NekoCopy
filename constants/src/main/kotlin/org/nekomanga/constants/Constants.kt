@@ -2,17 +2,11 @@ package org.nekomanga.constants
 
 object Constants {
 
-    const val SEARCH_DEBOUNCE_MILLIS = 250L
-
     const val USER_AGENT =
         "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Chrome/142.0.7444.49 Mobile Safari/537.36"
 
-    const val DONT_KILL_MY_APP_URL = "https://dontkillmyapp.com/"
-
     const val NO_GROUP = "No Group"
-
-    const val TRACKER_SEARCH_ID_PREFIX = "id:"
 
     const val SEPARATOR = " · "
 
@@ -21,6 +15,5 @@ object Constants {
 
     const val ALT_TITLES_SEPARATOR = "|~|"
 
-    const val TMP_DIR_SUFFIX = "_tmp"
     const val TMP_FILE_SUFFIX = ".tmp"
 }

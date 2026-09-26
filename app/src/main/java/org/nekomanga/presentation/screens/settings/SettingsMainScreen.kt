@@ -12,11 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ChromeReaderMode
-import androidx.compose.material.icons.outlined.Autorenew
-import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.CollectionsBookmark
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Public
@@ -38,7 +34,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
 import eu.kanade.tachiyomi.ui.setting.SettingsScreenType
-import org.nekomanga.BuildConfig
 import org.nekomanga.R
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.listcard.ExpressiveListCard
@@ -49,14 +44,11 @@ import org.nekomanga.presentation.screens.Screens
 import org.nekomanga.presentation.screens.settings.screens.AdvancedSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.AppearanceSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.DataStorageSettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.DownloadSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.GeneralSettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.LibrarySettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.MangaDexSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.ReaderSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.SearchableSettings
 import org.nekomanga.presentation.screens.settings.screens.SecuritySettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.TrackingSettingsScreen
 import org.nekomanga.presentation.screens.settings.widgets.SearchTerm
 import org.nekomanga.presentation.screens.settings.widgets.TextPreferenceWidget
 import org.nekomanga.presentation.theme.Size
@@ -66,7 +58,6 @@ fun SettingsMainScreen(
     onNavigateClick: (NavKey) -> Unit,
     onNavigationIconClick: () -> Unit,
     incognitoMode: Boolean,
-    developerMode: Boolean = false,
     selectedScreen: NavKey? = null,
 ) {
 
@@ -94,13 +85,10 @@ fun SettingsMainScreen(
                         SettingsScreenType.Advanced -> Screens.Settings.Advanced
                         SettingsScreenType.Appearance -> Screens.Settings.Appearance
                         SettingsScreenType.DataAndStorage -> Screens.Settings.DataStorage
-                        SettingsScreenType.Downloads -> Screens.Settings.Downloads
                         SettingsScreenType.General -> Screens.Settings.General
-                        SettingsScreenType.Library -> Screens.Settings.Library
                         SettingsScreenType.MangaDex -> Screens.Settings.MangaDex
                         SettingsScreenType.Reader -> Screens.Settings.Reader
                         SettingsScreenType.Security -> Screens.Settings.Security
-                        SettingsScreenType.Tracking -> Screens.Settings.Tracking
                     }
                 onNavigateClick(route)
             }
@@ -108,7 +96,6 @@ fun SettingsMainScreen(
             mainContent(
                 contentPadding = contentPadding,
                 onNavigateClick = onNavigateClick,
-                developerMode = developerMode,
                 selectedScreen = selectedScreen,
             )
         }
@@ -119,11 +106,10 @@ fun SettingsMainScreen(
 private fun mainContent(
     contentPadding: PaddingValues,
     onNavigateClick: (NavKey) -> Unit,
-    developerMode: Boolean,
     selectedScreen: NavKey?,
 ) {
     val menuItems =
-        remember(selectedScreen, developerMode) {
+        remember(selectedScreen) {
             buildList {
                 add(
                     SettingsMenuItem(
@@ -139,16 +125,6 @@ private fun mainContent(
                         icon = Icons.Outlined.Palette,
                         isSelected = selectedScreen == Screens.Settings.Appearance,
                         onClick = { onNavigateClick(Screens.Settings.Appearance) },
-                    )
-                )
-                add(
-                    SettingsMenuItem(
-                        labelText = UiText.StringResource(R.string.library),
-                        icon = Icons.Outlined.CollectionsBookmark,
-                        isSelected =
-                            selectedScreen == Screens.Settings.Library ||
-                                selectedScreen == Screens.Settings.Categories,
-                        onClick = { onNavigateClick(Screens.Settings.Library) },
                     )
                 )
                 add(
@@ -177,22 +153,6 @@ private fun mainContent(
                 )
                 add(
                     SettingsMenuItem(
-                        labelText = UiText.StringResource(R.string.downloads),
-                        icon = Icons.Outlined.Download,
-                        isSelected = selectedScreen == Screens.Settings.Downloads,
-                        onClick = { onNavigateClick(Screens.Settings.Downloads) },
-                    )
-                )
-                add(
-                    SettingsMenuItem(
-                        labelText = UiText.StringResource(R.string.tracking),
-                        icon = Icons.Outlined.Autorenew,
-                        isSelected = selectedScreen == Screens.Settings.Tracking,
-                        onClick = { onNavigateClick(Screens.Settings.Tracking) },
-                    )
-                )
-                add(
-                    SettingsMenuItem(
                         labelText = UiText.StringResource(R.string.security),
                         icon = Icons.Outlined.Security,
                         isSelected = selectedScreen == Screens.Settings.Security,
@@ -207,16 +167,6 @@ private fun mainContent(
                         onClick = { onNavigateClick(Screens.Settings.Advanced) },
                     )
                 )
-                if (BuildConfig.DEBUG || developerMode) {
-                    add(
-                        SettingsMenuItem(
-                            labelText = UiText.StringResource(R.string.debug),
-                            icon = Icons.Outlined.BugReport,
-                            isSelected = selectedScreen == Screens.Settings.Debug,
-                            onClick = { onNavigateClick(Screens.Settings.Debug) },
-                        )
-                    )
-                }
             }
         }
 
@@ -341,11 +291,6 @@ private fun searchTerms() =
             contents = AppearanceSettingsScreen.getSearchTerms(),
         ),
         SettingsData(
-            settingScreenType = SettingsScreenType.Library,
-            settingsStringTitle = stringResource(R.string.library),
-            contents = LibrarySettingsScreen.getSearchTerms(),
-        ),
-        SettingsData(
             settingScreenType = SettingsScreenType.DataAndStorage,
             settingsStringTitle = stringResource(R.string.data_storage),
             contents = DataStorageSettingsScreen.getSearchTerms(),
@@ -359,16 +304,6 @@ private fun searchTerms() =
             settingScreenType = SettingsScreenType.Reader,
             settingsStringTitle = stringResource(R.string.reader_settings),
             contents = ReaderSettingsScreen.getSearchTerms(),
-        ),
-        SettingsData(
-            settingScreenType = SettingsScreenType.Downloads,
-            settingsStringTitle = stringResource(R.string.downloads),
-            contents = DownloadSettingsScreen.getSearchTerms(),
-        ),
-        SettingsData(
-            settingScreenType = SettingsScreenType.Tracking,
-            settingsStringTitle = stringResource(R.string.tracking),
-            contents = TrackingSettingsScreen.getSearchTerms(),
         ),
         SettingsData(
             settingScreenType = SettingsScreenType.Security,

@@ -18,7 +18,6 @@ import eu.kanade.tachiyomi.ui.manga.MangaConstants
 import eu.kanade.tachiyomi.util.system.getActivity
 import org.nekomanga.R
 import org.nekomanga.domain.details.MangaDetailsPreferences
-import org.nekomanga.domain.library.LibraryPreferences
 import org.nekomanga.presentation.components.theme.ThemeFollowSystemSwitch
 import org.nekomanga.presentation.components.theme.ThemeSelector
 import org.nekomanga.presentation.extensions.collectAsState
@@ -29,7 +28,6 @@ import org.nekomanga.presentation.theme.Size
 internal class AppearanceSettingsScreen(
     incognitoMode: Boolean,
     val mangaDetailsPreferences: MangaDetailsPreferences,
-    val libraryPreferences: LibraryPreferences,
     val preferences: PreferencesHelper,
     onNavigationIconClick: (() -> Unit)?,
 ) : SearchableSettings(onNavigationIconClick, incognitoMode) {
@@ -158,7 +156,6 @@ internal class AppearanceSettingsScreen(
             MangaConstants.ChapterSwipeAction.ToggleRead to stringResource(R.string.mark_as_read),
             MangaConstants.ChapterSwipeAction.ToggleBookmark to
                 stringResource(R.string.add_bookmark),
-            MangaConstants.ChapterSwipeAction.Download to stringResource(R.string.download),
         )
     }
 

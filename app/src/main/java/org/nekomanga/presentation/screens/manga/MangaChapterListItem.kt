@@ -43,7 +43,6 @@ fun MangaChapterListItem(
             onRead = onRead,
             onWebView = chapterActions.openInWebView,
             onComment = chapterActions.openComment,
-            onDownload = chapterActions.download,
             markPrevious = chapterActions.markPrevious,
             blockScanlator = chapterActions.blockScanlator,
             swipeRightAction = swipeRightAction,

@@ -10,7 +10,6 @@ import com.skydoves.sandwich.getOrNull
 import com.skydoves.sandwich.mapSuccess
 import eu.kanade.tachiyomi.data.database.models.ScanlatorGroup
 import eu.kanade.tachiyomi.data.database.models.SourceArtwork
-import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.database.models.Uploader
 import eu.kanade.tachiyomi.source.MangaDetailChapterInformation
 import eu.kanade.tachiyomi.source.model.MangaListPage
@@ -19,8 +18,6 @@ import eu.kanade.tachiyomi.source.model.ResultListPage
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.uuid
-import eu.kanade.tachiyomi.source.online.handlers.FeedUpdatesHandler
-import eu.kanade.tachiyomi.source.online.handlers.FollowsHandler
 import eu.kanade.tachiyomi.source.online.handlers.ImageHandler
 import eu.kanade.tachiyomi.source.online.handlers.LatestChapterHandler
 import eu.kanade.tachiyomi.source.online.handlers.ListHandler
@@ -29,7 +26,6 @@ import eu.kanade.tachiyomi.source.online.handlers.MangaHandler
 import eu.kanade.tachiyomi.source.online.handlers.PageHandler
 import eu.kanade.tachiyomi.source.online.handlers.SearchHandler
 import eu.kanade.tachiyomi.source.online.models.dto.AggregateDto
-import eu.kanade.tachiyomi.source.online.utils.FollowStatus
 import eu.kanade.tachiyomi.source.online.utils.toSourceManga
 import eu.kanade.tachiyomi.ui.source.latest.DisplayScreenType
 import eu.kanade.tachiyomi.util.getOrResultError
@@ -52,8 +48,6 @@ open class MangaDex : HttpSource() {
 
     private val mangaDexPreferences: MangaDexPreferences by injectLazy()
 
-    private val followsHandler: FollowsHandler by injectLazy()
-
     private val mangaHandler: MangaHandler by injectLazy()
 
     private val searchHandler: SearchHandler by injectLazy()
@@ -64,15 +58,7 @@ open class MangaDex : HttpSource() {
 
     private val imageHandler: ImageHandler by injectLazy()
 
-    private val loginHelper: MangaDexLoginHelper by injectLazy()
-
     private val latestChapterHandler: LatestChapterHandler by injectLazy()
-
-    private val feedUpdatesHandler: FeedUpdatesHandler by injectLazy()
-
-    suspend fun updateFollowStatus(mangaID: String, followStatus: FollowStatus): Boolean {
-        return followsHandler.updateFollowStatus(mangaID, followStatus)
-    }
 
     suspend fun getRandomManga(): Result<SourceManga, ResultError> {
         return withIOContext {
@@ -152,7 +138,7 @@ open class MangaDex : HttpSource() {
 
     suspend fun getUploader(uploader: String): Result<Uploader, ResultError> {
         return withIOContext {
-            networkServices.authService
+            networkServices.service
                 .uploader(uploader)
                 .getOrResultError("Trying to get uploader")
                 .andThen { userListDto ->
@@ -227,24 +213,6 @@ open class MangaDex : HttpSource() {
                     }
                 }
 
-                val latestFeed = async {
-                    if (!loginHelper.isLoggedIn()) return@async Ok(null)
-                    feedUpdatesHandler
-                        .getPage(
-                            blockedGroupUUIDs = blockedGroupUUIDs,
-                            blockedUploaderUUIDs = blockedUploaderUUIDs,
-                            limit = MdConstants.Limits.latestSmaller,
-                        )
-                        .andThen { mangaListPage ->
-                            Ok(
-                                ListResults(
-                                    displayScreenType = DisplayScreenType.FeedUpdates,
-                                    sourceManga = mangaListPage.sourceManga,
-                                )
-                            )
-                        }
-                }
-
                 val latestChapter = async {
                     latestChapterHandler
                         .getPage(
@@ -274,7 +242,6 @@ open class MangaDex : HttpSource() {
                 }
 
                 listOfNotNull(
-                    latestFeed.await(),
                     popularNewTitles.await(),
                     latestChapter.await(),
                     seasonal.await(),
@@ -299,14 +266,6 @@ open class MangaDex : HttpSource() {
         blockedUploaderUUIDs: List<String>,
     ): Result<MangaListPage, ResultError> {
         return latestChapterHandler.getPage(page, blockedGroupUUIDs, blockedUploaderUUIDs)
-    }
-
-    suspend fun feedUpdates(
-        page: Int,
-        blockedGroupUUIDs: List<String>,
-        blockedUploaderUUIDs: List<String>,
-    ): Result<MangaListPage, ResultError> {
-        return feedUpdatesHandler.getPage(page, blockedGroupUUIDs, blockedUploaderUUIDs)
     }
 
     suspend fun getMangaDetails(
@@ -347,26 +306,7 @@ open class MangaDex : HttpSource() {
     }
 
     override suspend fun getImage(page: Page): Response {
-        return imageHandler.getImage(page, loginHelper.isLoggedIn())
-    }
-
-    suspend fun fetchAllFollows(): Result<List<SourceManga>, ResultError> {
-        return followsHandler.fetchAllFollows()
-    }
-
-    open suspend fun updateReadingProgress(track: Track): Boolean {
-        return followsHandler.updateReadingProgress(track)
-    }
-
-    open suspend fun updateRating(track: Track): Boolean {
-        return followsHandler.updateRating(track)
-    }
-
-    suspend fun fetchTrackingInfo(url: String): Track {
-        if (!loginHelper.isLoggedIn()) {
-            throw Exception("Not Logged in to MangaDex")
-        }
-        return followsHandler.fetchTrackingInfo(url)
+        return imageHandler.getImage(page)
     }
 
     suspend fun checkIfUp(): Boolean {

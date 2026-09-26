@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation3.runtime.NavKey
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.util.manga.MangaCoverMetadata
 import eu.kanade.tachiyomi.util.manga.MangaShortcutManager
@@ -25,8 +24,6 @@ class MainActivityViewModel : ViewModel() {
 
     private val _deepLinkScreen = MutableStateFlow<List<NavKey>?>(null)
     val deepLinkScreen: StateFlow<List<NavKey>?> = _deepLinkScreen.asStateFlow()
-
-    val downloadManager: DownloadManager by injectLazy()
 
     fun setDeepLink(screens: List<NavKey>) {
         _deepLinkScreen.value = screens

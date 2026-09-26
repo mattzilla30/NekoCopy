@@ -34,8 +34,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import eu.kanade.tachiyomi.data.database.models.Chapter
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.ui.reader.domain.ResolveChapterTransitionUiModelUseCase
 import eu.kanade.tachiyomi.ui.reader.loader.ReaderPreloadController
 import eu.kanade.tachiyomi.ui.reader.model.ChapterNavTarget
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
@@ -438,7 +436,6 @@ fun ComposeWebtoonViewer(
     viewer: WebtoonViewerState,
     items: List<ReaderUiItem>,
     manga: MangaItem?,
-    downloadManager: DownloadManager,
     onPageSelected: (ReaderPage) -> Unit,
     onTransitionSelected: (ChapterTransition) -> Unit,
     onRetryTransition: (ReaderChapter) -> Unit,
@@ -538,13 +535,11 @@ fun ComposeWebtoonViewer(
         viewer.requestedScrollDelta = null
     }
 
-    val transitionResolver =
-        remember(downloadManager) { ResolveChapterTransitionUiModelUseCase(downloadManager) }
     val enrichedItems =
-        remember(items, manga, transitionResolver) {
+        remember(items) {
             items.map { item ->
                 if (item is ReaderUiItem.Transition && item.transitionUiModel == null) {
-                    item.copy(transitionUiModel = transitionResolver(item.transition, manga))
+                    item.copy(transitionUiModel = ChapterTransitionUiModel.from(item.transition))
                 } else {
                     item
                 }

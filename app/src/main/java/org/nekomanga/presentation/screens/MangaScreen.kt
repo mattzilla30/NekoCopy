@@ -47,13 +47,11 @@ import eu.kanade.tachiyomi.data.database.models.uuid
 import eu.kanade.tachiyomi.ui.main.ObserveAsEvents
 import eu.kanade.tachiyomi.ui.main.states.RefreshState
 import eu.kanade.tachiyomi.ui.manga.MangaConstants
-import eu.kanade.tachiyomi.ui.manga.MangaConstants.CategoryActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.ChapterActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.ChapterFilterActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.CoverActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.DescriptionActions
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.InformationActions
-import eu.kanade.tachiyomi.ui.manga.MangaConstants.TrackActions
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.source.latest.DisplayScreenType
@@ -66,7 +64,6 @@ import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.sharedCacheDir
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.withUIContext
-import java.text.DateFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.nekomanga.R
@@ -78,7 +75,6 @@ import org.nekomanga.presentation.components.NekoColors
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.VerticalDivider
 import org.nekomanga.presentation.components.VerticalFastScroller
-import org.nekomanga.presentation.components.dialog.RemovedChaptersDialog
 import org.nekomanga.presentation.components.dynamicTextSelectionColor
 import org.nekomanga.presentation.components.nekoRippleConfiguration
 import org.nekomanga.presentation.components.scaffold.ChildScreenScaffold
@@ -102,7 +98,6 @@ fun MangaScreen(
     windowSizeClass: WindowSizeClass,
     onBackPressed: () -> Unit,
     onNavigate: (NavKey) -> Unit,
-    onSearchLibrary: (String) -> Unit,
     onSearchMangaDex: (DisplayScreenType) -> Unit,
 ) {
 
@@ -151,13 +146,6 @@ fun MangaScreen(
                 snackbarColor = screenState.general.snackbarColor,
             )
         },
-        categoryActions =
-            CategoryActions(
-                set = { enabledCategories ->
-                    mangaViewModel.updateMangaCategories(enabledCategories)
-                },
-                addNew = { newCategory -> mangaViewModel.addNewCategory(newCategory) },
-            ),
         informationActions =
             InformationActions(
                 titleLongClick = {
@@ -177,7 +165,6 @@ fun MangaScreen(
                 genreSearch = { text ->
                     onSearchMangaDex(DisplayScreenType.Tag(UiText.String(text)))
                 },
-                genreSearchLibrary = onSearchLibrary,
                 altTitleClick = mangaViewModel::setAltTitle,
                 altTitleResetClick = { mangaViewModel.setAltTitle(null) },
             ),
@@ -191,28 +178,6 @@ fun MangaScreen(
                 }
             }
         },
-        onToggleFavorite = mangaViewModel::toggleFavorite,
-        dateFormat = remember { mangaViewModel.getDateFormat() },
-        trackActions =
-            TrackActions(
-                statusChange = { statusIndex, trackAndService ->
-                    mangaViewModel.updateTrackStatus(statusIndex, trackAndService)
-                },
-                scoreChange = { statusIndex, trackAndService ->
-                    mangaViewModel.updateTrackScore(statusIndex, trackAndService)
-                },
-                chapterChange = { newChapterNumber, trackAndService ->
-                    mangaViewModel.updateTrackChapter(newChapterNumber, trackAndService)
-                },
-                search = { title, service -> mangaViewModel.searchTracker(title, service) },
-                searchItemClick = { trackAndService ->
-                    mangaViewModel.registerTracking(trackAndService)
-                },
-                remove = { alsoRemoveFromTracker, service ->
-                    mangaViewModel.removeTracking(alsoRemoveFromTracker, service)
-                },
-                dateChange = { trackDateChange -> mangaViewModel.updateTrackDate(trackDateChange) },
-            ),
         onSimilarClick = { onNavigate(Screens.Similar(mangaViewModel.getManga().uuid())) },
         onShareClick = {
             scope.launch {
@@ -296,22 +261,6 @@ fun MangaScreen(
         chapterActions =
             ChapterActions(
                 mark = mangaViewModel::markChapters,
-                download = { chapterItems, downloadAction ->
-                    if (
-                        chapterItems.size == 1 &&
-                            MdConstants.UnsupportedOfficialGroupList.contains(
-                                chapterItems[0].chapter.scanlator
-                            )
-                    ) {
-                        context.toast(
-                            "${chapterItems[0].chapter.scanlator} not supported, try WebView"
-                        )
-                    } else {
-                        mangaViewModel.downloadChapters(chapterItems, downloadAction)
-                    }
-                },
-                delete = mangaViewModel::deleteChapters,
-                clearRemoved = mangaViewModel::clearRemovedChapters,
                 openNext = {
                     mangaViewModel.mangaDetailScreenState.value.chapters.nextUnreadChapter
                         .simpleChapter
@@ -325,9 +274,7 @@ fun MangaScreen(
                                     )
                             ) {
                                 context.toast("${chapter.scanlator} not supported, try WebView")
-                            } else if (
-                                !chapter.isAvailable(mangaViewModel.downloadManager, manga)
-                            ) {
+                            } else if (!chapter.isAvailable()) {
                                 context.toast("Chapter is not available")
                             } else {
                                 context.startActivity(
@@ -344,7 +291,7 @@ fun MangaScreen(
                             MdConstants.UnsupportedOfficialGroupList.contains(chapter.scanlator)
                     ) {
                         context.toast("${chapter.scanlator} not supported, try WebView")
-                    } else if (!chapter.isAvailable(mangaViewModel.downloadManager, manga)) {
+                    } else if (!chapter.isAvailable()) {
                         context.toast("Chapter is not available")
                     } else {
                         context.startActivity(ReaderActivity.newIntent(context, manga, chapter))
@@ -352,7 +299,6 @@ fun MangaScreen(
                 },
                 blockScanlator = mangaViewModel::blockScanlator,
                 openComment = { chapterId -> mangaViewModel.openComment(context, chapterId) },
-                createMangaFolder = mangaViewModel::createMangaFolder,
                 openInWebView = { chapterItem ->
                     if (chapterItem.chapter.isUnavailable) {
                         context.toast("Chapter is not available")
@@ -377,10 +323,6 @@ private fun MangaScreenWrapper(
     openWebView: (String, String) -> Unit,
     generatePalette: (Drawable) -> Unit,
     updateSnackbarColor: (SnackbarColor) -> Unit,
-    onToggleFavorite: (Boolean) -> Unit,
-    categoryActions: CategoryActions,
-    dateFormat: DateFormat,
-    trackActions: TrackActions,
     onSimilarClick: () -> Unit,
     coverActions: CoverActions,
     onShareClick: () -> Unit,
@@ -414,9 +356,6 @@ private fun MangaScreenWrapper(
             currentScreen = sheet,
             themeColorState = themeColorState,
             mangaDetailScreenState = screenState,
-            addNewCategory = categoryActions.addNew,
-            dateFormat = dateFormat,
-            trackActions = trackActions,
             coverActions = coverActions,
             chapterFilterActions = chapterFilterActions,
             openInWebView = { url, title -> openWebView(url, title) },
@@ -429,33 +368,6 @@ private fun MangaScreenWrapper(
     val isTablet =
         windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded &&
             !screenState.general.forcePortrait
-
-    val onToggleFavoriteAction =
-        remember(
-            screenState.manga.inLibrary,
-            screenState.category.allCategories,
-            screenState.general.hasDefaultCategory,
-        ) {
-            {
-                if (
-                    !screenState.manga.inLibrary && screenState.category.allCategories.isNotEmpty()
-                ) {
-                    if (screenState.general.hasDefaultCategory) {
-                        onToggleFavorite(true)
-                    } else {
-                        sheets.open(
-                            DetailsBottomSheetScreen.CategoriesSheet(
-                                addingToLibrary = true,
-                                setCategories = categoryActions.set,
-                                addToLibraryClick = { onToggleFavorite(false) },
-                            )
-                        )
-                    }
-                } else {
-                    onToggleFavorite(false)
-                }
-            }
-        }
 
     var isInitialized by remember { mutableStateOf(false) }
 
@@ -520,18 +432,8 @@ private fun MangaScreenWrapper(
                 mangaDetailScreenState = screenState,
                 isInitialized = isInitialized,
                 windowSizeClass = windowSizeClass,
-                isLoggedIntoTrackers = screenState.track.loggedInTrackService.isNotEmpty(),
                 themeColorState = themeColorState,
                 generatePalette = generatePalette,
-                toggleFavorite = onToggleFavoriteAction,
-                onCategoriesClick = {
-                    sheets.open(
-                        DetailsBottomSheetScreen.CategoriesSheet(
-                            setCategories = categoryActions.set
-                        )
-                    )
-                },
-                onTrackingClick = { sheets.open(DetailsBottomSheetScreen.TrackingSheet) },
                 onArtworkClick = { sheets.open(DetailsBottomSheetScreen.ArtworkSheet) },
                 onSimilarClick = onSimilarClick,
                 onLinksClick = { sheets.open(DetailsBottomSheetScreen.ExternalLinksSheet) },
@@ -560,18 +462,6 @@ private fun MangaScreenWrapper(
             SideBySideLayout(contentPadding, themeColorState, header, chapters)
         } else {
             VerticalLayout(contentPadding, themeColorState, header, chapters)
-        }
-
-        if (screenState.general.removedChapters.isNotEmpty()) {
-            RemovedChaptersDialog(
-                themeColorState = themeColorState,
-                chapters = screenState.general.removedChapters,
-                onConfirm = {
-                    chapterActions.delete(screenState.general.removedChapters)
-                    chapterActions.clearRemoved()
-                },
-                onDismiss = { chapterActions.clearRemoved() },
-            )
         }
     }
 }

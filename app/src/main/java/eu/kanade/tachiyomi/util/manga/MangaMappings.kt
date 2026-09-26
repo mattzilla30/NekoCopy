@@ -88,12 +88,6 @@ class MangaMappings(context: Context) {
         return queryByMangadexId("SELECT $column FROM mappings WHERE mdex = ?", id)
     }
 
-    fun getMuNewForMuID(id: String): String? =
-        queryString(
-            "SELECT mu_new FROM mappings WHERE mu = ? AND mu_new IS NOT NULL ORDER BY mdex LIMIT 1",
-            id,
-        )
-
     fun getMbId(id: String): String? =
         queryByMangadexId("SELECT mb FROM mappings WHERE mdex = ?", id)
 

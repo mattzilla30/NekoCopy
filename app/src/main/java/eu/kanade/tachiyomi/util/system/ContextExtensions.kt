@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.util.system
 
-import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
@@ -12,8 +11,6 @@ import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
-import android.os.PowerManager
-import android.provider.Settings
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.AttrRes
@@ -27,16 +24,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.content.res.use
 import androidx.core.net.toUri
-import androidx.work.CoroutineWorker
-import androidx.work.WorkManager
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.lang.orUnknownError
-import java.io.File
-import kotlin.math.max
 import org.nekomanga.R
 import org.nekomanga.constants.MdConstants
-import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.components.UiText
 
 /**
@@ -150,9 +142,6 @@ val Resources.isLTR
 
 fun Context.isTablet() = resources.configuration.smallestScreenWidthDp >= 600
 
-val displayMaxHeightInPx: Int
-    get() = Resources.getSystem().displayMetrics.let { max(it.heightPixels, it.widthPixels) }
-
 /**
  * Helper method to create a notification builder.
  *
@@ -186,9 +175,6 @@ val Context.connectivityManager: ConnectivityManager
     get() = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
 /** Property to get the power manager from the context. */
-val Context.powerManager: PowerManager
-    get() = getSystemService()!!
-
 fun Context.defaultBrowserPackageName(): String? {
     val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://"))
     return packageManager
@@ -201,22 +187,6 @@ fun Context.defaultBrowserPackageName(): String? {
 fun Context.openInWebView(url: String, title: String = "") {
     val intent = WebViewActivity.newIntent(this.applicationContext, url, title)
     startActivity(intent)
-}
-
-fun Context.openInFirefox(url: String) {
-    val uri = url.toUri()
-    try {
-        val intent =
-            Intent().apply {
-                setPackage("org.mozilla.firefox")
-                action = Intent.ACTION_VIEW
-                data = uri
-            }
-        startActivity(intent)
-    } catch (e: Exception) {
-        toast(e.message.orUnknownError(this))
-        openInBrowser(uri)
-    }
 }
 
 fun Context.openInBrowser(url: String, forceDefaultBrowser: Boolean = false) {
@@ -258,55 +228,6 @@ fun Context.getActivity(): AppCompatActivity? {
     return null
 }
 
-fun Context.isBackgroundDataRestricted(): Boolean {
-    val connectivityManager = getSystemService(ConnectivityManager::class.java)
-    return when (connectivityManager.restrictBackgroundStatus) {
-        // Data Saver is ON and this app is NOT whitelisted. Background jobs will fail.
-        ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED -> true
-        // Data Saver is ON, but the user explicitly exempted this app. Safe to proceed.
-        ConnectivityManager.RESTRICT_BACKGROUND_STATUS_WHITELISTED -> false
-        // Data Saver is completely OFF. Safe to proceed.
-        ConnectivityManager.RESTRICT_BACKGROUND_STATUS_DISABLED -> false
-        else -> false
-    }
-}
-
-fun Context.openDataSaverSettings() {
-    try {
-        val intent =
-            Intent(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS).apply {
-                data = "package:$packageName".toUri()
-            }
-        startActivity(intent)
-    } catch (e: Exception) {
-        // Fallback to standard network settings if the device manufacturer
-        // heavily modified the Android OS and removed this specific screen.
-        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS))
-    }
-}
-
-suspend fun CoroutineWorker.tryToSetForeground() {
-    try {
-        setForeground(getForegroundInfo())
-        TimberKt.i { "Successfully set foreground info" }
-    } catch (e: Exception) {
-        if (e is ForegroundServiceStartNotAllowedException) {
-            // On Android 12+, if the app is in the background, we are not allowed to
-            // start a foreground service. We swallow this exception so the worker
-            // continues execution as a standard background job (without a notification).
-            TimberKt.w {
-                "App in background; failed to promote to foreground service. Continuing as background worker."
-            }
-        } else {
-            // Log other errors (like IllegalStateException) but don't crash
-            TimberKt.e(e) { "Failed to set foreground job" }
-        }
-    }
-}
-
-fun WorkManager.jobIsRunning(tag: String): Boolean =
-    getWorkInfosForUniqueWork(tag).get().let { list -> list.any { !it.state.isFinished } }
-
 fun Context.appDelegateNightMode(): Int {
     return if (isInNightMode()) {
         AppCompatDelegate.MODE_NIGHT_YES
@@ -321,15 +242,6 @@ fun Context.isOnline(): Boolean {
     return (NetworkCapabilities.TRANSPORT_CELLULAR..NetworkCapabilities.TRANSPORT_LOWPAN).any(
         actNw::hasTransport
     )
-}
-
-fun Context.createFileInCacheDir(name: String): File {
-    val file = File(externalCacheDir, name)
-    if (file.exists()) {
-        file.delete()
-    }
-    file.createNewFile()
-    return file
 }
 
 fun Context.sharedCacheDir(): UniFile? {

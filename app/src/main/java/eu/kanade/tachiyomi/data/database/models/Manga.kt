@@ -24,7 +24,6 @@ import eu.kanade.tachiyomi.util.manga.MangaMappings
 import eu.kanade.tachiyomi.util.system.toMangaCacheKey
 import java.util.Locale
 import org.nekomanga.constants.Constants.ALT_TITLES_SEPARATOR
-import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.domain.details.MangaDetailsPreferences
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -106,10 +105,6 @@ interface Manga : SManga {
     fun readFilter(mangaDetailsPreferences: MangaDetailsPreferences): Int =
         if (usesLocalFilter) readFilter else mangaDetailsPreferences.filterChapterByRead().get()
 
-    fun downloadedFilter(mangaDetailsPreferences: MangaDetailsPreferences): Int =
-        if (usesLocalFilter) downloadedFilter
-        else mangaDetailsPreferences.filterChapterByDownloaded().get()
-
     fun bookmarkedFilter(mangaDetailsPreferences: MangaDetailsPreferences): Int =
         if (usesLocalFilter) bookmarkedFilter
         else mangaDetailsPreferences.filterChapterByBookmarked().get()
@@ -138,17 +133,6 @@ interface Manga : SManga {
             ?.substringAfter("Content rating: ")
     }
 
-    /** The type of comic the manga is (ie. manga, manhwa, manhua) */
-    fun seriesType(): Int {
-        // lump everything as manga if not manhua or manhwa
-        return when (lang_flag) {
-            "ko" -> TYPE_MANHWA
-            "zh" -> TYPE_MANHUA
-            "zh-hk" -> TYPE_MANHUA
-            else -> TYPE_MANGA
-        }
-    }
-
     /**
      * The type the reader should use. Different from manga type as certain manga has different read
      * types
@@ -171,23 +155,6 @@ interface Manga : SManga {
             }
             else -> 0
         }
-    }
-
-    suspend fun isOneShotOrCompleted(
-        chapterRepository: ChapterRepository,
-        chapters: List<Chapter>? = null,
-    ): Boolean {
-        val mangaId = this@Manga.id ?: return false
-        val tags = genre?.split(",")?.map { it.trim().lowercase(Locale.US) }
-        val mangaChapters = chapters ?: chapterRepository.getChaptersForManga(mangaId)
-
-        val firstChapterName by lazy { mangaChapters.firstOrNull()?.name?.lowercase() ?: "" }
-        return status == SManga.COMPLETED ||
-            tags?.contains("oneshot") == true ||
-            mangaChapters.any { it.name.contains("[END]", ignoreCase = true) } ||
-            (mangaChapters.size == 1 &&
-                (Regex("one.?shot").containsMatchIn(firstChapterName) ||
-                    firstChapterName.contains("oneshot")))
     }
 
     fun key(): String {
@@ -254,10 +221,6 @@ interface Manga : SManga {
         get() = chapter_flags and CHAPTER_READ_MASK
         set(filter) = setChapterFlags(filter, CHAPTER_READ_MASK)
 
-    var downloadedFilter: Int
-        get() = chapter_flags and CHAPTER_DOWNLOADED_MASK
-        set(filter) = setChapterFlags(filter, CHAPTER_DOWNLOADED_MASK)
-
     var bookmarkedFilter: Int
         get() = chapter_flags and CHAPTER_BOOKMARKED_MASK
         set(filter) = setChapterFlags(filter, CHAPTER_BOOKMARKED_MASK)
@@ -297,10 +260,6 @@ interface Manga : SManga {
         const val CHAPTER_SHOW_READ = 0x00000004
         const val CHAPTER_READ_MASK = 0x00000006
 
-        const val CHAPTER_SHOW_DOWNLOADED = 0x00000008
-        const val CHAPTER_SHOW_NOT_DOWNLOADED = 0x00000010
-        const val CHAPTER_DOWNLOADED_MASK = 0x00000018
-
         const val CHAPTER_SHOW_BOOKMARKED = 0x00000020
         const val CHAPTER_SHOW_NOT_BOOKMARKED = 0x00000040
         const val CHAPTER_BOOKMARKED_MASK = 0x00000060
@@ -317,10 +276,6 @@ interface Manga : SManga {
         const val CHAPTER_SHOW_UNAVAILABLE = 0x00200000
         const val CHAPTER_SHOW_AVAILABLE = 0x00400000
         const val CHAPTER_UNAVAILABLE_MASK = 0x00600000
-
-        const val TYPE_MANGA = 1
-        const val TYPE_MANHWA = 2
-        const val TYPE_MANHUA = 3
 
         fun create(source: Long): Manga = MangaImpl().apply { this.source = source }
 

@@ -37,13 +37,11 @@ android {
     buildTypes {
         getByName("debug") {
             applicationIdSuffix = ".debug"
-            manifestPlaceholders["mangadexAuthRedirectUri"] = "mangadex-auth-debug"
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
         getByName("release") {
             isShrinkResources = true
             isMinifyEnabled = true
-            manifestPlaceholders["mangadexAuthRedirectUri"] = "mangadex-auth"
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
     }

@@ -10,15 +10,9 @@ object Screens {
 
     @Serializable data object Onboarding : Screen
 
-    @Serializable data class Library(val initialSearch: String = "") : Screen
-
-    @Serializable data object Updates : Screen
-
     @Serializable data object History : Screen
 
     @Serializable data class Loading(val showLoadingIndicator: Boolean) : Screen
-
-    @Serializable data object Stats : Screen
 
     @Serializable data object About : Screen
 
@@ -43,21 +37,11 @@ object Screens {
 
         @Serializable data object Appearance : Screen
 
-        @Serializable data object Categories : Screen
-
-        @Serializable data object Debug : Screen
-
-        @Serializable data object Library : Screen
-
         @Serializable data object DataStorage : Screen
 
         @Serializable data object MangaDex : Screen
 
         @Serializable data object Reader : Screen
-
-        @Serializable data object Downloads : Screen
-
-        @Serializable data object Tracking : Screen
 
         @Serializable data object Security : Screen
 

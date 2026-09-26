@@ -29,7 +29,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import eu.kanade.tachiyomi.data.database.models.Chapter
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.reader.loader.ReaderPreloadController
 import eu.kanade.tachiyomi.ui.reader.model.ChapterNavTarget
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
@@ -57,7 +56,6 @@ fun ComposePagerViewer(
     isRtl: Boolean,
     isVertical: Boolean,
     manga: MangaItem?,
-    downloadManager: DownloadManager,
     onPageSelected: (ReaderPage, Boolean) -> Unit,
     onTransitionSelected: (ChapterTransition) -> Unit,
     onNavigateToChapter: (Chapter, ChapterNavTarget) -> Unit,
@@ -464,7 +462,6 @@ fun ComposePagerViewer(
                         viewer = viewer,
                         item = item,
                         manga = manga,
-                        downloadManager = downloadManager,
                         onRetryTransition = onRetryTransition,
                     )
                 }
@@ -481,7 +478,6 @@ fun ComposePagerViewer(
                         viewer = viewer,
                         item = item,
                         manga = manga,
-                        downloadManager = downloadManager,
                         onRetryTransition = onRetryTransition,
                     )
                 }
@@ -495,7 +491,6 @@ private fun PagerItemContent(
     viewer: PagerViewerState,
     item: ReaderUiItem,
     manga: MangaItem?,
-    downloadManager: DownloadManager,
     onRetryTransition: (ReaderChapter) -> Unit,
 ) {
     when (item) {
@@ -514,7 +509,7 @@ private fun PagerItemContent(
         }
         is ReaderUiItem.Transition -> {
             ReaderTransitionPage(
-                uiModel = rememberChapterTransitionUiModel(item.transition, manga, downloadManager),
+                uiModel = rememberChapterTransitionUiModel(item.transition),
                 onRetry = { item.transition.to?.let(onRetryTransition) },
                 onTap = { pos ->
                     val navigator = viewer.config.navigator

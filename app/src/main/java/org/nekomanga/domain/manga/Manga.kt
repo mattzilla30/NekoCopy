@@ -2,10 +2,6 @@ package org.nekomanga.domain.manga
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
-import androidx.compose.ui.util.fastAny
-import eu.kanade.tachiyomi.util.lang.removeArticles
-import org.nekomanga.domain.category.CategoryItem
-import org.nekomanga.presentation.screens.library.filter.FilterMangaType
 
 @Immutable data class SimpleManga(val title: String, val id: Long)
 
@@ -19,98 +15,13 @@ data class SourceManga(
 )
 
 @Immutable
-data class LibraryMangaItem(
-    val displayManga: DisplayManga,
-    val userCover: String?,
-    val dynamicCover: String?,
-    val url: String = "",
-    val addedToLibraryDate: Long = 0L,
-    val latestChapterDate: Long = 0L,
-    val unreadCount: Int = 0,
-    val readCount: Int = 0,
-    val category: Int = 0,
-    val bookmarkCount: Int = 0,
-    val unavailableCount: Int = 0,
-    val downloadCount: Int = 0,
-    val trackCount: Int = 0,
-    val hasMissingChapters: Boolean = false,
-    val allCategories: List<CategoryItem> = emptyList(),
-    val altTitles: List<String> = emptyList(),
-    val genre: List<String> = emptyList(),
-    val author: List<String> = emptyList(),
-    val contentRating: List<String> = emptyList(),
-    val language: List<String> = emptyList(),
-    val status: List<String> = emptyList(),
-    val seriesType: FilterMangaType = FilterMangaType.Manga,
-    val rating: Double = (-1).toDouble(),
-    val titleWithoutArticles: String = displayManga.getTitle().removeArticles(),
-) {
-    val totalChapterCount
-        get() = readCount + unreadCount
-
-    val hasStarted
-        get() = readCount > 0
-
-    fun matches(searchQuery: String?, searchQuerySplit: List<String>? = null): Boolean {
-        return if (searchQuery == null) {
-            true
-        } else {
-            displayManga.getTitle().contains(searchQuery, true) ||
-                this.altTitles.fastAny { altTitle -> altTitle.contains(searchQuery, true) } ||
-                this.author.fastAny { author -> author.contains(searchQuery, true) } ||
-                if (searchQuery.contains(",")) {
-                    val split = searchQuerySplit ?: searchQuery.split(",")
-                    split.all { splitQuery ->
-                        val cleanQuery = splitQuery.trim()
-                        val isExclude = cleanQuery.startsWith("-")
-                        val query = if (isExclude) cleanQuery.substringAfter("-") else cleanQuery
-
-                        val matchesGenre =
-                            this.genre.fastAny { genre -> genre.contains(query, true) }
-                        val matchesContentRating =
-                            this.contentRating.fastAny { rating ->
-                                rating.contains(query, true) ||
-                                    ("Content rating: $rating").contains(query, true)
-                            }
-
-                        if (isExclude) {
-                            !matchesGenre && !matchesContentRating
-                        } else {
-                            matchesGenre || matchesContentRating
-                        }
-                    }
-                } else {
-                    val cleanQuery = searchQuery.trim()
-                    val isExclude = cleanQuery.startsWith("-")
-                    val query = if (isExclude) cleanQuery.substringAfter("-") else cleanQuery
-
-                    val matchesGenre = this.genre.fastAny { genre -> genre.contains(query, true) }
-                    val matchesContentRating =
-                        this.contentRating.fastAny { rating ->
-                            rating.contains(query, true) ||
-                                ("Content rating: $rating").contains(query, true)
-                        }
-
-                    if (isExclude) {
-                        !matchesGenre && !matchesContentRating
-                    } else {
-                        matchesGenre || matchesContentRating
-                    }
-                }
-        }
-    }
-}
-
-@Immutable
 data class DisplayManga(
     val mangaId: Long,
-    val inLibrary: Boolean,
     val currentArtwork: Artwork,
     val url: String,
     val originalTitle: String,
     val userTitle: String,
     val displayText: String = "",
-    val isVisible: Boolean = true,
     @param:StringRes val displayTextRes: Int? = null,
 ) {
 
@@ -125,7 +36,6 @@ data class Artwork(
     val dynamicCover: String = "",
     val originalCover: String = "",
     val mangaId: Long,
-    val inLibrary: Boolean = false,
     val description: String = "",
     val volume: String = "",
     val active: Boolean = false,

@@ -25,14 +25,12 @@ internal class GeneralSettingsScreen(
                 title = stringResource(R.string.starting_screen),
                 entries =
                     mapOf(
-                        1 to stringResource(R.string.last_used_library_recents),
-                        -1 to stringResource(R.string.library),
-                        -2 to stringResource(R.string.updates),
-                        -4 to stringResource(R.string.history),
+                        1 to stringResource(R.string.last_used),
                         -3 to stringResource(R.string.browse),
+                        -4 to stringResource(R.string.history),
                     ),
                 subtitleProvider = { value, options ->
-                    options[value] ?: stringResource(R.string.last_used_library_recents)
+                    options[value] ?: stringResource(R.string.last_used)
                 },
             ),
             Preference.PreferenceItem.ListPreference(

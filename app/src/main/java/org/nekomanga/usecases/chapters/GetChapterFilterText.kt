@@ -14,9 +14,6 @@ class GetChapterFilterText(private val context: Context) {
         val filters = buildList {
             if (chapterDisplay.unread == ToggleableState.Indeterminate) add(R.string.read)
             if (chapterDisplay.unread == ToggleableState.On) add(R.string.unread)
-            if (chapterDisplay.downloaded == ToggleableState.On) add(R.string.downloaded)
-            if (chapterDisplay.downloaded == ToggleableState.Indeterminate)
-                add(R.string.not_downloaded)
             if (chapterDisplay.bookmarked == ToggleableState.On) add(R.string.bookmarked)
             if (chapterDisplay.bookmarked == ToggleableState.Indeterminate)
                 add(R.string.not_bookmarked)

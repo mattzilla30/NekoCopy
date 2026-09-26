@@ -7,21 +7,16 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.LibraryBooks
-import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -32,15 +27,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import eu.kanade.tachiyomi.Migrations
 import eu.kanade.tachiyomi.data.cache.ChapterCache
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.ui.base.activity.BaseMainActivity
 import eu.kanade.tachiyomi.ui.main.states.SideNavMode
@@ -93,18 +83,12 @@ class MainActivity : BaseMainActivity() {
             } else if (!viewModel.preferences.hasShownOnboarding().get() && !isBenchmark) {
                 Screens.Onboarding
             } else {
-                when (viewModel.preferences.startingTab().get()) {
-                    1 ->
-                        when (viewModel.preferences.lastUsedStartingTab().get()) {
-                            1 -> Screens.Updates
-                            2 -> Screens.History
-                            else -> Screens.Library()
-                        }
-                    -2 -> Screens.Updates
-                    -4 -> Screens.History
-                    -3 -> Screens.Browse()
-                    else -> Screens.Library()
-                }
+                val history =
+                    when (viewModel.preferences.startingTab().get()) {
+                        1 -> viewModel.preferences.lastUsedStartingTab().get() == HISTORY_TAB
+                        else -> viewModel.preferences.startingTab().get() == -4
+                    }
+                if (history) Screens.History else Screens.Browse()
             }
 
         handleDeepLink(intent)
@@ -131,44 +115,15 @@ class MainActivity : BaseMainActivity() {
             val selectedItemIndex =
                 remember(backStack.lastOrNull()) {
                     when (backStack.lastOrNull()) {
-                        is Screens.Library -> 0
-                        is Screens.Updates -> 1
-                        is Screens.History -> 2
-                        is Screens.Browse -> 3
+                        is Screens.Browse -> 0
+                        is Screens.History -> 1
                         else -> -1
                     }
                 }
 
-            var libraryUpdating by remember { mutableStateOf(false) }
-            var downloaderRunning by remember { mutableStateOf(false) }
-
-            LaunchedEffect(Unit) {
-                lifecycleScope.launch {
-                    repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        WorkManager.getInstance(this@MainActivity)
-                            .getWorkInfosByTagFlow(LibraryUpdateJob.TAG)
-                            .map { workInfoList ->
-                                workInfoList.any { it.state == WorkInfo.State.RUNNING }
-                            }
-                            .collect { running -> libraryUpdating = running }
-                    }
-                }
-                lifecycleScope.launch {
-                    repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        viewModel.downloadManager.isDownloaderRunning.collect { running ->
-                            downloaderRunning = running
-                        }
-                    }
-                }
-            }
-
-            // Remembered for the "last used" starting screen: 0 Library, 1 Updates, 2 History.
+            // Remembered for the "last used" starting screen.
             val lastUsedTab =
-                when (backStack.firstOrNull()) {
-                    is Screens.Updates -> 1
-                    is Screens.History -> 2
-                    else -> 0
-                }
+                if (backStack.firstOrNull() is Screens.History) HISTORY_TAB else BROWSE_TAB
 
             DisposableEffect(lifecycleOwner, lastUsedTab) {
                 // Create an observer
@@ -210,28 +165,16 @@ class MainActivity : BaseMainActivity() {
             val navItems =
                 listOf(
                     NavigationItem(
-                        screen = Screens.Library(),
-                        title = stringResource(R.string.library),
-                        unselectedIcon = Icons.AutoMirrored.Outlined.LibraryBooks,
-                        selectedIcon = Icons.AutoMirrored.Filled.LibraryBooks,
-                    ),
-                    NavigationItem(
-                        screen = Screens.Updates,
-                        title = stringResource(R.string.updates),
-                        unselectedIcon = Icons.Outlined.NewReleases,
-                        selectedIcon = Icons.Filled.NewReleases,
+                        screen = Screens.Browse(),
+                        title = stringResource(R.string.browse),
+                        unselectedIcon = Icons.Outlined.Explore,
+                        selectedIcon = Icons.Filled.Explore,
                     ),
                     NavigationItem(
                         screen = Screens.History,
                         title = stringResource(R.string.history),
                         unselectedIcon = Icons.Outlined.AccessTime,
                         selectedIcon = Icons.Filled.AccessTimeFilled,
-                    ),
-                    NavigationItem(
-                        screen = Screens.Browse(),
-                        title = stringResource(R.string.browse),
-                        unselectedIcon = Icons.Outlined.Explore,
-                        selectedIcon = Icons.Filled.Explore,
                     ),
                 )
 
@@ -249,8 +192,6 @@ class MainActivity : BaseMainActivity() {
                     NavigationSideBar(
                         items = navItems,
                         sideNavAlignment = mainScreenState.sideNavAlignment,
-                        libraryUpdating = libraryUpdating,
-                        downloaderRunning = downloaderRunning,
                         selectedItemIndex = selectedItemIndex,
                         onNavigate = { screen ->
                             backStack.clear()
@@ -264,8 +205,6 @@ class MainActivity : BaseMainActivity() {
                 if (!showNavigationRail) {
                     BottomBar(
                         items = navItems,
-                        libraryUpdating = libraryUpdating,
-                        downloaderRunning = downloaderRunning,
                         selectedItemIndex = selectedItemIndex,
                         onNavigate = { screen ->
                             backStack.clear()
@@ -358,13 +297,10 @@ class MainActivity : BaseMainActivity() {
                         val chapterRepository: ChapterRepository = Injekt.get()
                         val mangaRepository: MangaRepository = Injekt.get()
 
-                        val downloadManager = Injekt.get<DownloadManager>()
                         lifecycleScope.launch(Dispatchers.Default) {
                             val chapters = chapterRepository.getChaptersForManga(mangaId)
                             mangaRepository.getMangaById(mangaId)?.let { manga ->
-                                val availableChapters = chapters.filter {
-                                    it.isAvailable(downloadManager, manga)
-                                }
+                                val availableChapters = chapters.filter { it.isAvailable() }
                                 val nextUnreadChapter =
                                     ChapterItemSort()
                                         .getNextUnreadChapter(
@@ -390,7 +326,7 @@ class MainActivity : BaseMainActivity() {
                 if (intent.action == DeepLinks.Actions.MangaBack) {
                     SecureActivityDelegate.promptLockIfNeeded(this, true)
                 }
-                deepLinkScreens = listOf(Screens.Library(), Screens.Manga(mangaId))
+                deepLinkScreens = listOf(Screens.Browse(), Screens.Manga(mangaId))
             }
 
             DeepLinks.Actions.ReaderSettings -> {
@@ -424,6 +360,10 @@ class MainActivity : BaseMainActivity() {
     }
 
     companion object {
+        // Values saved for the "last used" starting screen.
+        private const val HISTORY_TAB = 2
+        private const val BROWSE_TAB = 3
+
         fun openMangaIntent(context: Context, id: Long?, canReturnToMain: Boolean = false) =
             Intent(context, MainActivity::class.java).apply {
                 action =

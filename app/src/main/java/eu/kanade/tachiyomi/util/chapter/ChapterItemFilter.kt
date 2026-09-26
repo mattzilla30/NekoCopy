@@ -1,14 +1,12 @@
 package eu.kanade.tachiyomi.util.chapter
 
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import org.nekomanga.constants.Constants
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.domain.chapter.ChapterItem
+import org.nekomanga.domain.chapter.ScanlatorFilterOption
 import org.nekomanga.domain.details.MangaDetailsPreferences
-import org.nekomanga.domain.library.LibraryPreferences
-import org.nekomanga.domain.library.ScanlatorFilterOption
 import org.nekomanga.domain.reader.ReaderPreferences
 import org.nekomanga.domain.site.MangaDexPreferences
 import uy.kohesive.injekt.Injekt
@@ -17,20 +15,14 @@ import uy.kohesive.injekt.api.get
 class ChapterItemFilter(
     val preferences: PreferencesHelper = Injekt.get(),
     val mangaDexPreferences: MangaDexPreferences = Injekt.get(),
-    val libraryPreferences: LibraryPreferences = Injekt.get(),
     val readerPreferences: ReaderPreferences = Injekt.get(),
     val mangaDetailsPreferences: MangaDetailsPreferences = Injekt.get(),
-    val downloadManager: DownloadManager = Injekt.get(),
 ) {
 
     /** filters chapters based on the manga values */
     fun filterChapters(chapters: List<ChapterItem>, manga: Manga): List<ChapterItem> {
         val readEnabled = manga.readFilter(mangaDetailsPreferences) == Manga.CHAPTER_SHOW_READ
         val unreadEnabled = manga.readFilter(mangaDetailsPreferences) == Manga.CHAPTER_SHOW_UNREAD
-        val downloadEnabled =
-            manga.downloadedFilter(mangaDetailsPreferences) == Manga.CHAPTER_SHOW_DOWNLOADED
-        val notDownloadEnabled =
-            manga.downloadedFilter(mangaDetailsPreferences) == Manga.CHAPTER_SHOW_NOT_DOWNLOADED
         val bookmarkEnabled =
             manga.bookmarkedFilter(mangaDetailsPreferences) == Manga.CHAPTER_SHOW_BOOKMARKED
         val notBookmarkEnabled =
@@ -46,14 +38,12 @@ class ChapterItemFilter(
                 chapters,
                 manga,
                 mangaDexPreferences,
-                libraryPreferences,
+                preferences,
             )
 
         return if (
             readEnabled ||
                 unreadEnabled ||
-                downloadEnabled ||
-                notDownloadEnabled ||
                 bookmarkEnabled ||
                 notBookmarkEnabled ||
                 unavailableEnabled ||
@@ -61,14 +51,11 @@ class ChapterItemFilter(
         ) {
             filteredChapters.filter { chapterItem ->
                 val chapter = chapterItem.chapter.toDbChapter()
-                val isDownloaded = downloadManager.isChapterDownloaded(chapter, manga)
-                val isAvailable = chapter.isAvailable(isDownloaded)
+                val isAvailable = chapter.isAvailable()
                 return@filter !(readEnabled && !chapter.read ||
                     (unreadEnabled && chapter.read) ||
                     (bookmarkEnabled && !chapter.bookmark) ||
                     (notBookmarkEnabled && chapter.bookmark) ||
-                    (downloadEnabled && !isDownloaded) ||
-                    (notDownloadEnabled && isDownloaded) ||
                     (unavailableEnabled && isAvailable) ||
                     (availableEnabled && !isAvailable))
             }
@@ -85,12 +72,7 @@ class ChapterItemFilter(
         selectedChapterItem: ChapterItem? = null,
     ): List<ChapterItem> {
         // 1. Filter by isAvailable
-        var filteredChapters = chapters.filter {
-            val dbChapter = it.chapter.toDbChapter()
-            val isDownloaded = downloadManager.isChapterDownloaded(dbChapter, manga)
-            // Use the extension function for Chapter
-            dbChapter.isAvailable(isDownloaded)
-        }
+        var filteredChapters = chapters.filter { it.isAvailable() }
 
         // 2. Filter by scanlators/language
         filteredChapters =
@@ -98,7 +80,7 @@ class ChapterItemFilter(
                 filteredChapters,
                 manga,
                 mangaDexPreferences,
-                libraryPreferences,
+                preferences,
             )
 
         // 3. Filter out unsupported groups
@@ -174,7 +156,7 @@ class ChapterItemFilter(
         chapters: List<ChapterItem>,
         manga: Manga,
         mangaDexPreferences: MangaDexPreferences,
-        libraryPreferences: LibraryPreferences,
+        preferences: PreferencesHelper,
     ): List<ChapterItem> {
 
         val blockedGroups = mangaDexPreferences.blockedGroups().get().toSet()
@@ -185,7 +167,7 @@ class ChapterItemFilter(
         val filteredLanguages = ChapterUtil.getLanguages(manga.filtered_language).toSet()
 
         val scanlatorMatchAll =
-            libraryPreferences.chapterScanlatorFilterOption().get() == ScanlatorFilterOption.ALL
+            preferences.chapterScanlatorFilterOption().get() == ScanlatorFilterOption.ALL
 
         return chapters.filterNot { chapterItem ->
             val scanlators = ChapterUtil.getScanlators(chapterItem.chapter.scanlator)

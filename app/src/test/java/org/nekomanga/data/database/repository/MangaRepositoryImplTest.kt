@@ -4,13 +4,9 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveAtMostSize
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import org.nekomanga.data.database.dao.LibraryDao
 import org.nekomanga.data.database.dao.MangaDao
-import org.nekomanga.domain.library.LibraryPreferences
-import org.nekomanga.domain.site.MangaDexPreferences
 
 class MangaRepositoryImplTest {
 
@@ -23,14 +19,7 @@ class MangaRepositoryImplTest {
 
     private val mangaDao: MangaDao = mockk()
 
-    private val repository =
-        MangaRepositoryImpl(
-            libraryDao = mockk<LibraryDao>(),
-            mangaDao = mangaDao,
-            mangaDexPreferences = mockk<MangaDexPreferences>(),
-            libraryPreferences = mockk<LibraryPreferences>(),
-            ioDispatcher = UnconfinedTestDispatcher(),
-        )
+    private val repository = MangaRepositoryImpl(mangaDao = mangaDao)
 
     @Test
     fun `getMangaByUrls splits expanded url list so no query exceeds the SQLite variable limit`() =

@@ -34,28 +34,10 @@ private fun MangaGridItemPreview(
                 modifier = Modifier.padding(Size.medium),
                 verticalArrangement = Arrangement.spacedBy(Size.medium),
             ) {
-                // Comfortable Item
                 MangaGridItem(
                     displayManga = displayManga,
                     shouldOutlineCover = true,
                     dynamicCover = false,
-                    isComfortable = true,
-                    showUnreadBadge = true,
-                    unreadCount = 12,
-                    showDownloadBadge = true,
-                    downloadCount = 5,
-                )
-
-                // Compact Item
-                MangaGridItem(
-                    displayManga = displayManga,
-                    shouldOutlineCover = true,
-                    dynamicCover = false,
-                    isComfortable = false,
-                    showUnreadBadge = false,
-                    unreadCount = 0,
-                    showDownloadBadge = false,
-                    downloadCount = 0,
                 )
             }
         }
@@ -67,8 +49,7 @@ private class DisplayMangaProvider : PreviewParameterProvider<Themed<DisplayMang
         sequenceOf(
                 DisplayManga(
                     mangaId = 1L,
-                    inLibrary = true,
-                    currentArtwork = Artwork(mangaId = 1L, inLibrary = true),
+                    currentArtwork = Artwork(mangaId = 1L),
                     url = "",
                     originalTitle = "One Piece",
                     userTitle = "One Piece",
@@ -76,8 +57,7 @@ private class DisplayMangaProvider : PreviewParameterProvider<Themed<DisplayMang
                 ),
                 DisplayManga(
                     mangaId = 2L,
-                    inLibrary = false,
-                    currentArtwork = Artwork(mangaId = 2L, inLibrary = false),
+                    currentArtwork = Artwork(mangaId = 2L),
                     url = "",
                     originalTitle =
                         "Detailed Long Title: The Adventure of a Lifetime in Another World",
@@ -86,8 +66,7 @@ private class DisplayMangaProvider : PreviewParameterProvider<Themed<DisplayMang
                 ),
                 DisplayManga(
                     mangaId = 3L,
-                    inLibrary = true,
-                    currentArtwork = Artwork(mangaId = 3L, inLibrary = true),
+                    currentArtwork = Artwork(mangaId = 3L),
                     url = "",
                     originalTitle = "No Subtitle",
                     userTitle = "No Subtitle",

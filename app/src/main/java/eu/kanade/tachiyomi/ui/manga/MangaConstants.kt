@@ -7,15 +7,12 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.external.ExternalLink
 import eu.kanade.tachiyomi.util.chapter.MissingChapterHolder
 import org.nekomanga.constants.MdConstants
-import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.chapter.ChapterItem
 import org.nekomanga.domain.chapter.ChapterMarkActions
 import org.nekomanga.domain.chapter.SimpleChapter
 import org.nekomanga.domain.manga.Artwork
 import org.nekomanga.domain.manga.Stats
 import org.nekomanga.domain.snackbar.SnackbarColor
-import org.nekomanga.domain.track.TrackItem
-import org.nekomanga.domain.track.TrackServiceItem
 import org.nekomanga.presentation.components.UiText
 
 object MangaConstants {
@@ -39,20 +36,17 @@ object MangaConstants {
         val forcePortrait: Boolean = false,
         val themeBasedOffCovers: Boolean = false,
         val vibrantColor: Int? = null,
-        val hasDefaultCategory: Boolean = false,
         val hideButtonText: Boolean = false,
         val backdropSize: BackdropSize = BackdropSize.Default,
         val wrapAltTitles: Boolean = false,
         val chapterSwipeRightAction: ChapterSwipeAction = ChapterSwipeAction.ToggleBookmark,
         val chapterSwipeLeftAction: ChapterSwipeAction = ChapterSwipeAction.ToggleRead,
         val searchChapters: List<ChapterItem> = listOf(),
-        val removedChapters: List<ChapterItem> = listOf(),
     )
 
     @Immutable
     data class MangaScreenMangaState(
         val initialized: Boolean = false,
-        val inLibrary: Boolean = false,
         val currentTitle: String = "",
         val originalTitle: String = "",
         val alternativeTitles: List<String> = listOf(),
@@ -90,28 +84,10 @@ object MangaConstants {
     )
 
     @Immutable
-    data class MangaScreenTrackState(
-        val tracks: List<TrackItem> = listOf(),
-        val loggedInTrackService: List<TrackServiceItem> = listOf(),
-        val trackServiceCount: Int = 0,
-        val trackingSuggestedDates: TrackingConstants.TrackingSuggestedDates? = null,
-        val trackSearchResult: TrackingConstants.TrackSearchResult =
-            TrackingConstants.TrackSearchResult.Loading,
-    )
-
-    @Immutable
-    data class MangaScreenCategoryState(
-        val allCategories: List<CategoryItem> = listOf(),
-        val currentCategories: List<CategoryItem> = listOf(),
-    )
-
-    @Immutable
     data class MangaDetailScreenState(
         val general: MangaScreenGeneralState,
         val manga: MangaScreenMangaState,
         val chapters: MangaScreenChapterState = MangaScreenChapterState(),
-        val track: MangaScreenTrackState = MangaScreenTrackState(),
-        val category: MangaScreenCategoryState = MangaScreenCategoryState(),
     )
 
     /** Holds the next unread chapter and the text to display for the quick read button. */
@@ -143,7 +119,6 @@ object MangaConstants {
     data class ChapterDisplay(
         val showAll: Boolean = false,
         val unread: ToggleableState = ToggleableState.Off,
-        val downloaded: ToggleableState = ToggleableState.Off,
         val bookmarked: ToggleableState = ToggleableState.Off,
         val hideChapterTitles: ToggleableState = ToggleableState.Off,
         val available: ToggleableState = ToggleableState.Off,
@@ -159,7 +134,6 @@ object MangaConstants {
     enum class ChapterDisplayType {
         All,
         Unread,
-        Downloaded,
         Bookmarked,
         Available,
         HideTitles,
@@ -219,7 +193,6 @@ object MangaConstants {
             ChapterDisplayType.All -> {
                 manga.readFilter = Manga.SHOW_ALL
                 manga.bookmarkedFilter = Manga.SHOW_ALL
-                manga.downloadedFilter = Manga.SHOW_ALL
                 manga.availableFilter = Manga.SHOW_ALL
             }
             ChapterDisplayType.Unread -> {
@@ -228,10 +201,6 @@ object MangaConstants {
             ChapterDisplayType.Bookmarked -> {
                 manga.bookmarkedFilter =
                     getTriState(Manga.CHAPTER_SHOW_BOOKMARKED, Manga.CHAPTER_SHOW_NOT_BOOKMARKED)
-            }
-            ChapterDisplayType.Downloaded -> {
-                manga.downloadedFilter =
-                    getTriState(Manga.CHAPTER_SHOW_DOWNLOADED, Manga.CHAPTER_SHOW_NOT_DOWNLOADED)
             }
             ChapterDisplayType.Available -> {
                 manga.availableFilter =
@@ -246,41 +215,8 @@ object MangaConstants {
     }
 
     @Immutable
-    data class CategoriesData(
-        val all: List<CategoryItem>,
-        val current: List<CategoryItem>,
-    )
-
-    sealed class DownloadAction {
-        data class DownloadNextUnread(val numberToDownload: Int) : DownloadAction()
-
-        data object DownloadAll : DownloadAction()
-
-        data object DownloadUnread : DownloadAction()
-
-        data object Download : DownloadAction()
-
-        data object ImmediateDownload : DownloadAction()
-
-        data object Remove : DownloadAction()
-
-        data object RemoveRead : DownloadAction()
-
-        data object RemoveAll : DownloadAction()
-
-        data object Cancel : DownloadAction()
-    }
-
-    @Immutable
-    class CategoryActions(
-        val set: (List<CategoryItem>) -> Unit = {},
-        val addNew: (String) -> Unit = {},
-    )
-
-    @Immutable
     class DescriptionActions(
         val genreSearch: (String) -> Unit,
-        val genreSearchLibrary: (String) -> Unit,
         val altTitleClick: (String) -> Unit,
         val altTitleResetClick: () -> Unit,
     )
@@ -293,17 +229,6 @@ object MangaConstants {
     )
 
     @Immutable
-    class TrackActions(
-        val statusChange: (Int, TrackingConstants.TrackAndService) -> Unit,
-        val scoreChange: (Int, TrackingConstants.TrackAndService) -> Unit,
-        val chapterChange: (Int, TrackingConstants.TrackAndService) -> Unit,
-        val dateChange: (TrackingConstants.TrackDateChange) -> Unit,
-        val search: (String, TrackServiceItem) -> Unit,
-        val searchItemClick: (TrackingConstants.TrackAndService) -> Unit,
-        val remove: (Boolean, TrackServiceItem) -> Unit,
-    )
-
-    @Immutable
     class CoverActions(
         val share: (Context, Artwork) -> Unit,
         val set: (Artwork) -> Unit,
@@ -313,11 +238,7 @@ object MangaConstants {
 
     @Immutable
     class ChapterActions(
-        val createMangaFolder: () -> Unit,
         val mark: (List<ChapterItem>, ChapterMarkActions) -> Unit,
-        val clearRemoved: () -> Unit,
-        val download: (List<ChapterItem>, DownloadAction) -> Unit,
-        val delete: (List<ChapterItem>) -> Unit,
         val open: (ChapterItem) -> Unit,
         val blockScanlator: (BlockType, String) -> Unit,
         val openNext: () -> Unit,
@@ -340,7 +261,6 @@ object MangaConstants {
     enum class ChapterSwipeAction {
         ToggleRead,
         ToggleBookmark,
-        Download,
         Disabled,
     }
 }

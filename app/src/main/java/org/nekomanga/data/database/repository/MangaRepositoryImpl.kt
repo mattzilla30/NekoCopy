@@ -1,71 +1,18 @@
 package org.nekomanga.data.database.repository
 
-import eu.kanade.tachiyomi.data.database.models.LibraryManga
 import eu.kanade.tachiyomi.data.database.models.Manga
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import org.nekomanga.data.database.dao.LibraryDao
 import org.nekomanga.data.database.dao.MangaDao
 import org.nekomanga.data.database.mapper.toEntity
-import org.nekomanga.data.database.mapper.toLibraryManga
 import org.nekomanga.data.database.mapper.toManga
-import org.nekomanga.domain.library.LibraryPreferences
-import org.nekomanga.domain.site.MangaDexPreferences
 
 // SQLite caps a statement at 999 bind variables (SQLITE_MAX_VARIABLE_NUMBER) on older Android.
 // Exceeding it throws "too many SQL variables"; 900 leaves margin. getMangaByUrls expands each
 // url into url + alt url, so the EXPANDED list is what must be chunked, not the caller's input.
 private const val MAX_DB_QUERY_VARIABLES = 900
 
-class MangaRepositoryImpl(
-    private val libraryDao: LibraryDao,
-    private val mangaDao: MangaDao,
-    private val mangaDexPreferences: MangaDexPreferences,
-    private val libraryPreferences: LibraryPreferences,
-    // Injecting the dispatcher is best practice for testing, defaulting to IO
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-) : MangaRepository {
-
-    override fun observeLibrary(): Flow<List<LibraryManga>> {
-        return combine(
-                libraryDao.observeLibrary(),
-                mangaDexPreferences.blockedGroups().changes(),
-                mangaDexPreferences.blockedUploaders().changes(),
-                libraryPreferences.chapterScanlatorFilterOption().changes(),
-            ) { rawLibraryList, blockedGroups, blockedUploaders, scanlatorPref ->
-                rawLibraryList.map { rawManga ->
-                    rawManga.toLibraryManga(
-                        blockedGroups = blockedGroups,
-                        blockedUploaders = blockedUploaders,
-                        scanlatorFilterOption = scanlatorPref,
-                    )
-                }
-            }
-            .distinctUntilChanged()
-            .flowOn(ioDispatcher)
-    }
-
-    override suspend fun getLibraryList(): List<LibraryManga> {
-        // Fetch everything sequentially (or you could use async/await here,
-        // but reading from preferences memory cache is instant anyway)
-        val rawLibraryList = libraryDao.getLibraryList()
-        val blockedGroups = mangaDexPreferences.blockedGroups().get()
-        val blockedUploaders = mangaDexPreferences.blockedUploaders().get()
-        val scanlatorPref = libraryPreferences.chapterScanlatorFilterOption().get()
-
-        return rawLibraryList.map { rawManga ->
-            rawManga.toLibraryManga(
-                blockedGroups = blockedGroups,
-                blockedUploaders = blockedUploaders,
-                scanlatorFilterOption = scanlatorPref,
-            )
-        }
-    }
+class MangaRepositoryImpl(private val mangaDao: MangaDao) : MangaRepository {
 
     override fun observeMangaList(): Flow<List<Manga>> =
         mangaDao.observeMangaList().map { it.map { m -> m.toManga() } }

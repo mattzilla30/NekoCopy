@@ -43,13 +43,6 @@ class NetworkServices {
             .build()
             .create(MangaDexAtHomeService::class.java)
 
-    val authService: MangaDexAuthorizedUserService =
-        jsonRetrofitClient
-            .baseUrl(MdConstants.Api.baseUrl)
-            .client(networkHelper.authClient)
-            .build()
-            .create(MangaDexAuthorizedUserService::class.java)
-
     val thirdPartySimilarService: ThirdPartySimilarService =
         jsonRetrofitClient
             .client(

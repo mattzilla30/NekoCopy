@@ -1,13 +1,8 @@
 package org.nekomanga.presentation.screens
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -26,9 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -39,8 +32,6 @@ import eu.kanade.tachiyomi.ui.source.latest.DisplayScreenType
 import eu.kanade.tachiyomi.ui.source.latest.DisplayViewModel
 import eu.kanade.tachiyomi.ui.source.latest.toSerializable
 import org.nekomanga.R
-import org.nekomanga.domain.category.CategoryItem
-import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.KittyContainedLoadingIndicator
 import org.nekomanga.presentation.components.MangaGrid
 import org.nekomanga.presentation.components.MangaList
@@ -48,11 +39,6 @@ import org.nekomanga.presentation.components.ResultList
 import org.nekomanga.presentation.components.UiText
 import org.nekomanga.presentation.components.bars.DisplayOptionsTopBar
 import org.nekomanga.presentation.components.scaffold.ChildScreenScaffold
-import org.nekomanga.presentation.components.sheets.Sheet
-import org.nekomanga.presentation.components.sheets.rememberSheetHost
-import org.nekomanga.presentation.functions.numberOfColumns
-import org.nekomanga.presentation.screens.browse.DisplayScreenSheet
-import org.nekomanga.presentation.screens.browse.DisplaySheetScreen
 import org.nekomanga.presentation.theme.Size
 
 /**
@@ -94,7 +80,6 @@ fun DisplayScreen(
         displayScreenState = screenState,
         windowSizeClass = windowSizeClass,
         switchDisplayClick = viewModel::switchDisplayMode,
-        libraryEntryVisibilityClick = viewModel::switchLibraryEntryVisibility,
         onBackPress = onBackPressed,
         openManga = { mangaId: Long -> onNavigateTo(Screens.Manga(mangaId)) },
         resultItemClick = { uuid: String ->
@@ -113,8 +98,6 @@ fun DisplayScreen(
                 onNavigateTo(Screens.Display(result.toSerializable()))
             }
         },
-        addNewCategory = viewModel::addNewCategory,
-        toggleFavorite = viewModel::toggleFavorite,
         loadNextPage = viewModel::loadNextItems,
         retryClick = viewModel::loadNextItems,
     )
@@ -125,65 +108,24 @@ private fun DisplayWrapper(
     displayScreenState: DisplayScreenState,
     windowSizeClass: WindowSizeClass,
     switchDisplayClick: () -> Unit,
-    libraryEntryVisibilityClick: (Int) -> Unit,
     onBackPress: () -> Unit,
     openManga: (Long) -> Unit,
     resultItemClick: (String) -> Unit,
-    addNewCategory: (String) -> Unit,
-    toggleFavorite: (Long, List<CategoryItem>) -> Unit,
     loadNextPage: () -> Unit,
     retryClick: () -> Unit,
 ) {
-    val sheets = rememberSheetHost<DisplaySheetScreen>()
-
-    sheets.Sheet { sheet ->
-        DisplayScreenSheet(
-            currentScreen = sheet,
-            addNewCategory = addNewCategory,
-            contentPadding =
-                WindowInsets.navigationBars.only(WindowInsetsSides.Bottom).asPaddingValues(),
-            closeSheet = sheets::close,
-            categories = displayScreenState.categories,
-            isList = displayScreenState.isList,
-            libraryEntryVisibility = displayScreenState.libraryEntryVisibility,
-        )
-    }
-
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    val haptic = LocalHapticFeedback.current
-    fun mangaLongClick(displayManga: DisplayManga) {
-        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        if (!displayManga.inLibrary && displayScreenState.promptForCategories) {
-            sheets.open(
-                DisplaySheetScreen.CategoriesSheet(
-                    setCategories = { selectedCategories ->
-                        sheets.close()
-                        toggleFavorite(displayManga.mangaId, selectedCategories)
-                    }
-                )
-            )
-        } else {
-            toggleFavorite(displayManga.mangaId, emptyList())
-        }
-    }
     ChildScreenScaffold(
         scrollBehavior = scrollBehavior,
         topBar = {
             DisplayOptionsTopBar(
                 title = displayScreenState.title.asString(),
                 incognitoMode = displayScreenState.incognitoMode,
+                isList = displayScreenState.isList,
                 onNavigationIconClicked = onBackPress,
                 scrollBehavior = scrollBehavior,
-                onSettingClick = {
-                    sheets.open(
-                        DisplaySheetScreen.BrowseDisplayOptionsSheet(
-                            showIsList = true,
-                            switchDisplayClick = switchDisplayClick,
-                            libraryEntryVisibilityClick = libraryEntryVisibilityClick,
-                        )
-                    )
-                },
+                switchDisplayClick = switchDisplayClick,
             )
         },
     ) { contentPadding ->
@@ -223,24 +165,20 @@ private fun DisplayWrapper(
                     } else if (displayScreenState.isList) {
                         MangaList(
                             contentPadding = contentPadding,
-                            mangaList = displayScreenState.filteredDisplayManga,
+                            mangaList = displayScreenState.allDisplayManga,
                             shouldOutlineCover = displayScreenState.outlineCovers,
                             dynamicCover = displayScreenState.dynamicCovers,
                             onClick = openManga,
-                            onLongClick = ::mangaLongClick,
                             lastPage = displayScreenState.endReached,
                             loadNextItems = loadNextPage,
                         )
                     } else {
                         MangaGrid(
                             contentPadding = contentPadding,
-                            mangaList = displayScreenState.filteredDisplayManga,
+                            mangaList = displayScreenState.allDisplayManga,
                             shouldOutlineCover = displayScreenState.outlineCovers,
                             dynamicCover = displayScreenState.dynamicCovers,
-                            columns = numberOfColumns(rawValue = displayScreenState.rawColumnCount),
-                            isComfortable = displayScreenState.isComfortableGrid,
                             onClick = openManga,
-                            onLongClick = ::mangaLongClick,
                             lastPage = displayScreenState.endReached,
                             loadNextItems = loadNextPage,
                         )

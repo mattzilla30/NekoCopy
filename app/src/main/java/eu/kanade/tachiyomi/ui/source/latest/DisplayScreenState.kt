@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.source.latest
 import androidx.compose.runtime.Immutable
 import org.nekomanga.R
 import org.nekomanga.domain.DisplayResult
-import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.manga.DisplayManga
 import org.nekomanga.presentation.components.UiText
 
@@ -14,7 +13,6 @@ data class DisplayScreenState(
     val title: UiText = UiText.String(""),
     val alternativeDisplay: List<DisplayResult> = listOf(),
     val allDisplayManga: List<DisplayManga> = listOf(),
-    val filteredDisplayManga: List<DisplayManga> = listOf(),
     val error: String? = null,
     val endReached: Boolean = false,
     val page: Int = 1,
@@ -22,11 +20,6 @@ data class DisplayScreenState(
     val isDisplayResult: Boolean = false,
     val outlineCovers: Boolean,
     val dynamicCovers: Boolean,
-    val isComfortableGrid: Boolean,
-    val rawColumnCount: Float,
-    val promptForCategories: Boolean = false,
-    val libraryEntryVisibility: Int,
-    val categories: List<CategoryItem> = listOf(),
 )
 
 @Immutable
@@ -42,10 +35,6 @@ sealed interface DisplayScreenType {
 
     object LatestChapters : DisplayScreenType {
         override val title = UiText.StringResource(R.string.latest)
-    }
-
-    object FeedUpdates : DisplayScreenType {
-        override val title = UiText.StringResource(R.string.feed_updates)
     }
 
     object RecentlyAdded : DisplayScreenType {

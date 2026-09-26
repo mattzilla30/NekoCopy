@@ -11,10 +11,6 @@ sealed interface SerializableDisplayScreenType {
     object LatestChapters : SerializableDisplayScreenType
 
     @kotlinx.serialization.Serializable
-    @SerialName("feed_updates")
-    object FeedUpdates : SerializableDisplayScreenType
-
-    @kotlinx.serialization.Serializable
     @SerialName("recently_added")
     object RecentlyAdded : SerializableDisplayScreenType
 
@@ -55,7 +51,6 @@ sealed interface SerializableDisplayScreenType {
 fun DisplayScreenType.toSerializable(): SerializableDisplayScreenType {
     return when (this) {
         is DisplayScreenType.LatestChapters -> SerializableDisplayScreenType.LatestChapters
-        is DisplayScreenType.FeedUpdates -> SerializableDisplayScreenType.FeedUpdates
         is DisplayScreenType.RecentlyAdded -> SerializableDisplayScreenType.RecentlyAdded
         is DisplayScreenType.PopularNewTitles -> SerializableDisplayScreenType.PopularNewTitles
         is DisplayScreenType.List -> {
@@ -90,7 +85,6 @@ fun DisplayScreenType.toSerializable(): SerializableDisplayScreenType {
 fun SerializableDisplayScreenType.toDomain(): DisplayScreenType {
     return when (this) {
         is SerializableDisplayScreenType.LatestChapters -> DisplayScreenType.LatestChapters
-        is SerializableDisplayScreenType.FeedUpdates -> DisplayScreenType.FeedUpdates
         is SerializableDisplayScreenType.RecentlyAdded -> DisplayScreenType.RecentlyAdded
         is SerializableDisplayScreenType.PopularNewTitles -> DisplayScreenType.PopularNewTitles
         is SerializableDisplayScreenType.List -> {

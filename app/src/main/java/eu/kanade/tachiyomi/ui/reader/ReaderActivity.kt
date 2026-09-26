@@ -60,13 +60,10 @@ import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.uuid
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.base.activity.BaseMainActivity
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.AddToLibraryFirst
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Error
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Success
 import eu.kanade.tachiyomi.ui.reader.model.ChapterNavTarget
@@ -129,7 +126,6 @@ import org.nekomanga.core.preferences.observeAndUpdate
 import org.nekomanga.core.preferences.toggle
 import org.nekomanga.core.security.SecurityPreferences
 import org.nekomanga.domain.details.MangaDetailsPreferences
-import org.nekomanga.domain.library.LibraryPreferences
 import org.nekomanga.domain.manga.MangaItem
 import org.nekomanga.domain.manga.hideChapterTitle
 import org.nekomanga.domain.manga.isLongStrip
@@ -168,7 +164,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
     val readerPreferences: ReaderPreferences by injectLazy()
     val securityPreferences: SecurityPreferences by injectLazy()
     val networkPreferences: NetworkPreferences by injectLazy()
-    val libraryPreferences: LibraryPreferences by injectLazy()
     val mangaDetailsPreferences: MangaDetailsPreferences by injectLazy()
 
     val viewModel by viewModels<ReaderViewModel>()
@@ -368,7 +363,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                             isRtl = currentViewer.isRtlPager,
                             isVertical = currentViewer.isVerticalPager,
                             manga = viewModel.manga,
-                            downloadManager = Injekt.get<DownloadManager>(),
                             onPageSelected = { page, hasExtraPage ->
                                 onPageSelected(page, hasExtraPage)
                             },
@@ -394,7 +388,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                             viewer = currentViewer,
                             items = items,
                             manga = viewModel.manga,
-                            downloadManager = Injekt.get<DownloadManager>(),
                             onPageSelected = { page -> onPageSelected(page, false) },
                             onTransitionSelected = { transition ->
                                 onTransitionSelected(transition)
@@ -929,9 +922,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
                     is ReaderViewModel.Event.SetCoverResult -> {
                         onSetAsCoverResult(event.result)
                     }
-                    is ReaderViewModel.Event.ShareTrackingError -> {
-                        showTrackingError(event.errors)
-                    }
                     is ReaderViewModel.Event.Notify -> {
                         toast(event.stringRes)
                     }
@@ -943,7 +933,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
     /** Called when the activity is destroyed. Cleans up the viewer, configuration and any view. */
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.deletePendingChapters()
         coroutine?.cancel()
         viewer?.destroy()
         viewer = null
@@ -1319,7 +1308,6 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
     override fun onPause() {
         viewModel.saveCurrentChapterReadingProgress()
         viewModel.flushReadTimer()
-        viewModel.deletePendingChapters()
         super.onPause()
     }
 
@@ -1738,28 +1726,9 @@ class ReaderActivity : BaseMainActivity(), ReaderHost {
         toast(
             when (result) {
                 Success -> R.string.cover_updated
-                AddToLibraryFirst -> R.string.must_be_in_library_to_edit
                 Error -> R.string.failed_to_update_cover
             }
         )
-    }
-
-    private fun showTrackingError(errors: List<Pair<TrackService, String?>>) {
-        if (errors.isEmpty()) return
-        val (service, errorMessage) = errors.first()
-        val errorText =
-            if (errors.size > 1 || errorMessage == null) {
-                getString(
-                    R.string.failed_to_update_,
-                    errors.joinToString(", ") { getString(it.first.nameRes()) },
-                )
-            } else {
-                "${getString(service.nameRes())} - $errorMessage"
-            }
-        lifecycleScope.launch {
-            snackbarHostState.currentSnackbarData?.dismiss()
-            snackbarHostState.showSnackbar(message = errorText, duration = SnackbarDuration.Long)
-        }
     }
 
     private fun onVisibilityChange(visible: Boolean) {

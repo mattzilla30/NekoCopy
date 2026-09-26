@@ -22,8 +22,6 @@ class GetChapterFilterTextTest {
 
         every { context.getString(R.string.read) } returns "Read"
         every { context.getString(R.string.unread) } returns "Unread"
-        every { context.getString(R.string.downloaded) } returns "Downloaded"
-        every { context.getString(R.string.not_downloaded) } returns "Not downloaded"
         every { context.getString(R.string.bookmarked) } returns "Bookmarked"
         every { context.getString(R.string.not_bookmarked) } returns "Not bookmarked"
         every { context.getString(R.string.available) } returns "Available"
@@ -56,11 +54,7 @@ class GetChapterFilterTextTest {
 
     @Test
     fun `test multiple filters applied`() {
-        val display =
-            MangaConstants.ChapterDisplay(
-                unread = ToggleableState.Indeterminate,
-                downloaded = ToggleableState.On,
-            )
+        val display = MangaConstants.ChapterDisplay(unread = ToggleableState.Indeterminate)
         val scanlator =
             MangaConstants.ScanlatorFilter(
                 scanlators = listOf(MangaConstants.ScanlatorOption("test", disabled = true))
@@ -69,6 +63,6 @@ class GetChapterFilterTextTest {
 
         val result = getChapterFilterText(display, scanlator, language)
 
-        assertEquals("Read, Downloaded, Scanlators", result)
+        assertEquals("Read, Scanlators", result)
     }
 }

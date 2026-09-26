@@ -3,23 +3,14 @@ package eu.kanade.tachiyomi
 import android.app.Application
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.work.WorkManager
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.track.TrackManager
-import eu.kanade.tachiyomi.jobs.follows.FollowsSyncProcessor
-import eu.kanade.tachiyomi.jobs.tracking.TrackSyncProcessor
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.services.NetworkServices
 import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.source.online.MangaDexLoginHelper
 import eu.kanade.tachiyomi.source.online.handlers.ApiMangaParser
 import eu.kanade.tachiyomi.source.online.handlers.ArtworkHandler
-import eu.kanade.tachiyomi.source.online.handlers.FeedUpdatesHandler
-import eu.kanade.tachiyomi.source.online.handlers.FollowsHandler
 import eu.kanade.tachiyomi.source.online.handlers.ImageHandler
 import eu.kanade.tachiyomi.source.online.handlers.LatestChapterHandler
 import eu.kanade.tachiyomi.source.online.handlers.ListHandler
@@ -27,7 +18,6 @@ import eu.kanade.tachiyomi.source.online.handlers.MangaHandler
 import eu.kanade.tachiyomi.source.online.handlers.PageHandler
 import eu.kanade.tachiyomi.source.online.handlers.SearchHandler
 import eu.kanade.tachiyomi.source.online.handlers.SimilarHandler
-import eu.kanade.tachiyomi.source.online.handlers.StatusHandler
 import eu.kanade.tachiyomi.source.online.handlers.external.AzukiHandler
 import eu.kanade.tachiyomi.source.online.handlers.external.ComikeyHandler
 import eu.kanade.tachiyomi.source.online.handlers.external.MangaHotHandler
@@ -51,8 +41,6 @@ import org.nekomanga.data.database.repository.ArtworkRepository
 import org.nekomanga.data.database.repository.ArtworkRepositoryImpl
 import org.nekomanga.data.database.repository.BrowseFilterRepository
 import org.nekomanga.data.database.repository.BrowseFilterRepositoryImpl
-import org.nekomanga.data.database.repository.CategoryRepository
-import org.nekomanga.data.database.repository.CategoryRepositoryImpl
 import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.ChapterRepositoryImpl
 import org.nekomanga.data.database.repository.HistoryRepository
@@ -65,32 +53,24 @@ import org.nekomanga.data.database.repository.ScanlatorGroupRepository
 import org.nekomanga.data.database.repository.ScanlatorGroupRepositoryImpl
 import org.nekomanga.data.database.repository.SimilarRepository
 import org.nekomanga.data.database.repository.SimilarRepositoryImpl
-import org.nekomanga.data.database.repository.TrackRepository
-import org.nekomanga.data.database.repository.TrackRepositoryImpl
 import org.nekomanga.data.database.repository.UploaderRepository
 import org.nekomanga.data.database.repository.UploaderRepositoryImpl
 import org.nekomanga.domain.details.MangaDetailsPreferences
-import org.nekomanga.domain.library.LibraryPreferences
 import org.nekomanga.domain.reader.ReaderPreferences
 import org.nekomanga.domain.site.MangaDexPreferences
 import org.nekomanga.domain.storage.StorageManager
 import org.nekomanga.domain.storage.StoragePreferences
-import org.nekomanga.domain.track.store.DelayedTrackingStore
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.screens.browse.BrowseRepository
 import org.nekomanga.presentation.screens.feed.FeedRepository
 import org.nekomanga.presentation.screens.similar.SimilarRepo
-import org.nekomanga.usecases.category.CategoryUseCases
 import org.nekomanga.usecases.chapters.CalculateChapterFilterUseCase
 import org.nekomanga.usecases.chapters.ChapterUseCases
 import org.nekomanga.usecases.chapters.ParseChapterNameUseCase
 import org.nekomanga.usecases.filter.CalculateDexFilterUseCase
-import org.nekomanga.usecases.library.FilterLibraryMangaUseCase
-import org.nekomanga.usecases.library.ShouldUpdateMangaUseCase
 import org.nekomanga.usecases.manga.MangaUseCases
 import org.nekomanga.usecases.preferences.GetDateFormatUseCase
 import org.nekomanga.usecases.preferences.GetFormattedBuildTimeUseCase
-import org.nekomanga.usecases.tracking.TrackUseCases
 import tachiyomi.core.preference.AndroidPreferenceStore
 import tachiyomi.core.preference.PreferenceStore
 import tachiyomi.core.util.storage.AndroidStorageFolderProvider
@@ -112,6 +92,7 @@ class AppModule(val app: Application) : InjektModule {
                     DatabaseMigrations.MIGRATION_45_46,
                     DatabaseMigrations.MIGRATION_46_47,
                     DatabaseMigrations.MIGRATION_47_48,
+                    DatabaseMigrations.MIGRATION_48_49,
                 )
                 .fallbackToDestructiveMigration(false)
                 .build()
@@ -125,13 +106,6 @@ class AppModule(val app: Application) : InjektModule {
             BrowseFilterRepositoryImpl(browseFilterDao = get<AppDatabase>().browseFilterDao())
         }
 
-        addSingletonFactory<CategoryRepository> {
-            CategoryRepositoryImpl(
-                categoryDao = get<AppDatabase>().categoryDao(),
-                mangaCategoryDao = get<AppDatabase>().mangaCategoryDao(),
-            )
-        }
-
         addSingletonFactory<ChapterRepository> {
             ChapterRepositoryImpl(chapterDao = get<AppDatabase>().chapterDao())
         }
@@ -141,12 +115,7 @@ class AppModule(val app: Application) : InjektModule {
         }
 
         addSingletonFactory<MangaRepository> {
-            MangaRepositoryImpl(
-                libraryDao = get<AppDatabase>().libraryDao(),
-                mangaDao = get<AppDatabase>().mangaDao(), // INJECTED HERE
-                mangaDexPreferences = get(),
-                libraryPreferences = get(),
-            )
+            MangaRepositoryImpl(mangaDao = get<AppDatabase>().mangaDao())
         }
 
         // Bind the ScanlatorGroup repository
@@ -168,26 +137,15 @@ class AppModule(val app: Application) : InjektModule {
             UploaderRepositoryImpl(uploaderDao = get<AppDatabase>().uploaderDao())
         }
 
-        // Bind the Track repository
-        addSingletonFactory<TrackRepository> {
-            TrackRepositoryImpl(trackDao = get<AppDatabase>().trackDao())
-        }
-
         addSingletonFactory { ChapterCache(app) }
 
         addSingletonFactory { CoverCache(app) }
-
-        addSingletonFactory { WorkManager.getInstance(app) }
 
         addSingletonFactory { NetworkHelper(app) }
 
         addSingletonFactory { NetworkServices() }
 
         addSingletonFactory { SourceManager() }
-
-        addSingletonFactory { DownloadManager(app) }
-
-        addSingletonFactory { TrackManager(app) }
 
         addSingletonFactory { ChapterItemFilter() }
 
@@ -201,8 +159,6 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { MangaMappings(app.applicationContext) }
 
         addSingletonFactory { StorageManager(app, get()) }
-
-        addSingletonFactory { FollowsHandler() }
 
         addSingletonFactory { ArtworkHandler() }
 
@@ -222,10 +178,6 @@ class AppModule(val app: Application) : InjektModule {
 
         addSingletonFactory { LatestChapterHandler() }
 
-        addSingletonFactory { FeedUpdatesHandler() }
-
-        addSingletonFactory { MangaDexLoginHelper() }
-
         addSingletonFactory { MangaPlusHandler() }
 
         addSingletonFactory { NamiComiHandler() }
@@ -237,14 +189,6 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { MangaHotHandler() }
 
         addSingletonFactory { MangaUpHandler() }
-
-        addSingletonFactory { StatusHandler() }
-
-        addSingletonFactory { FollowsSyncProcessor() }
-
-        addSingletonFactory { TrackSyncProcessor() }
-
-        addSingletonFactory { DelayedTrackingStore(app) }
 
         addSingletonFactory { SimilarRepo() }
 
@@ -260,14 +204,7 @@ class AppModule(val app: Application) : InjektModule {
 
         addSingletonFactory { CalculateDexFilterUseCase() }
 
-        addSingletonFactory { FilterLibraryMangaUseCase() }
-        addSingletonFactory { ShouldUpdateMangaUseCase() }
-
         addSingletonFactory { MangaUseCases() }
-
-        addSingletonFactory { CategoryUseCases() }
-
-        addSingletonFactory { TrackUseCases() }
 
         addSingletonFactory { FeedRepository() }
 
@@ -285,8 +222,6 @@ class AppModule(val app: Application) : InjektModule {
                 get<SourceManager>()
 
                 get<AppDatabase>()
-
-                get<DownloadManager>()
             } catch (e: Exception) {
                 TimberKt.e(e) { "Failed to initialize components" }
             }
@@ -297,8 +232,6 @@ class AppModule(val app: Application) : InjektModule {
 class PreferenceModule(val application: Application) : InjektModule {
     override fun InjektRegistrar.registerInjectables() {
         addSingletonFactory<PreferenceStore> { AndroidPreferenceStore(application) }
-
-        addSingletonFactory { DownloadProvider(get()) }
 
         addSingletonFactory { AndroidStorageFolderProvider(application) }
 
@@ -311,8 +244,6 @@ class PreferenceModule(val application: Application) : InjektModule {
         }
 
         addSingletonFactory { SecurityPreferences(get()) }
-
-        addSingletonFactory { LibraryPreferences(get()) }
 
         addSingletonFactory { ReaderPreferences(get()) }
 

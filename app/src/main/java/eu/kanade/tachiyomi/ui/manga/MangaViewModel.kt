@@ -8,45 +8,33 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.getOrElse
 import com.github.michaelbull.result.onErr
-import com.github.michaelbull.result.runCatching
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.database.models.ArtworkImpl
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.uuid
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.SourceManager
-import eu.kanade.tachiyomi.source.online.MangaDexLoginHelper
-import eu.kanade.tachiyomi.source.online.handlers.StatusHandler
 import eu.kanade.tachiyomi.source.online.models.dto.AggregateVolume
 import eu.kanade.tachiyomi.source.online.models.dto.asMdMap
-import eu.kanade.tachiyomi.source.online.utils.FollowStatus
 import eu.kanade.tachiyomi.source.online.utils.MdUtil
 import eu.kanade.tachiyomi.ui.main.AppSnackbarManager
-import eu.kanade.tachiyomi.ui.manga.MangaConstants.DownloadAction
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.NextUnreadChapter
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.SortOption
 import eu.kanade.tachiyomi.ui.manga.MangaConstants.applyToManga
-import eu.kanade.tachiyomi.ui.manga.TrackingConstants.TrackAndService
-import eu.kanade.tachiyomi.ui.manga.TrackingConstants.TrackDateChange
 import eu.kanade.tachiyomi.util.chapter.ChapterItemFilter
 import eu.kanade.tachiyomi.util.chapter.ChapterItemSort
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
 import eu.kanade.tachiyomi.util.chapter.MissingChapterHolder
 import eu.kanade.tachiyomi.util.chapter.getMissingChapters
-import eu.kanade.tachiyomi.util.chapter.updateTrackChapterMarkedAsRead
 import eu.kanade.tachiyomi.util.manga.MangaCoverMetadata
 import eu.kanade.tachiyomi.util.system.ImageUtil
+import eu.kanade.tachiyomi.util.system.isOnline
 import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.launchNonCancellable
-import eu.kanade.tachiyomi.util.system.launchUI
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.openInWebView
 import eu.kanade.tachiyomi.util.system.withIOContext
-import java.text.DateFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -59,7 +47,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -83,14 +70,11 @@ import org.nekomanga.data.database.repository.ChapterRepository
 import org.nekomanga.data.database.repository.HistoryRepository
 import org.nekomanga.data.database.repository.MangaAggregateRepository
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.data.database.repository.TrackRepository
-import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.chapter.ChapterItem
 import org.nekomanga.domain.chapter.ChapterMarkActions
 import org.nekomanga.domain.chapter.SimpleChapter
 import org.nekomanga.domain.chapter.toSimpleChapter
 import org.nekomanga.domain.details.MangaDetailsPreferences
-import org.nekomanga.domain.library.LibraryPreferences
 import org.nekomanga.domain.manga.Artwork
 import org.nekomanga.domain.manga.MangaItem
 import org.nekomanga.domain.manga.Stats
@@ -103,13 +87,8 @@ import org.nekomanga.domain.site.MangaDexPreferences
 import org.nekomanga.domain.snackbar.SnackbarColor
 import org.nekomanga.domain.snackbar.SnackbarState
 import org.nekomanga.domain.storage.StorageManager
-import org.nekomanga.domain.track.TrackItem
-import org.nekomanga.domain.track.TrackServiceItem
-import org.nekomanga.domain.track.toTrackItem
-import org.nekomanga.domain.track.toTrackServiceItem
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.components.UiText
-import org.nekomanga.usecases.category.CategoryUseCases
 import org.nekomanga.usecases.chapters.ChapterUseCases
 import org.nekomanga.usecases.chapters.GetChapterFilterText
 import org.nekomanga.usecases.manga.MangaUseCases
@@ -127,7 +106,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
     private val preferences: PreferencesHelper = Injekt.get()
     private val getDateFormatUseCase: GetDateFormatUseCase = Injekt.get()
     private val mangaDexPreferences: MangaDexPreferences = Injekt.get()
-    val libraryPreferences: LibraryPreferences = Injekt.get()
     val securityPreferences: SecurityPreferences = Injekt.get()
     val mangaDetailsPreferences: MangaDetailsPreferences = Injekt.get()
     val coverCache: CoverCache = Injekt.get()
@@ -138,20 +116,13 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
 
     val chapterRepository: ChapterRepository = Injekt.get()
     val historyRepository: HistoryRepository = Injekt.get()
-    val trackRepository: TrackRepository = Injekt.get()
-    val downloadManager: DownloadManager = Injekt.get()
 
     val appSnackbarManager: AppSnackbarManager = Injekt.get()
     val chapterItemFilter: ChapterItemFilter = Injekt.get()
     val sourceManager: SourceManager = Injekt.get()
-    private val loginHelper: MangaDexLoginHelper = Injekt.get()
-    private val statusHandler: StatusHandler = Injekt.get()
-    private val trackManager: TrackManager = Injekt.get()
     private val mangaUpdateCoordinator: MangaUpdateCoordinator = Injekt.get()
     private val storageManager: StorageManager = Injekt.get()
     private val chapterUseCases: ChapterUseCases = Injekt.get()
-    private val trackUseCases: org.nekomanga.usecases.tracking.TrackUseCases = Injekt.get()
-    private val categoryUseCases: CategoryUseCases = Injekt.get()
 
     private val mangaUseCases: MangaUseCases = Injekt.get()
 
@@ -180,7 +151,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         val languages: Set<String>? = null,
         val sortOption: SortOption? = null,
         val readFilter: Int? = null,
-        val downloadedFilter: Int? = null,
         val bookmarkedFilter: Int? = null,
         val availableFilter: Int? = null,
         val hideChapterTitles: Boolean? = null,
@@ -237,50 +207,9 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
             .distinctUntilChanged()
             .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
 
-    val categoriesDataFlow =
-        combine(
-                categoryUseCases.getCategories.observe(),
-                categoryUseCases.getCategories.observeCategoriesForManga(mangaId),
-            ) { allCategories, currentCategories ->
-                MangaConstants.CategoriesData(
-                    all = allCategories,
-                    current = currentCategories,
-                )
-            }
-            .distinctUntilChanged()
-            .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
-
-    val tracksFlow =
-        trackRepository
-            .observeTracksForManga(mangaId)
-            .map { tracks -> tracks.map { it.toTrackItem() }.toList() }
-            .distinctUntilChanged()
-            .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
-
     /**
-     * MACRO-LEVEL PERFORMANCE OPTIMIZATION (Overclock):
-     *
-     * Why: Previously, this flow was performing a blocking database query
-     * `db.getManga(mangaId).executeAsBlocking()!!` inside the `combine` block. Because this is a
-     * hot flow observed by the UI, it forced the reactive pipeline to block the thread on every
-     * emission of chapters or preferences, leading to stuttering, CPU spikes, and frame drops.
-     *
-     * Architecture: We injected the `mangaFlow` directly into this `combine` operator. By using the
-     * emitted `mangaItem` instead of performing a synchronous query, the flow becomes fully
-     * reactive and avoids I/O operations on the main flow dispatcher.
-     *
-     * SECOND MACRO-LEVEL PERFORMANCE OPTIMIZATION (Overclock):
-     *
-     * Why: Previously, `allChapterFlow` called `downloadManager.isChapterDownloaded` and
-     * `downloadManager.getQueuedDownloadOrNull` inside an O(N) map loop for every single chapter.
-     * Since `getQueuedDownloadOrNull` iterates over the list of active downloads, this created an
-     * O(N*M) bottleneck where N is chapters and M is queued items. In addition, checking the cache
-     * for downloaded chapters unconditionally causes redundant overhead.
-     *
-     * Architecture: We perform a bulk O(1) hashmap association of the queued downloads before the
-     * loop. We also check if the total `downloadCount` is 0 to completely bypass the O(N)
-     * evaluation of `isChapterDownloaded` on un-downloaded manga, saving thousands of redundant
-     * string allocations and map lookups on large libraries.
+     * Chapters for the manga, without those from blocked groups and uploaders. The flow reads the
+     * manga from [mangaFlow] instead of querying it on every emission.
      */
     val allChapterFlow =
         combine(
@@ -288,14 +217,7 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                 mangaFlow,
                 mangaDexPreferences.blockedGroups().changes(),
                 mangaDexPreferences.blockedUploaders().changes(),
-            ) { dbChapters, mangaItem, blockedGroups, blockedUploaders ->
-                val dbManga = mangaItem.toManga()
-
-                // Pre-compute O(1) lookups outside the loop to prevent O(N*M) thrashing
-                val downloadCount = downloadManager.getDownloadCount(dbManga)
-                val queuedDownloadsById =
-                    downloadManager.queueState.value.associateBy { it.chapterItem.id }
-
+            ) { dbChapters, _, blockedGroups, blockedUploaders ->
                 dbChapters.mapNotNull { dbChapter ->
                     dbChapter
                         .toSimpleChapter()
@@ -308,34 +230,7 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                     blockedUploaders,
                                 )
                         }
-                        ?.let { chapter ->
-                            val downloadState =
-                                when {
-                                    downloadCount > 0 &&
-                                        downloadManager.isChapterDownloaded(
-                                            chapter.toDbChapter(),
-                                            dbManga,
-                                        ) -> Download.State.DOWNLOADED
-
-                                    else -> {
-                                        val download = queuedDownloadsById[chapter.id]
-                                        when (download == null) {
-                                            true -> Download.State.NOT_DOWNLOADED
-                                            false -> download.status
-                                        }
-                                    }
-                                }
-
-                            ChapterItem(
-                                chapter = chapter,
-                                downloadState = downloadState,
-                                downloadProgress =
-                                    when (downloadState == Download.State.DOWNLOADING) {
-                                        true -> queuedDownloadsById[chapter.id]?.progress ?: 0
-                                        false -> 0
-                                    },
-                            )
-                        }
+                        ?.let { chapter -> ChapterItem(chapter = chapter) }
                 }
             }
             .distinctUntilChanged()
@@ -401,12 +296,10 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         }
 
         initialLoad()
-        observeDownloads()
 
         viewModelScope.launchIO {
             combine(
-                    combine(mangaFlow, staticChapterDataFlow, categoriesDataFlow, ::Triple),
-                    combine(artworkFlow, tracksFlow, ::Pair),
+                    combine(mangaFlow, staticChapterDataFlow, artworkFlow, ::Triple),
                     combine(
                         _mangaFilterState,
                         mangaDetailsPreferences.dynamicCovers().changes(),
@@ -414,8 +307,7 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                         ::Triple,
                     ),
                 ) {
-                    (mangaItem, staticChapterData, categoriesData),
-                    (artworkList, tracks),
+                    (mangaItem, staticChapterData, artworkList),
                     (filterState, dynamicCover, history) ->
                     withContext(Dispatchers.Default) {
                         val effectiveManga =
@@ -435,7 +327,7 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                             )
                         } else {
 
-                            if (dynamicCover && effectiveManga.favorite) {
+                            if (dynamicCover) {
                                 dynamicCoverUpdateJob?.cancel()
                                 dynamicCoverUpdateJob = viewModelScope.launchIO {
                                     delay(DYNAMIC_COVER_UPDATE_DELAY_MS)
@@ -491,22 +383,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                     allLanguages = staticChapterData.allLanguages,
                                 )
 
-                            val loggedInTrackerService =
-                                trackManager.services
-                                    .mapNotNull {
-                                        if (it.value.isLogged()) it.value.toTrackServiceItem()
-                                        else null
-                                    }
-                                    .toList()
-
-                            val trackCount = loggedInTrackerService.count { service ->
-                                tracks.any { track ->
-                                    service.id == track.trackServiceId &&
-                                        (!service.isMdList ||
-                                            !FollowStatus.isUnfollowed(track.status))
-                                }
-                            }
-
                             val displayFilter = getChapterDisplay(effectiveManga)
                             val sortFilter = getSortFilter(effectiveManga)
                             val scanlatorFilter =
@@ -535,14 +411,9 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                 chapterLanguageFilter = languageFilter,
                                 chapterSortFilter = sortFilter,
                                 chapterFilterText = chapterFilterText,
-                                allCategories = categoriesData.all.toList(),
-                                mangaCategories = categoriesData.current.toList(),
                                 allChapterInfo = allChapterInfo,
                                 artwork = artwork,
                                 altArtwork = alternativeArtwork,
-                                tracks = tracks,
-                                loggedInTrackerService = loggedInTrackerService,
-                                trackServiceCount = trackCount,
                             )
                         }
                     }
@@ -571,7 +442,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                     externalLinks = allInfo.mangaItem.externalLinks,
                                     genres = allInfo.mangaItem.genre,
                                     initialized = allInfo.mangaItem.initialized,
-                                    inLibrary = allInfo.mangaItem.favorite,
                                     isPornographic =
                                         allInfo.mangaItem.contentRating.equals(
                                             MdConstants.ContentRating.pornographic,
@@ -607,27 +477,10 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                     allUploaders = allInfo.allChapterInfo.allUploaders,
                                     allLanguages = allInfo.allChapterInfo.allLanguages,
                                 ),
-                            category =
-                                it.category.copy(
-                                    allCategories = allInfo.allCategories,
-                                    currentCategories = allInfo.mangaCategories,
-                                ),
-                            track =
-                                it.track.copy(
-                                    tracks = allInfo.tracks,
-                                    loggedInTrackService = allInfo.loggedInTrackerService,
-                                    trackServiceCount = allInfo.trackServiceCount,
-                                ),
                         )
                     }
 
                     if (_mangaDetailScreenState.value.general.firstLoad) {
-                        syncChaptersReadStatus()
-                        autoAddTrackers(
-                            allInfo.mangaItem,
-                            allInfo.loggedInTrackerService,
-                            allInfo.tracks,
-                        )
                         _mangaDetailScreenState.update {
                             it.copy(general = it.general.copy(firstLoad = false))
                         }
@@ -693,93 +546,10 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                             )
                         }
 
-                        is MangaResult.Success -> {
-                            syncChaptersReadStatus()
-                            val mangaItem = mangaRepository.getMangaById(mangaId)!!.toMangaItem()
-
-                            autoAddTrackers(
-                                mangaItem,
-                                mangaDetailScreenState.value.track.loggedInTrackService,
-                                mangaDetailScreenState.value.track.tracks,
-                            )
-                        }
-
-                        is MangaResult.ChaptersRemoved -> {
-                            val removedChapters =
-                                mangaDetailScreenState.value.chapters.allChapters.filter {
-                                    it.chapter.id in result.chapterIdsRemoved && it.isDownloaded
-                                }
-
-                            if (removedChapters.isNotEmpty()) {
-                                when (preferences.deleteRemovedChapters().get()) {
-                                    2 -> deleteChapters(removedChapters)
-                                    1 -> Unit
-                                    else -> {
-                                        _mangaDetailScreenState.update {
-                                            it.copy(
-                                                general =
-                                                    it.general.copy(
-                                                        removedChapters = removedChapters.toList()
-                                                    )
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
                         else -> Unit
                     }
                 }
         }
-    }
-
-    /** Delete the list of chapters */
-    fun deleteChapters(
-        chapterItems: List<ChapterItem>,
-        isEverything: Boolean = false,
-        canUndo: Boolean = false,
-    ) {
-        viewModelScope.launchNonCancellable {
-            val dbManga = mangaRepository.getMangaById(mangaId)!!
-            if (chapterItems.isNotEmpty()) {
-                val delete: suspend () -> Unit = {
-                    if (isEverything) {
-                        downloadManager.deleteManga(dbManga)
-                    } else {
-                        downloadManager.deleteChapters(
-                            dbManga,
-                            chapterItems.map { it.chapter.toDbChapter() },
-                        )
-                    }
-                    updateRemovedDownload(chapterItems)
-                }
-                if (canUndo) {
-                    appSnackbarManager.showSnackbar(
-                        SnackbarState(
-                            messageRes = R.string.deleted_downloads,
-                            actionLabelRes = R.string.undo,
-                            action = {},
-                            dismissAction = { viewModelScope.launch { delete() } },
-                            snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
-                        )
-                    )
-                } else {
-                    delete()
-                }
-            } else {
-                appSnackbarManager.showSnackbar(
-                    SnackbarState(
-                        messageRes = R.string.no_chapters_to_delete,
-                        snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
-                    )
-                )
-            }
-        }
-    }
-
-    fun createMangaFolder() {
-        viewModelScope.launchIO { downloadManager.createMangaFolder(getManga()) }
     }
 
     fun markPreviousChapters(chapterItem: ChapterItem, read: Boolean) {
@@ -800,7 +570,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
     fun markChapters(
         chapterItems: List<ChapterItem>,
         markAction: ChapterMarkActions,
-        skipSync: Boolean = false,
     ) {
         viewModelScope.launchIO {
             val manga = mangaRepository.getMangaById(mangaId) ?: return@launchIO
@@ -831,59 +600,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
 
             chapterUseCases.markChapters(markAction, updatedChapterList)
 
-            suspend fun finalizeChapters() {
-                if (
-                    markAction is ChapterMarkActions.Read ||
-                        markAction is ChapterMarkActions.PreviousRead
-                ) {
-                    if (preferences.removeAfterMarkedAsRead().get()) {
-                        // dont delete bookmarked chapters
-                        deleteChapters(
-                            updatedChapterList.mapNotNull {
-                                if (it.chapter.canDeleteChapter()) ChapterItem(chapter = it.chapter)
-                                else null
-                            },
-                            updatedChapterList.size ==
-                                mangaDetailScreenState.value.chapters.allChapters.size,
-                        )
-                    }
-                    // get the highest chapter number and update tracking for it
-                    updatedChapterList
-                        .maxByOrNull { it.chapter.chapterNumber.toInt() }
-                        ?.let {
-                            kotlin
-                                .runCatching {
-                                    updateTrackChapterMarkedAsRead(
-                                        it.chapter.toDbChapter(),
-                                        mangaId,
-                                    )
-                                }
-                                .onFailure {
-                                    TimberKt.e(it) {
-                                        "Failed to update track chapter marked as read"
-                                    }
-                                    viewModelScope.launchIO {
-                                        appSnackbarManager.showSnackbar(
-                                            SnackbarState(
-                                                "Error trying to update tracked chapter marked as read ${it.message}",
-                                                snackBarColor =
-                                                    _mangaDetailScreenState.value.general
-                                                        .snackbarColor,
-                                            )
-                                        )
-                                    }
-                                }
-                        }
-                }
-
-                chapterUseCases.markChaptersRemote(
-                    markAction,
-                    manga.uuid(),
-                    updatedChapterList,
-                    skipSync,
-                )
-            }
-
             if (markAction.canUndo) {
                 appSnackbarManager.showSnackbar(
                     SnackbarState(
@@ -896,106 +612,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                 chapterRepository.updateChaptersProgress(originalDbChapters)
                             }
                         },
-                        dismissAction = { viewModelScope.launchIO { finalizeChapters() } },
-                        snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
-                    )
-                )
-            } else {
-                finalizeChapters()
-            }
-        }
-    }
-
-    /** Delete the list of chapters */
-    fun downloadChapters(chapterItems: List<ChapterItem>, downloadAction: DownloadAction) {
-        viewModelScope.launchIO {
-            val dbManga = mangaRepository.getMangaById(mangaId)!!
-            val allChapterSize = mangaDetailScreenState.value.chapters.allChapters.size
-            when (downloadAction) {
-                is DownloadAction.ImmediateDownload -> {
-                    addToLibrarySnack()
-                    downloadManager.startDownloadNow(chapterItems.first().chapter.toDbChapter())
-                }
-
-                is DownloadAction.DownloadAll -> {
-                    addToLibrarySnack()
-                    downloadManager.downloadChapters(
-                        dbManga,
-                        mangaDetailScreenState.value.chapters.activeChapters.mapNotNull {
-                            if (!it.isDownloaded) it.chapter.toDbChapter() else null
-                        },
-                    )
-                }
-
-                is DownloadAction.Download -> {
-                    addToLibrarySnack()
-                    downloadManager.downloadChapters(
-                        dbManga,
-                        chapterItems.mapNotNull {
-                            if (!it.isDownloaded) it.chapter.toDbChapter() else null
-                        },
-                    )
-                }
-
-                is DownloadAction.DownloadNextUnread -> {
-                    val filteredChapters =
-                        mangaDetailScreenState.value.chapters.activeChapters
-                            // Use asSequence to avoid intermediate memory allocations during
-                            // multiple list operations
-                            .asSequence()
-                            .filter {
-                                !it.chapter.read && it.isNotDownloaded && !it.chapter.isUnavailable
-                            }
-                            .sortedWith(chapterSort.sortComparator(dbManga, true))
-                            .take(downloadAction.numberToDownload)
-                            .map { it.chapter.toDbChapter() }
-                            .toList()
-                    downloadManager.downloadChapters(dbManga, filteredChapters)
-                }
-
-                is DownloadAction.DownloadUnread -> {
-                    val filteredChapters =
-                        mangaDetailScreenState.value.chapters.activeChapters.mapNotNull {
-                            if (!it.chapter.read && !it.isDownloaded && !it.chapter.isUnavailable)
-                                it.chapter.toDbChapter()
-                            else null
-                        }
-                    downloadManager.downloadChapters(dbManga, filteredChapters)
-                }
-
-                is DownloadAction.Remove ->
-                    deleteChapters(chapterItems, chapterItems.size == allChapterSize)
-
-                is DownloadAction.RemoveAll ->
-                    deleteChapters(
-                        mangaDetailScreenState.value.chapters.activeChapters,
-                        mangaDetailScreenState.value.chapters.activeChapters.size == allChapterSize,
-                        true,
-                    )
-
-                is DownloadAction.RemoveRead -> {
-                    val filteredChapters =
-                        mangaDetailScreenState.value.chapters.activeChapters.filter {
-                            it.chapter.read && it.isDownloaded
-                        }
-                    deleteChapters(filteredChapters, filteredChapters.size == allChapterSize, true)
-                }
-
-                is DownloadAction.Cancel ->
-                    deleteChapters(chapterItems, chapterItems.size == allChapterSize)
-            }
-        }
-    }
-
-    /** Checks if a manga is favorited, if not then snack action to add to library */
-    private fun addToLibrarySnack() {
-        viewModelScope.launchIO {
-            if (!_mangaDetailScreenState.value.manga.inLibrary) {
-                appSnackbarManager.showSnackbar(
-                    SnackbarState(
-                        messageRes = R.string.add_to_library,
-                        actionLabelRes = R.string.add,
-                        action = { toggleFavorite(true) },
                         snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
                     )
                 )
@@ -1003,49 +619,15 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         }
     }
 
-    suspend fun isOnline(): Boolean {
-        val networkState = downloadManager.networkStateFlow().firstOrNull()
-        return networkState?.isOnline == true
-    }
+    private fun isOnline(): Boolean = preferences.context.isOnline()
 
     fun initialLoad() {
-        // refresh tracking
         viewModelScope.launchIO {
-            if (!isOnline()) return@launchIO
-
-            trackUseCases.refreshTracking.refreshTracking(
-                mangaId = mangaId,
-                onRefreshError = { error, serviceNameRes, errorMessage ->
-                    delay(3000)
-                    appSnackbarManager.showSnackbar(
-                        SnackbarState(
-                            message = errorMessage,
-                            fieldRes = serviceNameRes,
-                            messageRes = R.string.error_refreshing_,
-                            snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
-                        )
-                    )
-                },
-                onChaptersToMarkRead = { chaptersToMark ->
-                    markChapters(chaptersToMark, ChapterMarkActions.Read())
-                },
-            )
-        }
-
-        viewModelScope.launchIO {
-            val loggedInServices =
-                trackManager.services
-                    .mapNotNull { service ->
-                        if (service.value.isLogged()) service.value.toTrackServiceItem() else null
-                    }
-                    .toList()
-
             _mangaDetailScreenState.update {
                 it.copy(
                     general =
                         it.general.copy(
                             incognitoMode = securityPreferences.incognitoMode().get(),
-                            hasDefaultCategory = libraryPreferences.defaultCategory().get() != -1,
                             hideButtonText = mangaDetailsPreferences.hideButtonText().get(),
                             backdropSize = mangaDetailsPreferences.backdropSize().get(),
                             forcePortrait = mangaDetailsPreferences.forcePortrait().get(),
@@ -1056,7 +638,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                             chapterSwipeLeftAction =
                                 mangaDetailsPreferences.chapterSwipeLeftAction().get(),
                         ),
-                    track = it.track.copy(loggedInTrackService = loggedInServices),
                     manga =
                         it.manga.copy(
                             dynamicCovers = mangaDetailsPreferences.dynamicCovers().get()
@@ -1071,7 +652,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         return Artwork(
             cover = manga.userCover,
             dynamicCover = manga.dynamicCover,
-            inLibrary = manga.favorite,
             originalCover = manga.coverUrl,
             mangaId = mangaId,
         )
@@ -1081,7 +661,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         return Artwork(
             cover = manga.userCover,
             dynamicCover = manga.dynamicCover,
-            inLibrary = manga.favorite,
             originalCover = manga.coverUrl,
             mangaId = mangaId,
         )
@@ -1134,13 +713,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                 else -> ToggleableState.Off
             }
 
-        val downloaded =
-            when (manga.downloadedFilter(mangaDetailsPreferences)) {
-                Manga.CHAPTER_SHOW_DOWNLOADED -> ToggleableState.On
-                Manga.CHAPTER_SHOW_NOT_DOWNLOADED -> ToggleableState.Indeterminate
-                else -> ToggleableState.Off
-            }
-
         val hideTitle =
             when (manga.hideChapterTitle(mangaDetailsPreferences)) {
                 true -> ToggleableState.On
@@ -1157,7 +729,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         val all =
             read == ToggleableState.Off &&
                 bookmark == ToggleableState.Off &&
-                downloaded == ToggleableState.Off &&
                 available == ToggleableState.Off
 
         val matchesDefaults = mangaFilterMatchesDefault(manga)
@@ -1165,7 +736,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         return MangaConstants.ChapterDisplay(
             showAll = all,
             unread = read,
-            downloaded = downloaded,
             bookmarked = bookmark,
             hideChapterTitles = hideTitle,
             available = available,
@@ -1299,16 +869,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         }
     }
 
-    fun addNewCategory(newCategory: String) {
-        viewModelScope.launchIO { categoryUseCases.modifyCategory.addNewCategory(newCategory) }
-    }
-
-    fun updateMangaCategories(enabledCategories: List<CategoryItem>) {
-        viewModelScope.launchIO {
-            categoryUseCases.modifyCategory.updateMangaCategories(mangaId, enabledCategories)
-        }
-    }
-
     fun copiedToClipboard(message: String) {
         viewModelScope.launchIO {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -1336,112 +896,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                     message = dbManga.user_title,
                     actionLabelRes = R.string.undo,
                     action = { setAltTitle(previousTitle) },
-                    snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
-                )
-            )
-        }
-    }
-
-    /** Toggle a manga as favorite */
-    fun toggleFavorite(shouldAddToDefaultCategory: Boolean) {
-        viewModelScope.launchIO {
-            val editManga = mangaUseCases.modifyManga.toggleFavorite(mangaId) ?: return@launchIO
-
-            // Add to trackers if it was added to favorites
-            if (editManga.favorite) {
-                autoAddTrackers(
-                    editManga.toMangaItem(),
-                    mangaDetailScreenState.value.track.loggedInTrackService,
-                    mangaDetailScreenState.value.track.tracks,
-                )
-            }
-            // add to the default category if it exists and the user has the option set
-            if (
-                shouldAddToDefaultCategory &&
-                    mangaDetailScreenState.value.general.hasDefaultCategory
-            ) {
-                val defaultCategoryId = libraryPreferences.defaultCategory().get()
-                mangaDetailScreenState.value.category.allCategories
-                    .firstOrNull { defaultCategoryId == it.id }
-                    ?.let { updateMangaCategories(listOf(it)) }
-            }
-        }
-    }
-
-    /** Update tracker with new status */
-    fun updateTrackStatus(statusIndex: Int, trackAndService: TrackAndService) {
-        viewModelScope.launchIO {
-            val trackingUpdate = trackUseCases.updateTrackStatus.await(statusIndex, trackAndService)
-            handleTrackingUpdate(trackingUpdate)
-        }
-    }
-
-    /** Update tracker with new score */
-    fun updateTrackScore(scoreIndex: Int, trackAndService: TrackAndService) {
-        viewModelScope.launchIO {
-            val trackingUpdate = trackUseCases.updateTrackScore.await(scoreIndex, trackAndService)
-            handleTrackingUpdate(trackingUpdate)
-        }
-    }
-
-    /** Update the tracker with the new chapter information */
-    fun updateTrackChapter(newChapterNumber: Int, trackAndService: TrackAndService) {
-        viewModelScope.launchIO {
-            val trackingUpdate =
-                trackUseCases.updateTrackChapter.await(newChapterNumber, trackAndService)
-            handleTrackingUpdate(trackingUpdate)
-        }
-    }
-
-    /** Update the tracker with the start/finished date */
-    fun updateTrackDate(trackDateChange: TrackDateChange) {
-        viewModelScope.launchIO {
-            val trackingUpdate = trackUseCases.updateTrackDate.await(trackDateChange)
-            handleTrackingUpdate(trackingUpdate)
-        }
-    }
-
-    /** Search Tracker */
-    fun searchTracker(title: String, service: TrackServiceItem) {
-        viewModelScope.launchIO {
-            val dbManga = mangaRepository.getMangaById(mangaId)!!
-            val previouslyTracked =
-                mangaDetailScreenState.value.track.tracks.firstOrNull {
-                    service.id == it.trackServiceId
-                } != null
-
-            val result =
-                trackUseCases.searchTracker.awaitNonFlow(title, service, dbManga, previouslyTracked)
-            _mangaDetailScreenState.update {
-                it.copy(track = it.track.copy(trackSearchResult = result))
-            }
-        }
-    }
-
-    /** Register tracker with service */
-    fun registerTracking(trackAndService: TrackAndService) {
-        viewModelScope.launchIO {
-            val trackingUpdate = trackUseCases.registerTracking.await(trackAndService, mangaId)
-            handleTrackingUpdate(trackingUpdate)
-        }
-    }
-
-    /** Remove a tracker with an option to remove it from the tracking service */
-    fun removeTracking(alsoRemoveFromTracker: Boolean, service: TrackServiceItem) {
-        viewModelScope.launchIO {
-            val trackingUpdate =
-                trackUseCases.removeTracking.await(alsoRemoveFromTracker, service, mangaId)
-            handleTrackingUpdate(trackingUpdate)
-        }
-    }
-
-    /** Handle the TrackingUpdate */
-    private suspend fun handleTrackingUpdate(trackingUpdate: TrackingUpdate) {
-        if (trackingUpdate is TrackingUpdate.Error) {
-            TimberKt.e(trackingUpdate.exception) { "handle tracking update had error" }
-            appSnackbarManager.showSnackbar(
-                SnackbarState(
-                    message = trackingUpdate.message,
                     snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
                 )
             )
@@ -1494,7 +948,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                         base.copy(
                             readFilter = Manga.SHOW_ALL,
                             bookmarkedFilter = Manga.SHOW_ALL,
-                            downloadedFilter = Manga.SHOW_ALL,
                             availableFilter = Manga.SHOW_ALL,
                         )
 
@@ -1510,15 +963,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                                 getTriState(
                                     Manga.CHAPTER_SHOW_BOOKMARKED,
                                     Manga.CHAPTER_SHOW_NOT_BOOKMARKED,
-                                )
-                        )
-
-                    MangaConstants.ChapterDisplayType.Downloaded ->
-                        base.copy(
-                            downloadedFilter =
-                                getTriState(
-                                    Manga.CHAPTER_SHOW_DOWNLOADED,
-                                    Manga.CHAPTER_SHOW_NOT_DOWNLOADED,
                                 )
                         )
 
@@ -1612,7 +1056,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
 
                 MangaConstants.SetGlobal.Filter -> {
                     mangaDetailsPreferences.filterChapterByRead().set(manga.readFilter)
-                    mangaDetailsPreferences.filterChapterByDownloaded().set(manga.downloadedFilter)
                     mangaDetailsPreferences.filterChapterByBookmarked().set(manga.bookmarkedFilter)
                     mangaDetailsPreferences
                         .hideChapterTitlesByDefault()
@@ -1637,39 +1080,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
                         it.general.copy(vibrantColor = MangaCoverMetadata.getVibrantColor(mangaId))
                 )
             }
-        }
-    }
-
-    fun clearRemovedChapters() {
-        viewModelScope.launchIO {
-            _mangaDetailScreenState.update {
-                it.copy(general = it.general.copy(removedChapters = listOf()))
-            }
-        }
-    }
-
-    fun autoAddTrackers(
-        mangaItem: MangaItem,
-        loggedInTrackerService: List<TrackServiceItem>,
-        tracks: List<TrackItem>,
-    ) {
-        viewModelScope.launchIO {
-            trackUseCases.autoAddTrackers(
-                mangaItem = mangaItem,
-                loggedInTrackerService = loggedInTrackerService,
-                tracks = tracks,
-                onShowSnackbar = { message, prefixRes ->
-                    viewModelScope.launchUI {
-                        appSnackbarManager.showSnackbar(
-                            SnackbarState(
-                                message = message,
-                                prefixRes = prefixRes,
-                                snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
-                            )
-                        )
-                    }
-                },
-            )
         }
     }
 
@@ -1708,7 +1118,7 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
             when (artwork.cover.isBlank() || dbManga.thumbnail_url == artwork.cover) {
                 true ->
                     coverCache.getCustomCoverFile(dbManga).takeIf { it.exists() }
-                        ?: coverCache.getCoverFile(dbManga.thumbnail_url, dbManga.favorite)
+                        ?: coverCache.getCoverFile(dbManga.thumbnail_url)
 
                 false -> coverCache.getCoverFile(artwork.cover)
             }
@@ -1809,169 +1219,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         }
     }
 
-    private fun syncChaptersReadStatus() {
-        viewModelScope.launchIO {
-            if (
-                !mangaDexPreferences.readingSync().get() || !loginHelper.isLoggedIn() || !isOnline()
-            ) {
-                return@launchIO
-            }
-
-            runCatching {
-                val dbManga = mangaRepository.getMangaById(mangaId)!!
-                statusHandler.getReadChapterIds(dbManga.uuid()).collect { chapterIds ->
-                    val chaptersToMarkRead =
-                        mangaDetailScreenState.value.chapters.allChapters
-                            .asSequence()
-                            .filter { chapterIds.contains(it.chapter.mangaDexChapterId) }
-                            .toList()
-                    if (chaptersToMarkRead.isNotEmpty()) {
-                        markChapters(
-                            chaptersToMarkRead,
-                            ChapterMarkActions.Read(),
-                            skipSync = true,
-                        )
-                    }
-                }
-            }
-                .onErr {
-                    TimberKt.e(it) { "Error trying to mark chapters read from MangaDex" }
-                    viewModelScope.launchIO {
-                        delay(3000)
-                        appSnackbarManager.showSnackbar(
-                            SnackbarState(
-                                "Error trying to mark chapters read from MangaDex $it",
-                                snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
-                            )
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun observeDownloads() {
-        viewModelScope.launchIO {
-            downloadManager
-                .statusFlow()
-                .filter { it.mangaItem.id == mangaId }
-                .catch { error -> TimberKt.e(error) }
-                .collect { updateDownloadState(it) }
-        }
-
-        viewModelScope.launchIO {
-            downloadManager
-                .progressFlow()
-                .filter { it.mangaItem.id == mangaId }
-                .conflate()
-                .catch { error -> TimberKt.e(error) }
-                .collect { updateDownloadState(it) }
-        }
-    }
-
-    private fun updateDownloadState(download: Download) {
-        viewModelScope.launchIO {
-            if (download.status == Download.State.ERROR && download.errorMessage != null) {
-                appSnackbarManager.showSnackbar(
-                    SnackbarState(
-                        message = download.errorMessage,
-                        snackBarColor = _mangaDetailScreenState.value.general.snackbarColor,
-                    )
-                )
-            }
-            _mangaDetailScreenState.update { state ->
-                state.copy(
-                    chapters =
-                        state.chapters.copy(
-                            allChapters =
-                                updateChapterListForDownloadState(
-                                    chapterId = download.chapterItem.id,
-                                    downloadStatus = download.status,
-                                    downloadProgress = download.progress,
-                                    chapters = state.chapters.allChapters,
-                                ),
-                            activeChapters =
-                                updateChapterListForDownloadState(
-                                    chapterId = download.chapterItem.id,
-                                    downloadStatus = download.status,
-                                    downloadProgress = download.progress,
-                                    chapters = state.chapters.activeChapters,
-                                ),
-                        ),
-                    general =
-                        state.general.copy(
-                            searchChapters =
-                                updateChapterListForDownloadState(
-                                    chapterId = download.chapterItem.id,
-                                    downloadStatus = download.status,
-                                    downloadProgress = download.progress,
-                                    chapters = state.general.searchChapters,
-                                )
-                        ),
-                )
-            }
-        }
-    }
-
-    fun updateChapterListForDownloadState(
-        chapterId: Long,
-        downloadStatus: Download.State,
-        downloadProgress: Int,
-        chapters: List<ChapterItem>,
-    ): List<ChapterItem> {
-        val index = chapters.indexOfFirst { it.chapter.id == chapterId }
-        return if (index >= 0) {
-            val updatedChapter =
-                chapters[index].copy(
-                    downloadState = downloadStatus,
-                    downloadProgress = downloadProgress,
-                )
-            buildList {
-                addAll(chapters)
-                set(index, updatedChapter)
-            }
-        } else {
-            chapters
-        }
-    }
-
-    private fun updateRemovedDownload(chapterItems: List<ChapterItem>) {
-        viewModelScope.launchIO {
-            chapterItems.forEach { chapterItem ->
-                _mangaDetailScreenState.update { state ->
-                    state.copy(
-                        chapters =
-                            state.chapters.copy(
-                                allChapters =
-                                    updateChapterListForDownloadState(
-                                        chapterId = chapterItem.chapter.id,
-                                        downloadStatus = Download.State.NOT_DOWNLOADED,
-                                        downloadProgress = 0,
-                                        chapters = state.chapters.allChapters,
-                                    ),
-                                activeChapters =
-                                    updateChapterListForDownloadState(
-                                        chapterId = chapterItem.chapter.id,
-                                        downloadStatus = Download.State.NOT_DOWNLOADED,
-                                        downloadProgress = 0,
-                                        chapters = state.chapters.activeChapters,
-                                    ),
-                            ),
-                        general =
-                            state.general.copy(
-                                searchChapters =
-                                    updateChapterListForDownloadState(
-                                        chapterId = chapterItem.chapter.id,
-                                        downloadStatus = Download.State.NOT_DOWNLOADED,
-                                        downloadProgress = 0,
-                                        chapters = state.general.searchChapters,
-                                    )
-                            ),
-                    )
-                }
-            }
-        }
-    }
-
     fun getManga(): Manga {
         return runBlocking { mangaRepository.getMangaById(mangaId)!! }
     }
@@ -2017,7 +1264,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
 
     private fun mangaFilterMatchesDefault(manga: Manga): Boolean {
         return (manga.readFilter == mangaDetailsPreferences.filterChapterByRead().get() &&
-            manga.downloadedFilter == mangaDetailsPreferences.filterChapterByDownloaded().get() &&
             manga.bookmarkedFilter == mangaDetailsPreferences.filterChapterByBookmarked().get() &&
             manga.hideChapterTitles ==
                 mangaDetailsPreferences.hideChapterTitlesByDefault().get()) &&
@@ -2049,7 +1295,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
 
         // 3. Apply Explicit Overrides
         if (readFilter != null) manga.readFilter = readFilter
-        if (downloadedFilter != null) manga.downloadedFilter = downloadedFilter
         if (bookmarkedFilter != null) manga.bookmarkedFilter = bookmarkedFilter
         if (availableFilter != null) manga.availableFilter = availableFilter
         if (hideChapterTitles != null) {
@@ -2060,7 +1305,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
         // 4. Check if we need to enable Local Mode
         val hasFilterOverrides =
             readFilter != null ||
-                downloadedFilter != null ||
                 bookmarkedFilter != null ||
                 availableFilter != null ||
                 hideChapterTitles != null
@@ -2072,8 +1316,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
 
             if (wasGlobal) {
                 if (readFilter == null) manga.readFilter = prefs.filterChapterByRead().get()
-                if (downloadedFilter == null)
-                    manga.downloadedFilter = prefs.filterChapterByDownloaded().get()
                 if (bookmarkedFilter == null)
                     manga.bookmarkedFilter = prefs.filterChapterByBookmarked().get()
                 if (availableFilter == null)
@@ -2192,10 +1434,6 @@ class MangaViewModel(val mangaId: Long) : ViewModel() {
             mangaRepository.updateManga(dbManga)
         }
     }
-
-    fun getDateFormat(): DateFormat {
-        return getDateFormatUseCase()
-    }
 }
 
 private data class AllInfo(
@@ -2208,14 +1446,9 @@ private data class AllInfo(
     val chapterLanguageFilter: MangaConstants.LanguageFilter = MangaConstants.LanguageFilter(),
     val chapterSortFilter: MangaConstants.SortFilter = MangaConstants.SortFilter(),
     val chapterFilterText: String = "",
-    val allCategories: List<CategoryItem> = listOf(),
-    val mangaCategories: List<CategoryItem> = listOf(),
     val allChapterInfo: AllChapterInfo = AllChapterInfo(),
     val artwork: Artwork,
     val altArtwork: List<Artwork> = listOf(),
-    val tracks: List<TrackItem> = listOf(),
-    val loggedInTrackerService: List<TrackServiceItem> = listOf(),
-    val trackServiceCount: Int = 0,
 )
 
 private data class AllChapterInfo(

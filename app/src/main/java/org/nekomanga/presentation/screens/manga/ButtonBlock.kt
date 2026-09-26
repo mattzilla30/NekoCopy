@@ -12,11 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -44,13 +41,6 @@ import org.nekomanga.presentation.components.dropdown.SimpleDropDownItem
 import org.nekomanga.presentation.components.dropdown.SimpleDropdownMenu
 import org.nekomanga.presentation.components.icons.AccountTreeIcon
 import org.nekomanga.presentation.components.icons.ArtTrackIcon
-import org.nekomanga.presentation.components.icons.Numeric0BoxOutlineIcon
-import org.nekomanga.presentation.components.icons.Numeric1BoxOutlineIcon
-import org.nekomanga.presentation.components.icons.Numeric2BoxOutlineIcon
-import org.nekomanga.presentation.components.icons.Numeric3BoxOutlineIcon
-import org.nekomanga.presentation.components.icons.Numeric4BoxOutlineIcon
-import org.nekomanga.presentation.components.icons.Numeric5BoxOutlineIcon
-import org.nekomanga.presentation.components.icons.Numeric6BoxOutlineIcon
 import org.nekomanga.presentation.components.theme.ThemeColorState
 import org.nekomanga.presentation.theme.Size
 
@@ -59,17 +49,11 @@ import org.nekomanga.presentation.theme.Size
 fun ButtonBlock(
     hideButtonText: Boolean,
     isInitialized: Boolean,
-    inLibrary: Boolean,
-    loggedIntoTrackers: Boolean,
-    trackServiceCount: Int,
     themeColorState: ThemeColorState,
-    toggleFavorite: () -> Unit,
-    trackingClick: () -> Unit,
     artworkClick: () -> Unit,
     similarClick: () -> Unit,
     linksClick: () -> Unit,
     shareClick: () -> Unit,
-    moveCategories: () -> Unit,
 ) {
     if (!isInitialized) return
 
@@ -97,99 +81,38 @@ fun ButtonBlock(
             }
         }
 
-    val actionButtons =
-        remember(inLibrary, trackServiceCount, loggedIntoTrackers) {
-            buildList<ActionButtonData> {
-                // Favorite Button
-                add(
-                    ActionButtonData(
-                        icon =
-                            if (inLibrary) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        text = UiText.String(""),
-                        contentDescription =
-                            if (inLibrary) UiText.StringResource(R.string.remove_from_library)
-                            else UiText.StringResource(R.string.add_to_library),
-                        isChecked = inLibrary,
-                        onClick = toggleFavorite,
-                        dropdownItems =
-                            if (inLibrary) {
-                                listOf(
-                                    SimpleDropDownItem.Action(
-                                        text = UiText.StringResource(R.string.remove_from_library),
-                                        onClick = toggleFavorite,
-                                    ),
-                                    SimpleDropDownItem.Action(
-                                        text = UiText.StringResource(R.string.edit_categories),
-                                        onClick = moveCategories,
-                                    ),
-                                )
-                            } else {
-                                null
-                            },
-                    )
+    val actionButtons = remember {
+        buildList<ActionButtonData> {
+            add(
+                ActionButtonData(
+                    icon = ArtTrackIcon,
+                    text = UiText.StringResource(R.string.artwork),
+                    onClick = artworkClick,
                 )
-
-                // Tracking Button (conditionally added)
-                if (loggedIntoTrackers) {
-                    val isTracked = trackServiceCount > 0
-                    val trackerIcon =
-                        when {
-                            isTracked ->
-                                when (trackServiceCount) {
-                                    1 -> Numeric1BoxOutlineIcon
-                                    2 -> Numeric2BoxOutlineIcon
-                                    3 -> Numeric3BoxOutlineIcon
-                                    4 -> Numeric4BoxOutlineIcon
-                                    5 -> Numeric5BoxOutlineIcon
-                                    6 -> Numeric6BoxOutlineIcon
-                                    else -> Numeric0BoxOutlineIcon
-                                }
-
-                            else -> Icons.Filled.Sync
-                        }
-                    add(
-                        ActionButtonData(
-                            icon = trackerIcon,
-                            text =
-                                if (isTracked) UiText.StringResource(R.string.tracked)
-                                else UiText.StringResource(R.string.tracking),
-                            isChecked = isTracked,
-                            onClick = trackingClick,
-                        )
-                    )
-                }
-
-                // Other buttons
-                add(
-                    ActionButtonData(
-                        icon = ArtTrackIcon,
-                        text = UiText.StringResource(R.string.artwork),
-                        onClick = artworkClick,
-                    )
+            )
+            add(
+                ActionButtonData(
+                    icon = AccountTreeIcon,
+                    text = UiText.StringResource(R.string.similar_work),
+                    onClick = similarClick,
                 )
-                add(
-                    ActionButtonData(
-                        icon = AccountTreeIcon,
-                        text = UiText.StringResource(R.string.similar_work),
-                        onClick = similarClick,
-                    )
+            )
+            add(
+                ActionButtonData(
+                    icon = Icons.Filled.OpenInBrowser,
+                    text = UiText.StringResource(R.string.links),
+                    onClick = linksClick,
                 )
-                add(
-                    ActionButtonData(
-                        icon = Icons.Filled.OpenInBrowser,
-                        text = UiText.StringResource(R.string.links),
-                        onClick = linksClick,
-                    )
+            )
+            add(
+                ActionButtonData(
+                    icon = Icons.Filled.Share,
+                    text = UiText.StringResource(R.string.share),
+                    onClick = shareClick,
                 )
-                add(
-                    ActionButtonData(
-                        icon = Icons.Filled.Share,
-                        text = UiText.StringResource(R.string.share),
-                        onClick = shareClick,
-                    )
-                )
-            }
+            )
         }
+    }
 
     // The UI is rendered by iterating over the data list.
     Row(

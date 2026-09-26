@@ -4,7 +4,6 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -31,63 +30,8 @@ import org.nekomanga.domain.manga.Artwork
 import org.nekomanga.logging.TimberKt
 import org.nekomanga.presentation.components.MangaCover
 import org.nekomanga.presentation.components.NekoColors
-import org.nekomanga.presentation.screens.feed.history.FeedHistoryPage
-import org.nekomanga.presentation.screens.feed.updates.FeedUpdatesPage
 import org.nekomanga.presentation.theme.Shapes
 import org.nekomanga.presentation.theme.Size
-
-@Composable
-fun FeedPage(
-    modifier: Modifier,
-    feedMangaList: List<FeedManga>,
-    outlineCovers: Boolean,
-    dynamicCovers: Boolean,
-    outlineCards: Boolean,
-    useVividColorHeaders: Boolean,
-    hasMoreResults: Boolean,
-    loadingResults: Boolean,
-    groupedBySeries: Boolean,
-    updatesFetchSort: Boolean,
-    feedScreenActions: FeedScreenActions,
-    loadNextPage: () -> Unit,
-    feedScreenType: FeedScreenType,
-    historyGrouping: FeedHistoryGroup,
-    contentPadding: PaddingValues = PaddingValues(),
-) {
-    when (feedScreenType) {
-        FeedScreenType.History -> {
-            FeedHistoryPage(
-                modifier = modifier,
-                contentPadding = contentPadding,
-                feedHistoryMangaList = feedMangaList,
-                outlineCovers = outlineCovers,
-                dynamicCovers = dynamicCovers,
-                outlineCards = outlineCards,
-                feedScreenActions = feedScreenActions,
-                hasMoreResults = hasMoreResults,
-                loadingResults = loadingResults,
-                loadNextPage = loadNextPage,
-                historyGrouping = historyGrouping,
-            )
-        }
-        FeedScreenType.Updates -> {
-            FeedUpdatesPage(
-                modifier = modifier,
-                contentPadding = contentPadding,
-                useVividColorHeaders = useVividColorHeaders,
-                feedUpdatesMangaList = feedMangaList,
-                outlineCovers = outlineCovers,
-                dynamicCovers = dynamicCovers,
-                groupedBySeries = groupedBySeries,
-                hasMoreResults = hasMoreResults,
-                loadingResults = loadingResults,
-                updatesFetchSort = updatesFetchSort,
-                feedScreenActions = feedScreenActions,
-                loadNextPage = loadNextPage,
-            )
-        }
-    }
-}
 
 @Composable
 fun getReadTextColor(

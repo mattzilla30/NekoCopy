@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.online.utils.MdLang
 import org.nekomanga.domain.chapter.ChapterItem
 import org.nekomanga.domain.chapter.SimpleChapter
@@ -30,7 +29,6 @@ private fun ChapterRowPreviewContent(chapterItem: ChapterItem) {
             onRead = {},
             onWebView = {},
             onComment = {},
-            onDownload = { _, _ -> },
             blockScanlator = { _, _ -> },
             markPrevious = { _, _ -> },
         )
@@ -86,9 +84,7 @@ private class ChapterItemProvider : PreviewParameterProvider<Themed<ChapterItem>
                                 language = MdLang.ENGLISH.lang,
                                 scanlator = "ScanGroup A",
                                 dateUpload = System.currentTimeMillis() - 172800000,
-                            ),
-                    downloadState = Download.State.DOWNLOADING,
-                    downloadProgress = 45,
+                            )
                 ),
                 // 4. Unavailable/Locked
                 ChapterItem(

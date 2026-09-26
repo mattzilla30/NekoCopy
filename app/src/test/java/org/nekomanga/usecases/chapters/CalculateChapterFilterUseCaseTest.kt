@@ -55,21 +55,6 @@ class CalculateChapterFilterUseCaseTest {
     }
 
     @Test
-    fun `when option is Downloaded, updates downloaded state and sets showAll to false`() {
-        val current = MangaConstants.ChapterDisplay(showAll = true)
-        val option =
-            MangaConstants.ChapterDisplayOptions(
-                displayType = MangaConstants.ChapterDisplayType.Downloaded,
-                displayState = ToggleableState.On,
-            )
-
-        val result = useCase(current, option)
-
-        assertEquals(false, result.showAll)
-        assertEquals(ToggleableState.On, result.downloaded)
-    }
-
-    @Test
     fun `when option is HideTitles, updates hideChapterTitles state only`() {
         val current = MangaConstants.ChapterDisplay(showAll = true, unread = ToggleableState.On)
         val option =

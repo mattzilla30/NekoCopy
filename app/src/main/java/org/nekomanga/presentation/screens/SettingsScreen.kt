@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -32,26 +31,17 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import eu.kanade.tachiyomi.ui.setting.AdvancedSettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.DataStorageSettingsViewModel
-import eu.kanade.tachiyomi.ui.setting.DebugSettingsViewModel
-import eu.kanade.tachiyomi.ui.setting.DownloadSettingsViewModel
-import eu.kanade.tachiyomi.ui.setting.LibrarySettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.MangaDexSettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.ReaderSettingsViewModel
 import eu.kanade.tachiyomi.ui.setting.SettingsViewModel
-import eu.kanade.tachiyomi.ui.setting.TrackingSettingsViewModel
 import org.nekomanga.presentation.screens.settings.SettingsMainScreen
-import org.nekomanga.presentation.screens.settings.editCategoryscreens.AddEditCategoriesScreen
 import org.nekomanga.presentation.screens.settings.screens.AdvancedSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.AppearanceSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.DataStorageSettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.DebugSettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.DownloadSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.GeneralSettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.LibrarySettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.MangaDexSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.ReaderSettingsScreen
 import org.nekomanga.presentation.screens.settings.screens.SecuritySettingsScreen
-import org.nekomanga.presentation.screens.settings.screens.TrackingSettingsScreen
 
 @Composable
 fun SettingsScreen(windowSizeClass: WindowSizeClass, onBackPressed: () -> Unit, deepLink: NavKey?) {
@@ -111,7 +101,6 @@ fun SettingsScreen(windowSizeClass: WindowSizeClass, onBackPressed: () -> Unit, 
                     }
                 },
                 incognitoMode = settingsVm.securityPreferences.incognitoMode().get(),
-                developerMode = settingsVm.preferences.developerMode().get(),
                 onNavigationIconClick = onBackPressed,
                 selectedScreen = selectedScreen,
             )
@@ -152,57 +141,7 @@ fun SettingsScreen(windowSizeClass: WindowSizeClass, onBackPressed: () -> Unit, 
                         },
                     incognitoMode = settingsVm.securityPreferences.incognitoMode().get(),
                     preferences = settingsVm.preferences,
-                    libraryPreferences = settingsVm.libraryPreferences,
                     mangaDetailsPreferences = settingsVm.mangaDetailsPreferences,
-                )
-                .Content()
-        }
-        entry<Screens.Settings.Library> {
-            val vm: LibrarySettingsViewModel = viewModel()
-            LibrarySettingsScreen(
-                    onNavigationIconClick =
-                        if (isTablet && detailBackStack.size == 1) null
-                        else {
-                            {
-                                if (isTablet && detailBackStack.size > 1) {
-                                    detailBackStack.removeLastOrNull()
-                                } else {
-                                    reset(backStack, wasDeepLink, onBackPressed)
-                                }
-                            }
-                        },
-                    incognitoMode = settingsVm.securityPreferences.incognitoMode().get(),
-                    libraryPreferences = vm.libraryPreferences,
-                    categories = vm.allCategories.collectAsState().value,
-                    viewModelScope = vm.viewModelScope,
-                    onAddEditCategoryClick = {
-                        if (isTablet) {
-                            detailBackStack.add(Screens.Settings.Categories)
-                        } else {
-                            backStack.add(Screens.Settings.Categories)
-                        }
-                    },
-                )
-                .Content()
-        }
-        entry<Screens.Settings.Categories> {
-            val vm: LibrarySettingsViewModel = viewModel()
-            AddEditCategoriesScreen(
-                    onNavigationIconClick =
-                        if (isTablet && detailBackStack.size == 1) null
-                        else {
-                            {
-                                if (isTablet && detailBackStack.size > 1) {
-                                    detailBackStack.removeLastOrNull()
-                                } else {
-                                    reset(backStack, wasDeepLink, onBackPressed)
-                                }
-                            }
-                        },
-                    categories = vm.allCategories.collectAsState().value,
-                    addUpdateCategory = vm::addUpdateCategory,
-                    deleteCategory = vm::deleteCategory,
-                    onChangeOrder = vm::onChangeOrder,
                 )
                 .Content()
         }
@@ -247,7 +186,6 @@ fun SettingsScreen(windowSizeClass: WindowSizeClass, onBackPressed: () -> Unit, 
                     mangaDexPreferences = vm.mangaDexPreference,
                     mangaDexSettingsState = vm.state.collectAsState().value,
                     deleteSavedFilters = vm::deleteAllBrowseFilters,
-                    logout = vm::logout,
                 )
                 .Content()
         }
@@ -271,54 +209,6 @@ fun SettingsScreen(windowSizeClass: WindowSizeClass, onBackPressed: () -> Unit, 
                 .Content()
         }
 
-        entry<Screens.Settings.Downloads> {
-            val vm: DownloadSettingsViewModel = viewModel()
-
-            DownloadSettingsScreen(
-                    preferences = vm.preferences,
-                    readerPreferences = vm.readerPreferences,
-                    incognitoMode = settingsVm.securityPreferences.incognitoMode().get(),
-                    allCategories = vm.allCategories.collectAsState().value,
-                    onNavigationIconClick =
-                        if (isTablet && detailBackStack.size == 1) null
-                        else {
-                            {
-                                if (isTablet && detailBackStack.size > 1) {
-                                    detailBackStack.removeLastOrNull()
-                                } else {
-                                    reset(backStack, wasDeepLink, onBackPressed)
-                                }
-                            }
-                        },
-                )
-                .Content()
-        }
-
-        entry<Screens.Settings.Tracking> {
-            val vm: TrackingSettingsViewModel = viewModel()
-
-            TrackingSettingsScreen(
-                    preferences = vm.preferences,
-                    trackingScreenState = vm.state.collectAsState().value,
-                    updateAutoAddTrack = vm::updateAutoAddTrack,
-                    incognitoMode = settingsVm.securityPreferences.incognitoMode().get(),
-                    loginEvent = vm.loginEvent,
-                    login = vm::login,
-                    logout = vm::logout,
-                    onNavigationIconClick =
-                        if (isTablet && detailBackStack.size == 1) null
-                        else {
-                            {
-                                if (isTablet && detailBackStack.size > 1) {
-                                    detailBackStack.removeLastOrNull()
-                                } else {
-                                    reset(backStack, wasDeepLink, onBackPressed)
-                                }
-                            }
-                        },
-                )
-                .Content()
-        }
         entry<Screens.Settings.Security> {
             SecuritySettingsScreen(
                     securityPreferences = settingsVm.securityPreferences,
@@ -348,35 +238,6 @@ fun SettingsScreen(windowSizeClass: WindowSizeClass, onBackPressed: () -> Unit, 
                     toastEvent = vm.toastEvent,
                     clearNetworkCookies = vm::clearNetworkCookies,
                     clearDatabase = vm::clearDatabase,
-                    cleanupDownloads = vm::cleanupDownloads,
-                    reindexDownloads = vm::reindexDownloads,
-                    dedupeCategories = vm::dedupeCategories,
-                    onNavigationIconClick =
-                        if (isTablet && detailBackStack.size == 1) null
-                        else {
-                            {
-                                if (isTablet && detailBackStack.size > 1) {
-                                    detailBackStack.removeLastOrNull()
-                                } else {
-                                    reset(backStack, wasDeepLink, onBackPressed)
-                                }
-                            }
-                        },
-                )
-                .Content()
-        }
-
-        entry<Screens.Settings.Debug> {
-            val vm: DebugSettingsViewModel = viewModel()
-
-            DebugSettingsScreen(
-                    toastEvent = vm.toastEvent,
-                    incognitoMode = settingsVm.securityPreferences.incognitoMode().get(),
-                    unfollowAllLibraryManga = vm::unfollowAllLibraryManga,
-                    removeAllMangaWithStatusOnMangaDex = vm::removeAllMangaWithStatusOnMangaDex,
-                    clearAllManga = vm::clearAllManga,
-                    clearAllTrackers = vm::clearAllTrackers,
-                    clearAllCategories = vm::clearAllCategories,
                     onNavigationIconClick =
                         if (isTablet && detailBackStack.size == 1) null
                         else {

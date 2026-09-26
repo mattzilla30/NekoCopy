@@ -17,7 +17,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.nekomanga.R
@@ -78,31 +77,6 @@ class AboutViewModelTest {
         assertEquals("Jan 1, 2026", state.buildTime)
         assertFalse(state.incognitoMode)
     }
-
-    @Test
-    fun `given developerMode is false when onVersionClicked clicked 7 times then developerMode is toggled to true`() =
-        runTest {
-            // Arrange
-            val developerModePref = mockk<Preference<Boolean>>(relaxed = true)
-            var devModeValue = false
-            every { developerModePref.get() } answers { devModeValue }
-            every { developerModePref.set(any()) } answers { devModeValue = firstArg() }
-            every { mockPreferences.developerMode() } returns developerModePref
-
-            coEvery { mockAppSnackbarManager.showSnackbar(any()) } returns Unit
-
-            // Act
-            repeat(7) { viewModel.onVersionClicked() }
-            advanceUntilIdle()
-
-            // Assert
-            assertTrue(devModeValue)
-            coVerify(exactly = 1) {
-                mockAppSnackbarManager.showSnackbar(
-                    withArg { assertEquals(R.string.developer_mode_enabled, it.messageRes) }
-                )
-            }
-        }
 
     @Test
     fun `given version long clicked when called then build info copied snackbar is shown`() =

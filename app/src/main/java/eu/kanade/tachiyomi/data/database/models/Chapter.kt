@@ -51,8 +51,6 @@ interface Chapter : SChapter, Serializable {
     }
 }
 
-fun Chapter.canDeleteChapter() = !this.bookmark && !this.isUnavailable
-
 fun Chapter.scanlatorList(): List<String> {
     this.scanlator ?: return emptyList()
     return ChapterUtil.getScanlators(this.scanlator!!)

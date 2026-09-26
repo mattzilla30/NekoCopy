@@ -4,8 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.map
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.util.category.CategoryUtil
-import eu.kanade.tachiyomi.util.manga.filterVisibility
 import eu.kanade.tachiyomi.util.manga.resyncDisplayManga
 import eu.kanade.tachiyomi.util.manga.unique
 import eu.kanade.tachiyomi.util.system.launchIO
@@ -16,31 +14,21 @@ import kotlinx.coroutines.flow.update
 import org.nekomanga.core.preferences.observeAndUpdate
 import org.nekomanga.core.security.SecurityPreferences
 import org.nekomanga.data.database.repository.MangaRepository
-import org.nekomanga.domain.category.CategoryItem
 import org.nekomanga.domain.details.MangaDetailsPreferences
-import org.nekomanga.domain.library.LibraryPreferences
 import org.nekomanga.domain.network.ResultError
-import org.nekomanga.presentation.screens.library.LibraryDisplayMode
-import org.nekomanga.usecases.category.CategoryUseCases
-import org.nekomanga.usecases.manga.MangaUseCases
 import org.nekomanga.util.paging.DefaultPaginator
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 
 class DisplayViewModel(val displayScreenType: DisplayScreenType) : ViewModel() {
 
     private val displayRepository: DisplayRepository = Injekt.get()
     private val preferences: PreferencesHelper = Injekt.get()
-    private val libraryPreferences: LibraryPreferences = Injekt.get()
 
     private val mangaDetailsPreferences: MangaDetailsPreferences = Injekt.get()
     private val securityPreferences: SecurityPreferences = Injekt.get()
 
-    private val categoryUseCases: CategoryUseCases by injectLazy()
     private val mangaRepository: MangaRepository = Injekt.get()
-
-    private val mangaUseCases: MangaUseCases by injectLazy()
 
     private val _displayScreenState =
         MutableStateFlow(
@@ -48,12 +36,8 @@ class DisplayViewModel(val displayScreenType: DisplayScreenType) : ViewModel() {
                 isList = preferences.browseAsList().get(),
                 title = displayScreenType.title,
                 incognitoMode = securityPreferences.incognitoMode().get(),
-                outlineCovers = libraryPreferences.outlineOnCovers().get(),
+                outlineCovers = preferences.outlineOnCovers().get(),
                 dynamicCovers = mangaDetailsPreferences.dynamicCovers().get(),
-                isComfortableGrid =
-                    libraryPreferences.layout().get() != LibraryDisplayMode.CompactGrid,
-                rawColumnCount = libraryPreferences.gridSize().get(),
-                libraryEntryVisibility = preferences.browseDisplayMode().get(),
             )
         )
     val displayScreenState: StateFlow<DisplayScreenState> = _displayScreenState.asStateFlow()
@@ -102,8 +86,6 @@ class DisplayViewModel(val displayScreenType: DisplayScreenType) : ViewModel() {
                             page = newKey,
                             endReached = !hasNextPage,
                             allDisplayManga = allDisplayManga.toList(),
-                            filteredDisplayManga =
-                                allDisplayManga.filterVisibility(preferences).toList(),
                         )
                     }
                 }
@@ -119,31 +101,8 @@ class DisplayViewModel(val displayScreenType: DisplayScreenType) : ViewModel() {
         }
         loadNextItems()
 
-        viewModelScope.launchIO {
-            val categories = categoryUseCases.getCategories.get()
-            _displayScreenState.update {
-                it.copy(
-                    categories = categories,
-                    promptForCategories =
-                        CategoryUtil.shouldShowCategoryPrompt(libraryPreferences, categories),
-                )
-            }
-        }
-
-        // distinctUntilChanged()
-        // to prevent redundant state updates and UI recompositions.
         preferences.browseAsList().changes().observeAndUpdate(viewModelScope) {
             _displayScreenState.update { state -> state.copy(isList = it) }
-        }
-
-        preferences.browseDisplayMode().changes().observeAndUpdate(viewModelScope) { visibility ->
-            _displayScreenState.update {
-                it.copy(
-                    libraryEntryVisibility = visibility,
-                    filteredDisplayManga =
-                        it.allDisplayManga.filterVisibility(preferences).toList(),
-                )
-            }
         }
     }
 
@@ -151,80 +110,8 @@ class DisplayViewModel(val displayScreenType: DisplayScreenType) : ViewModel() {
         viewModelScope.launchIO { paginator.loadNextItems() }
     }
 
-    fun toggleFavorite(mangaId: Long, categoryItems: List<CategoryItem>) {
-        viewModelScope.launchIO {
-            val isFavorite =
-                mangaUseCases.toggleMangaFavorite(
-                    mangaId = mangaId,
-                    categoryItems = categoryItems,
-                    categoriesProvider = { _displayScreenState.value.categories },
-                ) ?: return@launchIO
-
-            updateDisplayManga(mangaId, isFavorite)
-        }
-    }
-
-    private fun updateDisplayManga(mangaId: Long, favorite: Boolean) {
-        viewModelScope.launchIO {
-            val index =
-                _displayScreenState.value.allDisplayManga.indexOfFirst { it.mangaId == mangaId }
-            if (index >= 0) {
-                val tempDisplayManga =
-                    _displayScreenState.value.allDisplayManga[index].copy(inLibrary = favorite)
-                _displayScreenState.update {
-                    it.copy(
-                        allDisplayManga =
-                            buildList {
-                                addAll(it.allDisplayManga)
-                                set(index, tempDisplayManga)
-                            }
-                    )
-                }
-
-                val filteredIndex =
-                    _displayScreenState.value.filteredDisplayManga.indexOfFirst {
-                        it.mangaId == mangaId
-                    }
-                if (filteredIndex >= 0) {
-                    _displayScreenState.update {
-                        it.copy(
-                            filteredDisplayManga =
-                                buildList {
-                                    addAll(it.filteredDisplayManga)
-                                    set(filteredIndex, tempDisplayManga)
-                                }
-                        )
-                    }
-                }
-            }
-
-            if (preferences.browseDisplayMode().get() != 0) {
-                _displayScreenState.update {
-                    it.copy(
-                        filteredDisplayManga =
-                            it.allDisplayManga.filterVisibility(preferences).toList()
-                    )
-                }
-            }
-        }
-    }
-
-    /** Add New Category */
-    fun addNewCategory(newCategory: String) {
-        viewModelScope.launchIO {
-            categoryUseCases.modifyCategory.addNewCategory(newCategory)
-            _displayScreenState.update {
-                it.copy(categories = categoryUseCases.getCategories.get())
-            }
-        }
-    }
-
     fun switchDisplayMode() {
         preferences.browseAsList().set(!displayScreenState.value.isList)
-    }
-
-    fun switchLibraryEntryVisibility(visibility: Int) {
-        preferences.browseDisplayMode().set(visibility)
     }
 
     fun updateMangaForChanges() {
@@ -234,12 +121,7 @@ class DisplayViewModel(val displayScreenType: DisplayScreenType) : ViewModel() {
                     .resyncDisplayManga(mangaRepository)
                     .unique()
                     .toList()
-            _displayScreenState.update {
-                it.copy(
-                    allDisplayManga = newDisplayManga,
-                    filteredDisplayManga = newDisplayManga.filterVisibility(preferences).toList(),
-                )
-            }
+            _displayScreenState.update { it.copy(allDisplayManga = newDisplayManga) }
         }
     }
 }

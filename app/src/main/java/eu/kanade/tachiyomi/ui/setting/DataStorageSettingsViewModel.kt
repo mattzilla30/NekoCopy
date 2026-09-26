@@ -15,18 +15,14 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import org.nekomanga.R
-import org.nekomanga.core.preferences.observeAndUpdate
-import org.nekomanga.domain.library.LibraryPreferences
+import org.nekomanga.constants.Constants
 import org.nekomanga.domain.storage.StoragePreferences
 import org.nekomanga.presentation.components.UiText
 import tachiyomi.core.util.storage.DiskUtil
 import uy.kohesive.injekt.injectLazy
 
 class DataStorageSettingsViewModel : ViewModel() {
-
-    val libraryPreferences: LibraryPreferences by injectLazy()
 
     val storagePreferences: StoragePreferences by injectLazy()
 
@@ -46,49 +42,29 @@ class DataStorageSettingsViewModel : ViewModel() {
     val cacheData = _cacheData.asStateFlow()
 
     init {
-        DiskUtil.observeDiskSpace(applicationContext.cacheDir, applicationContext).observeAndUpdate(
-            viewModelScope
-        ) { newSize ->
-            _cacheData.update { it.copy(parentCacheSize = newSize) }
-        }
+        viewModelScope.launchIO { refreshSizes() }
+    }
 
-        DiskUtil.observeDiskSpace(chapterCache.cacheDir, applicationContext).observeAndUpdate(
-            viewModelScope
-        ) { newSize ->
-            _cacheData.update { it.copy(chapterDiskCacheSize = newSize) }
-        }
-
-        DiskUtil.observeDiskSpace(coverCache.cacheDir, applicationContext).observeAndUpdate(
-            viewModelScope
-        ) { newSize ->
-            _cacheData.update { it.copy(coverCacheSize = newSize) }
-        }
-
-        DiskUtil.observeDiskSpace(coverCache.customCoverCacheDir, applicationContext)
-            .observeAndUpdate(viewModelScope) { newSize ->
-                _cacheData.update { it.copy(customCoverCacheSize = newSize) }
-            }
-        DiskUtil.observeDiskSpace(coverCache.onlineCoverDirectory, applicationContext)
-            .observeAndUpdate(viewModelScope) { newSize ->
-                _cacheData.update { it.copy(onlineCoverCacheSize = newSize) }
-            }
-        DiskUtil.observeDiskSpace(
-                File(applicationContext.cacheDir, CoilDiskCache.FOLDER_NAME),
-                applicationContext,
+    /** Measures every cache folder. Runs when the screen opens and after each clear. */
+    private fun refreshSizes() {
+        val context = applicationContext
+        fun size(directory: File) = DiskUtil.readableDiskSize(context, directory)
+        val tempFiles =
+            context.cacheDir
+                .listFiles()
+                .orEmpty()
+                .filter { it.isFile && it.name.endsWith(Constants.TMP_FILE_SUFFIX) }
+                .sumOf { it.length() }
+        _cacheData.value =
+            CacheData(
+                parentCacheSize = size(context.cacheDir),
+                chapterDiskCacheSize = size(chapterCache.cacheDir),
+                customCoverCacheSize = size(coverCache.customCoverCacheDir),
+                onlineCoverCacheSize = size(coverCache.onlineCoverDirectory),
+                imageCacheSize = size(File(context.cacheDir, CoilDiskCache.FOLDER_NAME)),
+                networkCacheSize = size(network.cacheDir),
+                tempFileCacheSize = DiskUtil.readableDiskSize(context, tempFiles),
             )
-            .observeAndUpdate(viewModelScope) { newSize ->
-                _cacheData.update { it.copy(imageCacheSize = newSize) }
-            }
-        DiskUtil.observeDiskSpace(network.cacheDir, applicationContext).observeAndUpdate(
-            viewModelScope
-        ) { newSize ->
-            _cacheData.update { it.copy(networkCacheSize = newSize) }
-        }
-
-        DiskUtil.observeDiskSpace(applicationContext.cacheDir, applicationContext, true)
-            .observeAndUpdate(viewModelScope) { newSize ->
-                _cacheData.update { it.copy(tempFileCacheSize = newSize) }
-            }
     }
 
     fun clearParentCache(cacheType: CacheType) {
@@ -98,7 +74,6 @@ class DataStorageSettingsViewModel : ViewModel() {
                     CacheType.Parent ->
                         DiskUtil.cleanupDiskSpace(applicationContext.cacheDir, applicationContext)
                     CacheType.ChapterDisk -> chapterCache.deleteCache()
-                    CacheType.Cover -> coverCache.deleteOldCovers()
                     CacheType.CustomCover -> coverCache.deleteAllCustomCachedCovers()
                     CacheType.OnlineCover -> coverCache.deleteAllCachedCovers()
                     CacheType.Image ->
@@ -115,6 +90,7 @@ class DataStorageSettingsViewModel : ViewModel() {
                             true,
                         )
                 }
+                refreshSizes()
             }
             _toastEvent.emit(UiText.StringResource(R.string.cache_cleared))
         }
@@ -124,7 +100,6 @@ class DataStorageSettingsViewModel : ViewModel() {
 enum class CacheType {
     Parent,
     ChapterDisk,
-    Cover,
     CustomCover,
     OnlineCover,
     Image,
@@ -136,7 +111,6 @@ enum class CacheType {
 data class CacheData(
     val parentCacheSize: String = "",
     val chapterDiskCacheSize: String = "",
-    val coverCacheSize: String = "",
     val customCoverCacheSize: String = "",
     val onlineCoverCacheSize: String = "",
     val imageCacheSize: String = "",

@@ -35,11 +35,8 @@ import org.nekomanga.presentation.screens.about.AboutViewModel
 import org.nekomanga.presentation.screens.browse.BrowseViewModel
 import org.nekomanga.presentation.screens.deepLink.DeepLinkScreen
 import org.nekomanga.presentation.screens.deepLink.DeepLinkViewModel
-import org.nekomanga.presentation.screens.feed.FeedScreenType
 import org.nekomanga.presentation.screens.feed.FeedViewModel
-import org.nekomanga.presentation.screens.library.LibraryViewModel
 import org.nekomanga.presentation.screens.similar.SimilarViewModel
-import org.nekomanga.presentation.screens.stats.StatsViewModel
 
 @Composable
 fun MainScreen(
@@ -59,7 +56,6 @@ fun MainScreen(
             incognitoMode = incognitoMode,
             incognitoModeClick = incognitoClick,
             settingsClick = { backStack.add(Screens.Settings.Main()) },
-            statsClick = { backStack.add(Screens.Stats) },
             aboutClick = { backStack.add(Screens.About) },
             menuShowing = { mainDropdownShowing = it },
         )
@@ -153,48 +149,15 @@ fun MainScreen(
                         OnboardingScreen(
                             finishedOnBoarding = {
                                 backStack.clear()
-                                backStack.add(Screens.Library())
+                                backStack.add(Screens.Browse())
                                 onboardingCompleted()
                             }
                         )
                     }
 
-                    entry<Screens.Library> { screen ->
-                        val libraryViewModel: LibraryViewModel = viewModel()
-                        remember(screen.initialSearch) {
-                            if (screen.initialSearch.isNotEmpty()) {
-                                libraryViewModel.deepLinkSearch(screen.initialSearch)
-                            }
-                            true
-                        }
-                        LibraryScreen(
-                            libraryViewModel = libraryViewModel,
-                            mainDropdown = mainDropDown,
-                            mainDropdownShowing = mainDropdownShowing,
-                            openManga = { mangaId -> backStack.add(Screens.Manga(mangaId)) },
-                            onSearchMangaDex = { search ->
-                                backStack.clear()
-                                backStack.add(Screens.Browse(search))
-                            },
-                            windowSizeClass = windowSizeClass,
-                            navigationRail = navigationRail,
-                            bottomBar = bottomBar,
-                        )
-                    }
-                    entry<Screens.Updates> {
-                        FeedScreen(
-                            feedViewModel = viewModel { FeedViewModel(FeedScreenType.Updates) },
-                            mainDropdown = mainDropDown,
-                            mainDropdownShowing = mainDropdownShowing,
-                            openManga = { mangaId -> backStack.add(Screens.Manga(mangaId)) },
-                            windowSizeClass = windowSizeClass,
-                            navigationRail = navigationRail,
-                            bottomBar = bottomBar,
-                        )
-                    }
                     entry<Screens.History> {
                         FeedScreen(
-                            feedViewModel = viewModel { FeedViewModel(FeedScreenType.History) },
+                            feedViewModel = viewModel { FeedViewModel() },
                             mainDropdown = mainDropDown,
                             mainDropdownShowing = mainDropdownShowing,
                             openManga = { mangaId -> backStack.add(Screens.Manga(mangaId)) },
@@ -229,10 +192,6 @@ fun MainScreen(
                             windowSizeClass = windowSizeClass,
                             onBackPressed = goBack,
                             onNavigate = { screen -> backStack.add(screen) },
-                            onSearchLibrary = { tag ->
-                                backStack.clear()
-                                backStack.add(Screens.Library(initialSearch = tag))
-                            },
                             onSearchMangaDex = { displayType ->
                                 backStack.add(Screens.Display(displayType.toSerializable()))
                             },
@@ -278,15 +237,6 @@ fun MainScreen(
                             windowSizeClass = windowSizeClass,
                             onBackPressed = goBack,
                             deepLink = screen.deepLink,
-                        )
-                    }
-                    entry<Screens.Stats> {
-                        val statsViewModel: StatsViewModel = viewModel()
-
-                        StatsScreen(
-                            statsViewModel = statsViewModel,
-                            windowSizeClass = windowSizeClass,
-                            onBackPressed = goBack,
                         )
                     }
 

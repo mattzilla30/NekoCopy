@@ -1,7 +1,5 @@
 package eu.kanade.tachiyomi.data.database.models
 
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.utils.FollowStatus
 import org.nekomanga.domain.storage.StorageManager
@@ -91,12 +89,8 @@ open class MangaImpl : Manga {
             title = other.title
 
             if (user_title.isNullOrBlank() && oldTitle != title) {
-                val downloadManager: DownloadManager by injectLazy()
                 val storageManager: StorageManager by injectLazy()
-                val provider = DownloadProvider(downloadManager.context)
-                provider.renameMangaFolder(oldTitle, title)
                 storageManager.renamePagesAndCoverDirectory(oldTitle, title)
-                downloadManager.updateDownloadCacheForManga(this)
             }
         }
         super.copyFrom(other)

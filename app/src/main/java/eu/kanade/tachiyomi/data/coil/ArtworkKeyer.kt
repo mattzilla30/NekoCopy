@@ -25,9 +25,6 @@ class ArtworkKeyer : Keyer<Artwork> {
         }
 
         // Priority 1: Fallback to the Default Cover
-        return when (data.inLibrary) {
-            true -> "${data.mangaId}-${DiskUtil.hashKeyForDisk(data.originalCover)}"
-            false -> "${data.mangaId}-${data.originalCover}"
-        }
+        return "${data.mangaId}-${data.originalCover}"
     }
 }
