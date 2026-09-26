@@ -186,6 +186,7 @@ fun SettingsScreen(windowSizeClass: WindowSizeClass, onBackPressed: () -> Unit, 
                     mangaDexPreferences = vm.mangaDexPreference,
                     mangaDexSettingsState = vm.state.collectAsState().value,
                     deleteSavedFilters = vm::deleteAllBrowseFilters,
+                    logout = vm::logout,
                 )
                 .Content()
         }

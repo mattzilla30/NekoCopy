@@ -14,7 +14,6 @@ import eu.kanade.tachiyomi.source.online.models.dto.RelationListDto
 import eu.kanade.tachiyomi.source.online.models.dto.RelationshipDtoList
 import eu.kanade.tachiyomi.source.online.models.dto.SeasonalDto
 import eu.kanade.tachiyomi.source.online.models.dto.StatisticResponseDto
-import eu.kanade.tachiyomi.source.online.models.dto.UserListDto
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.core.network.ProxyRetrofitQueryMap
 import retrofit2.http.GET
@@ -130,8 +129,4 @@ interface MangaDexService {
     suspend fun viewList(@Path("id") id: String): ApiResponse<ListDto>
 
     @GET(MdConstants.seasonalApi) suspend fun getSeasonalList(): ApiResponse<SeasonalDto>
-
-    @Headers("Cache-Control: no-cache")
-    @GET(MdConstants.Api.user)
-    suspend fun uploader(@Query("username") username: String): ApiResponse<UserListDto>
 }

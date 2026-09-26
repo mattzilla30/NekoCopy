@@ -138,6 +138,19 @@ sealed class Preference {
             override val onValueChanged: suspend (newValue: String) -> Boolean = { true },
         ) : PreferenceItem<String>()
 
+        /** A [PreferenceItem] for signing in to or out of a site. */
+        data class SitePreference(
+            override val title: String,
+            override val subtitle: String? = null,
+            val isLoggedIn: Boolean,
+            val login: () -> Unit,
+            val logout: () -> Unit,
+        ) : PreferenceItem<String>() {
+            override val enabled: Boolean = true
+            override val icon: ImageVector? = null
+            override val onValueChanged: suspend (newValue: String) -> Boolean = { true }
+        }
+
         data class InfoPreference(override val title: String) : PreferenceItem<String>() {
             override val enabled: Boolean = true
             override val subtitle: String? = null

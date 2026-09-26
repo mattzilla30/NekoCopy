@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.network
 
 import android.content.Context
 import com.google.common.net.HttpHeaders
+import eu.kanade.tachiyomi.source.online.MangaDexLoginHelper
 import eu.kanade.tachiyomi.util.lang.isUUID
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -17,8 +18,10 @@ import org.nekomanga.core.network.NetworkPreferences
 import org.nekomanga.core.network.interceptor.HeadersInterceptor
 import org.nekomanga.core.network.interceptor.PriorityRateLimitInterceptor
 import org.nekomanga.core.network.interceptor.UserAgentInterceptor
+import org.nekomanga.core.network.interceptor.authInterceptor
 import org.nekomanga.core.network.interceptor.loggingInterceptor
 import org.nekomanga.core.network.interceptor.rateLimit
+import org.nekomanga.domain.site.MangaDexPreferences
 import tachiyomi.core.network.AndroidCookieJar
 import tachiyomi.core.network.PREF_DOH_360
 import tachiyomi.core.network.PREF_DOH_ADGUARD
@@ -51,7 +54,9 @@ import uy.kohesive.injekt.injectLazy
 class NetworkHelper(val context: Context) {
     private val networkPreferences: NetworkPreferences by injectLazy()
 
+    private val mangadexPreferences: MangaDexPreferences by injectLazy()
     private val json: Json by injectLazy()
+    private val mangaDexLoginHelper: MangaDexLoginHelper by injectLazy()
 
     val cacheDir = File(context.cacheDir, "network_cache")
 
@@ -151,6 +156,16 @@ class NetworkHelper(val context: Context) {
             .build()
     }
 
+    private fun buildRateLimitedAuthenticatedClient(): OkHttpClient {
+        return buildPriorityRateLimitedClient()
+            .newBuilder()
+            .addNetworkInterceptor(authInterceptor { mangadexPreferences.sessionToken().get() })
+            .authenticator(MangaDexTokenAuthenticator(mangaDexLoginHelper))
+            .addInterceptor(HeadersInterceptor(MdConstants.baseUrl))
+            .addInterceptor(loggingInterceptor({ networkPreferences.verboseLogging().get() }, json))
+            .build()
+    }
+
     private fun buildCloudFlareClient(): OkHttpClient {
         return baseClientBuilder
             .addInterceptor(UserAgentInterceptor())
@@ -173,6 +188,8 @@ class NetworkHelper(val context: Context) {
     val cdnClient = buildCdnRateLimitedClient()
 
     val atHomeClient = buildAtHomeRateLimitedClient()
+
+    val authClient = buildRateLimitedAuthenticatedClient()
 
     val headers =
         Headers.Builder()

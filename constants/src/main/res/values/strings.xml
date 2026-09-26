@@ -297,12 +297,6 @@
         skipped if the next chapter is loaded</string>
     <string name="pref_webtoon_side_padding">Side padding</string>
     <string name="animate_page_transitions_webtoon">Animate page transitions</string>
-    <string name="webtoon_side_padding_0">None</string>
-    <string name="webtoon_side_padding_5">5%</string>
-    <string name="webtoon_side_padding_10">10%</string>
-    <string name="webtoon_side_padding_15">15%</string>
-    <string name="webtoon_side_padding_20">20%</string>
-    <string name="webtoon_side_padding_25">25%</string>
     <string name="l_nav">L shaped</string>
     <string name="kindlish_nav">Kindle-ish</string>
     <string name="edge_nav">Edge</string>
@@ -643,14 +637,6 @@
 
     <!-- Follows -->
 
-    <string name="follows_unfollowed">Unfollowed</string>
-    <string name="follows_reading">Reading</string>
-    <string name="follows_completed">Completed</string>
-    <string name="follows_on_hold">On Hold</string>
-    <string name="follows_plan_to_read">Plan To Read</string>
-    <string name="follows_dropped">Dropped</string>
-    <string name="follows_re_reading">Re Reading</string>
-
     <!-- Similar -->
     <string name="similar_type">Similar</string>
     <string name="related_type">Related</string>
@@ -708,4 +694,13 @@
 
     <string name="pref_dump_crash_logs">Dump crash logs</string>
     <string name="channel_crash_logs">Crash logs</string>
+
+    <!-- MangaDex sign-in -->
+    <string name="sign_in">Sign in</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_out_from_">Sign out from %1$s?</string>
+    <string name="could_not_sign_in">Could not sign in to MangaDex</string>
+    <string name="authentication_channel">MangaDex sign-in</string>
+    <string name="mangadex_session_expired_title">Signed out of MangaDex</string>
+    <string name="mangadex_session_expired_body">MangaDex ended your session. Tap to sign in again.</string>
 </resources>

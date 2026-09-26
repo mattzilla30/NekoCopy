@@ -10,11 +10,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import eu.kanade.tachiyomi.source.online.utils.MdLang
 import eu.kanade.tachiyomi.ui.setting.MangaDexSettingsViewModel
+import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
 import org.nekomanga.R
 import org.nekomanga.constants.MdConstants
 import org.nekomanga.domain.site.MangaDexPreferences
 import org.nekomanga.presentation.components.dialog.ConfirmationDialog
+import org.nekomanga.presentation.components.dialog.LogoutDialog
 import org.nekomanga.presentation.screens.settings.Preference
 import org.nekomanga.presentation.screens.settings.widgets.SearchTerm
 import org.nekomanga.presentation.screens.settings.widgets.TriStateListDialog
@@ -25,6 +27,7 @@ internal class MangaDexSettingsScreen(
     val mangaDexPreferences: MangaDexPreferences,
     val mangaDexSettingsState: MangaDexSettingsViewModel.MangaDexSettingsState,
     val deleteSavedFilters: () -> Unit,
+    val logout: () -> Unit,
 ) : SearchableSettings(onNavigationIconClick, incognitoMode) {
 
     override fun getTitleRes(): Int = R.string.site_specific_settings
@@ -67,10 +70,30 @@ internal class MangaDexSettingsScreen(
             )
         }
 
+        var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
+
+        if (showLogoutDialog) {
+            LogoutDialog(
+                sourceName = stringResource(R.string.site_specific_settings),
+                onDismiss = { showLogoutDialog = false },
+                onConfirm = logout,
+            )
+        }
+
         return Preference.PreferenceGroup(
             title = stringResource(R.string.general),
             preferenceItems =
                 listOf(
+                    Preference.PreferenceItem.SitePreference(
+                        title =
+                            stringResource(
+                                if (mangaDexSettingsState.isLoggedIn) R.string.sign_out
+                                else R.string.sign_in
+                            ),
+                        isLoggedIn = mangaDexSettingsState.isLoggedIn,
+                        login = { context.openInBrowser(mangaDexSettingsState.loginUrl) },
+                        logout = { showLogoutDialog = true },
+                    ),
                     Preference.PreferenceItem.SwitchPreference(
                         title = stringResource(R.string.show_content_rating_filter_in_search),
                         pref = mangaDexPreferences.showContentRatingFilter(),

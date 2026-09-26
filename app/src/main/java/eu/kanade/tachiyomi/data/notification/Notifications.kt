@@ -22,6 +22,10 @@ object Notifications {
     const val CHANNEL_INCOGNITO_MODE = "incognito_mode_channel"
     const val ID_INCOGNITO_MODE = -701
 
+    /** Notification channel used when the MangaDex session expires */
+    const val CHANNEL_AUTHENTICATION = "authentication_channel"
+    const val ID_SESSION_EXPIRED = 1_000_000
+
     /** Channels and groups of removed features, deleted from existing installs. */
     private val deprecatedChannels =
         listOf(
@@ -33,7 +37,6 @@ object Notifications {
             "library_progress_channel",
             "library_errors_channel",
             "library_skipped_channel",
-            "authentication_channel",
             "status_channel",
             "tracking_channel",
             "new_chapters_channel",
@@ -72,6 +75,11 @@ object Notifications {
                         NotificationManager.IMPORTANCE_LOW,
                     )
                     .apply { lockscreenVisibility = Notification.VISIBILITY_SECRET },
+                NotificationChannel(
+                    CHANNEL_AUTHENTICATION,
+                    context.getString(R.string.authentication_channel),
+                    NotificationManager.IMPORTANCE_HIGH,
+                ),
             )
         context.notificationManager.createNotificationChannels(channels)
 

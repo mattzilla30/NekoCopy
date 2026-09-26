@@ -3,6 +3,10 @@ package tachiyomi.core.network
 import java.io.IOException
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.okio.decodeFromBufferedSource
+import kotlinx.serialization.serializer
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -57,3 +61,15 @@ fun OkHttpClient.newCachelessCallWithProgress(request: Request, listener: Progre
 
     return progressClient.newCall(request)
 }
+
+context(jsonInstance: Json)
+inline fun <reified T> Response.parseAs(): T {
+    return decodeFromJsonResponse(serializer(), this)
+}
+
+context(jsonInstance: Json)
+fun <T> decodeFromJsonResponse(deserializer: DeserializationStrategy<T>, response: Response): T {
+    return response.body.source().use { jsonInstance.decodeFromBufferedSource(deserializer, it) }
+}
+
+class HttpException(val code: Int) : IllegalStateException("HTTP error $code")

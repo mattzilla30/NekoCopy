@@ -50,10 +50,6 @@ object Migrations {
 
     private val REMOVED_CREDENTIAL_PREFIXES =
         listOf(
-            "mangadex_session_token",
-            "mangadex_refresh_token",
-            "mangadex_refresh_token_time",
-            "mangadex_code_verifier",
             "mangadex_username",
             "track_token_",
             "track_token_expired_",

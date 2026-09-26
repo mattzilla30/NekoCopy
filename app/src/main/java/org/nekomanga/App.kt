@@ -14,6 +14,7 @@ import android.webkit.WebView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -28,16 +29,20 @@ import eu.kanade.tachiyomi.crash.GlobalExceptionHandler
 import eu.kanade.tachiyomi.data.coil.coilImageLoader
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.ui.main.DeepLinks
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.util.manga.MangaCoverMetadata
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil
 import eu.kanade.tachiyomi.util.system.notification
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.nekomanga.core.network.NetworkPreferences
 import org.nekomanga.core.security.SecurityPreferences
+import org.nekomanga.domain.site.MangaDexPreferences
 import org.nekomanga.logging.DebugReportingTree
 import org.nekomanga.logging.ReleaseLogTree
 import org.nekomanga.logging.TimberKt
@@ -53,6 +58,7 @@ open class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.F
     val preferences: PreferencesHelper by injectLazy()
     val networkPreferences: NetworkPreferences by injectLazy()
     val securityPreferences: SecurityPreferences by injectLazy()
+    val mangaDexPreferences: MangaDexPreferences by injectLazy()
 
     private val disableIncognitoReceiver = DisableIncognitoReceiver()
 
@@ -140,6 +146,53 @@ open class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.F
                     disableIncognitoReceiver.unregister()
                     notificationManager.cancel(Notifications.ID_INCOGNITO_MODE)
                 }
+            }
+            .launchIn(ProcessLifecycleOwner.get().lifecycleScope)
+
+        // Tell the user when MangaDex rejects a session refresh. MangaDexLoginHelper sets the
+        // flag and clears it on sign-in or sign-out.
+        mangaDexPreferences
+            .unexpectedLogout()
+            .changes()
+            .distinctUntilChanged()
+            .onEach { unexpected ->
+                val notificationManager = NotificationManagerCompat.from(this)
+                if (!unexpected) {
+                    notificationManager.cancel(Notifications.ID_SESSION_EXPIRED)
+                    return@onEach
+                }
+                if (
+                    ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.POST_NOTIFICATIONS,
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    return@onEach
+                }
+                val tapIntent =
+                    Intent(this, MainActivity::class.java).apply {
+                        action = DeepLinks.Actions.MangaDexSettings
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
+                val pendingIntent =
+                    PendingIntent.getActivity(
+                        this,
+                        Notifications.ID_SESSION_EXPIRED,
+                        tapIntent,
+                        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                    )
+                val body = getString(R.string.mangadex_session_expired_body)
+                val notification =
+                    notification(Notifications.CHANNEL_AUTHENTICATION) {
+                        setContentTitle(getString(R.string.mangadex_session_expired_title))
+                        setContentText(body)
+                        setStyle(NotificationCompat.BigTextStyle().bigText(body))
+                        setSmallIcon(R.drawable.ic_kitty_notification)
+                        setContentIntent(pendingIntent)
+                        setAutoCancel(true)
+                        priority = NotificationCompat.PRIORITY_HIGH
+                    }
+                notificationManager.notify(Notifications.ID_SESSION_EXPIRED, notification)
             }
             .launchIn(ProcessLifecycleOwner.get().lifecycleScope)
     }

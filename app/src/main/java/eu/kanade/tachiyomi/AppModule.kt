@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.services.NetworkServices
 import eu.kanade.tachiyomi.source.SourceManager
+import eu.kanade.tachiyomi.source.online.MangaDexLoginHelper
 import eu.kanade.tachiyomi.source.online.handlers.ApiMangaParser
 import eu.kanade.tachiyomi.source.online.handlers.ArtworkHandler
 import eu.kanade.tachiyomi.source.online.handlers.ImageHandler
@@ -177,6 +178,8 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { SimilarHandler() }
 
         addSingletonFactory { LatestChapterHandler() }
+
+        addSingletonFactory { MangaDexLoginHelper() }
 
         addSingletonFactory { MangaPlusHandler() }
 
